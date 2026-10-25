@@ -1,0 +1,7 @@
+sample,condition,replicate
+ctrl_rep1,ctrl,1
+ctrl_rep2,ctrl,2
+ctrl_rep3,ctrl,3
+trt_rep1,trt,1
+trt_rep2,trt,2
+trt_rep3,trt,3

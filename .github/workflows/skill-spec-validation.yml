@@ -1,0 +1,40 @@
+name: Skill Spec Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate Agent Skills spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install validation dependencies
+        run: pip install pyyaml
+
+      - name: Validate skill spec compliance
+        run: python scripts/validate_skills.py
+
+      - name: Validate core package imports
+        run: |
+          pip install -e .
+          python -c "import biopipe_core, biopipe; print('imports OK:', len(biopipe.REGISTRY), 'skills')"
+
+      - name: Verify every registered skill exists on disk
+        run: |
+          python - <<'PY'
+          from biopipe.registry import REGISTRY
+          missing = [s.name for s in REGISTRY.values() if not s.skill_md.exists()]
+          if missing:
+              raise SystemExit(f"注册表中缺少 SKILL.md 的技能: {missing}")
+          print(f"all {len(REGISTRY)} registered skills have SKILL.md")
+          PY

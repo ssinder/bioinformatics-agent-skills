@@ -1,0 +1,53 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    paths:
+      - "skills/**"
+      - "packages/**"
+      - "scripts/**"
+
+jobs:
+  scan:
+    name: Dependency & secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Audit core dependencies
+        run: |
+          pip install -e .
+          pip-audit --progress-spinner off --strict || \
+            pip-audit --progress-spinner off --strict --ignore-vuln CVE-2023-45803
+
+      - name: Scan for hardcoded secrets
+        run: |
+          set -e
+          echo "Scanning for credential patterns..."
+          FOUND=0
+          PATTERN='(api[_-]?key|secret[_-]?key|password|token)\s*=\s*["'"'][A-Za-z0-9_\-]{16,}["'"']'
+          if grep -rInE "$PATTERN" skills packages scripts --include='*.py' | grep -v 'os.environ\|getenv'; then
+            echo "::error::Potential hardcoded credentials found"
+            FOUND=1
+          fi
+          if [ "$FOUND" -ne 0 ]; then exit 1; fi
+          echo "No hardcoded credentials detected"
+
+      - name: Verify no writes outside allowed dirs
+        run: |
+          set -e
+          PATTERN='open\s*\([^)]*["'"']w["'"']|Path\([^)]*\)\.write_'
+          if grep -rInE "$PATTERN" skills packages --include='*.py' | grep -vE 'output|results|work|data|figures|tmp|cache'; then
+            echo "::warning::Review writes outside standard output directories"
+          fi

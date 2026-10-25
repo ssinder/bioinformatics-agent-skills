@@ -1,0 +1,53 @@
+name: Script Syntax & Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    name: Python syntax check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile all Python files
+        run: python -m compileall -q skills packages scripts
+
+      - name: Check every skill entry script exposes --help
+        run: |
+          set -e
+          for entry in skills/*/scripts/*.py; do
+            if grep -q 'bootstrap_cli\|argparse\|--help' "$entry"; then
+              echo "ok  $entry"
+            else
+              echo "MISSING CLI: $entry" && exit 1
+            fi
+          done
+
+  lint:
+    name: Ruff lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check skills packages scripts

@@ -1,0 +1,19 @@
+# protein-interactions 技能依赖
+#
+# 核心功能（PLIP XML 解析、AlphaFold 模型选择、统计汇总、Mermaid / PyMOL 生成）
+# 仅依赖 Python 3.9+ 标准库：
+#   - xml.etree.ElementTree  → PLIP report.xml 解析
+#   - json / csv / zipfile   → 报告读写与 AlphaFold 包读取
+# 无需安装任何第三方包即可运行。
+
+# 以下均为可选增强项：
+
+# 若需要在本地重新生成 PLIP 报告，需自行安装 PLIP（不在 pip 依赖内）：
+#   conda install -c conda-forge plip
+#   或 pip install plip
+
+# 若希望用 MDAnalysis 读取结构做交叉校验（可选）
+# MDAnalysis>=2.6
+
+# 若需要联网下载 AlphaFold 模型（可选）
+# requests>=2.28

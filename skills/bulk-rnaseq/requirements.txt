@@ -1,0 +1,21 @@
+# bulk-rnaseq 技能依赖
+#
+# 必需（差异表达统计与 counts 矩阵构建）
+numpy>=1.21
+scipy>=1.7
+pandas>=1.3
+
+# 可选：生成 PDF/PNG 图表（缺失时流程会跳过可视化并给出警告）
+matplotlib>=3.5
+
+# 外部工具（不在 pip 中，需自行安装）：
+#   fastqc        conda install -c bioconda fastqc
+#   fastp         conda install -c bioconda fastp
+#   salmon        conda install -c bioconda salmon
+#
+# 可选：R 后端（--backend r）
+#   conda install -c conda-forge r-base
+#   Rscript -e 'BiocManager::install("DESeq2")'
+#
+# 可选：YAML 解析（仅自检脚本需要）
+# pyyaml>=6.0

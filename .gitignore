@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+*.so
+
+# 虚拟环境
+venv/
+.venv/
+env/
+ENV/
+
+# 测试与缓存
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# 项目数据输出
+work/
+results/
+figures/
+data/
+outputs/
+logs/
+*.log
+
+# 科研数据文件（体积大且通常不公开）
+*.pdb
+*.cif
+*.dcd
+*.xtc
+*.trr
+*.h5
+*.h5ad
+*.rds
+*.rdata
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.sam
+*.vcf
+*.npy
+*.npz
+
+# 临时文件
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.swp
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 编辑器
+.idea/
+.vscode/
+*.sublime-project
+
+# 本地配置
+biopipe.yaml
+biopipe.local.yaml
+.env

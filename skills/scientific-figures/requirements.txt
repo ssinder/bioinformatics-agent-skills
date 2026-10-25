@@ -1,0 +1,11 @@
+# scientific-figures 技能依赖
+
+# 核心依赖：matplotlib —— 所有图表绘制
+matplotlib>=3.6
+
+# 可选：seaborn —— 若需更复杂的聚类热图（clustermap）可自行安装
+# seaborn>=0.12
+
+# 可选：scipy —— 若需 scipy 统计检验可自行安装（脚本本身不依赖，
+#        AUC 的 Z 检验用 math.erf 实现标准正态 CDF）
+# scipy>=1.9

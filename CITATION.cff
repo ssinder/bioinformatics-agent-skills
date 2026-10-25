@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "如果你在研究中使用了本项目，请引用以下信息。"
+title: "BioinfoAgent Skills: Agent Skills for Computational Biology"
+abstract: "A collection of Agent Skills for computational biology covering RNA-seq, single-cell analysis, protein structure analysis, molecular dynamics, peptide design, literature mining, and publication-quality figures."
+version: 1.0.0
+date-released: "2026-10-25"
+license: MIT
+type: software
+repository-code: "https://github.com/ssinder/bioinformatics-agent-skills"
+url: "https://github.com/ssinder/bioinformatics-agent-skills"
+keywords:
+  - agent-skills
+  - bioinformatics
+  - computational-biology
+  - rna-seq
+  - single-cell
+  - molecular-dynamics
+  - protein-structure
+  - literature-mining
+authors:
+  - family-names: sinder
+    given-names: "sinder"
+    orcid: "https://orcid.org/0000-0000-0000-0000"

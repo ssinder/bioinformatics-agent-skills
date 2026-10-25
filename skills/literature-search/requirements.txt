@@ -1,0 +1,9 @@
+# literature-search 技能依赖
+#
+# 核心依赖：requests —— 多源 API 检索（PubMed / OpenAlex / Semantic Scholar）
+# 未安装 requests 时，脚本仍可对本地 CSV 做离线去重、打分、筛选与引用导出。
+
+requests>=2.28
+
+# 可选：PyYAML 用于仓库级 SKILL.md frontmatter 校验（由 scripts/validate_skills.py 使用）
+PyYAML>=6.0

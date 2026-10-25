@@ -1,0 +1,63 @@
+name: PR Skill Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "skills/**"
+
+jobs:
+  scan:
+    name: Scan changed skills for quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Detect changed skills
+        id: changed
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+          git fetch --no-tags --depth=1 origin "$BASE" || true
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD" 2>/dev/null \
+            | grep -E '^skills/[^/]+/' \
+            | cut -d/ -f2 \
+            | sort -u || true)
+          echo "skills<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Changed skills: ${CHANGED:-none}"
+
+      - name: Validate changed skills
+        if: steps.changed.outputs.skills != ''
+        run: |
+          set -e
+          echo "${{ steps.changed.outputs.skills }}" | tr ' ' '\n' | while read -r skill; do
+            [ -z "$skill" ] && continue
+            echo "Validating $skill"
+            python scripts/validate_skills.py --skill "$skill"
+          done
+
+      - name: Report skill impact summary
+        if: always()
+        run: |
+          {
+            echo "### Skill Scan Report"
+            echo ""
+            echo "| Skill | Status |"
+            echo "|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.changed.outputs.skills }}" | tr ' ' '\n' | while read -r skill; do
+            [ -z "$skill" ] && continue
+            if python scripts/validate_skills.py --skill "$skill" > /dev/null 2>&1; then
+              echo "| \`$skill\` | pass |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| \`$skill\` | fail |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done

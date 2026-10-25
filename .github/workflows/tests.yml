@@ -1,0 +1,71 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and test dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Run pytest
+        run: pytest tests -v --tb=short
+
+  integration:
+    name: Skill smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package
+        run: pip install -e .
+
+      - name: Smoke test every skill entry point
+        run: |
+          set -e
+          python - <<'PY'
+          import subprocess, sys
+          from biopipe.registry import REGISTRY
+
+          failures = []
+          for spec in REGISTRY.values():
+              entry = spec.entry_path
+              if not entry.exists():
+                  failures.append(f"{spec.name}: missing {entry}")
+                  continue
+              proc = subprocess.run(
+                  [sys.executable, str(entry), "--help"],
+                  capture_output=True, text=True, timeout=120,
+              )
+              if proc.returncode != 0:
+                  failures.append(f"{spec.name}: --help exited {proc.returncode}\n{proc.stderr[-500:]}")
+              else:
+                  print(f"ok  {spec.name}")
+
+          if failures:
+              print("\n".join(failures))
+              raise SystemExit(1)
+          print(f"\nall {len(REGISTRY)} skills respond to --help")
+          PY

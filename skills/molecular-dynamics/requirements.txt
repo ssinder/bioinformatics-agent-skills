@@ -1,0 +1,18 @@
+# molecular-dynamics 技能依赖
+#
+# 核心功能需要 numpy（内置 DCD / PDB / XYZ 解析器 + 全部核心算法）：
+numpy>=1.21
+
+# 以下均为可选增强项：
+
+# 层次聚类（scipy.cluster.hierarchy）；缺失时退化为阈值连通分量划分
+scipy>=1.7
+
+# 优先使用 MDAnalysis 读取轨迹（缺失时使用内置纯 numpy 解析器）
+# MDAnalysis>=2.6
+
+# 运行分子动力学模拟（run_simulation.py 需要）
+# openmm>=8.0
+#
+# OpenMM 需单独安装：
+#   conda install -c conda-forge openmm

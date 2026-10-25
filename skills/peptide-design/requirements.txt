@@ -1,0 +1,14 @@
+# peptide-design 技能依赖
+#
+# 核心计算（理化性质、抗菌判别、内置聚类）为纯标准库实现，
+# 无需任何第三方包即可运行。
+#
+# 可选依赖：
+
+# 外部工具（不是 pip 包）：MMseqs2，用于高质量序列聚类
+#   conda install -c bioconda mmseqs2
+#   https://github.com/soedinglab/MMseqs2
+# 未安装时脚本自动回退到内置 k-mer + LCS identity + average-linkage 聚类。
+
+# 仅在需要与外部工具交叉验证时安装：
+# biopython>=1.80

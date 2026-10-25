@@ -1,0 +1,107 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biopipe-agent-skills"
+version = "1.0.0"
+description = "Agent Skills for computational biology - RNA-seq, single-cell, structure analysis, molecular dynamics, and literature mining"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "sinder", email = "senenenenes@163.com" }]
+keywords = [
+    "agent-skills",
+    "bioinformatics",
+    "computational-biology",
+    "rna-seq",
+    "single-cell",
+    "molecular-dynamics",
+    "protein-structure",
+    "claude-skills",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+dependencies = [
+    "requests>=2.28",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+rna-seq = ["pandas>=1.5", "numpy>=1.23", "scipy>=1.9"]
+single-cell = ["scanpy>=1.9", "anndata>=0.9", "leidenalg>=0.10"]
+structure = ["biopython>=1.80"]
+visualization = ["matplotlib>=3.6", "seaborn>=0.12"]
+literature = ["feedparser>=6.0", "python-dateutil>=2.8"]
+all = [
+    "pandas>=1.5",
+    "numpy>=1.23",
+    "scipy>=1.9",
+    "biopython>=1.80",
+    "matplotlib>=3.6",
+    "seaborn>=0.12",
+    "scanpy>=1.9",
+    "anndata>=0.9",
+    "leidenalg>=0.10",
+    "feedparser>=6.0",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "black>=24.3",
+    "mypy>=1.9",
+]
+
+[project.urls]
+Homepage = "https://github.com/ssinder/bioinformatics-agent-skills"
+Repository = "https://github.com/ssinder/bioinformatics-agent-skills"
+Issues = "https://github.com/ssinder/bioinformatics-agent-skills/issues"
+Discussions = "https://github.com/ssinder/bioinformatics-agent-skills/discussions"
+
+[project.scripts]
+biopipe = "biopipe.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "packages" }
+
+[tool.setuptools.packages.find]
+where = ["packages"]
+include = ["biopipe_core*", "biopipe*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"skills/**/scripts/*.py" = ["E402", "F401"]
+"tests/*" = ["E402"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q --strict-markers"
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+warn_unused_ignores = true

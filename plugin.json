@@ -1,0 +1,24 @@
+{
+  "name": "bioinformatics-agent-skills",
+  "version": "1.0.0",
+  "description": "Agent Skills for computational biology: RNA-seq, single-cell, protein structure, molecular dynamics, peptide design, literature mining, and publication figures.",
+  "author": {
+    "name": "sinder"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+  "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+  "keywords": [
+    "agent-skills",
+    "bioinformatics",
+    "computational-biology",
+    "rna-seq",
+    "single-cell",
+    "molecular-dynamics",
+    "protein-structure"
+  ],
+  "skills": "./skills",
+  "agentSkills": {
+    "standard": "https://agentskills.io"
+  }
+}

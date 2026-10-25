@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用问题 / Usage question
+    url: https://github.com/ssinder/bioinformatics-agent-skills/discussions
+    about: 不确定怎么用某个技能？到 Discussions 提问
+  - name: 技能贡献咨询 / Contribution help
+    url: https://github.com/ssinder/bioinformatics-agent-skills/discussions
+    about: 想贡献新技能但不确定从哪开始？先来 Discussions 聊

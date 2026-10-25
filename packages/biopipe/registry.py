@@ -1,0 +1,113 @@
+"""技能注册表。
+
+集中登记所有可用技能及其入口脚本，CLI 与校验脚本都从这里取数据，
+避免注册信息分散在多处导致遗漏。
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+
+__all__ = ["SkillSpec", "REGISTRY", "get_skill", "list_skills", "skill_names"]
+
+
+@dataclass(frozen=True)
+class SkillSpec:
+    """一个技能的注册信息。"""
+
+    name: str
+    category: str
+    summary: str
+    entry: str
+    keywords: tuple[str, ...] = ()
+
+    @property
+    def entry_path(self) -> Path:
+        """入口脚本的绝对路径。"""
+        root = Path(__file__).resolve().parents[2]
+        return root / "skills" / self.name / self.entry
+
+    @property
+    def skill_md(self) -> Path:
+        """SKILL.md 的绝对路径。"""
+        root = Path(__file__).resolve().parents[2]
+        return root / "skills" / self.name / "SKILL.md"
+
+
+REGISTRY: dict[str, SkillSpec] = {
+    spec.name: spec
+    for spec in [
+        SkillSpec(
+            name="bulk-rnaseq",
+            category="转录组学",
+            summary="RNA-seq 定量与差异表达分析：FastQC 质控、Salmon 定量、DESeq2 富集",
+            entry="scripts/run_pipeline.py",
+            keywords=("rna-seq", "salmon", "deseq2", "diffexp", "transcriptome"),
+        ),
+        SkillSpec(
+            name="single-cell-rnaseq",
+            category="转录组学",
+            summary="单细胞 RNA-seq 标准流程：QC、归一化、PCA、聚类、细胞注释",
+            entry="scripts/run_pipeline.py",
+            keywords=("single-cell", "scrna", "scanpy", "anndata", "clustering"),
+        ),
+        SkillSpec(
+            name="protein-structure",
+            category="结构生物学",
+            summary="PDB 结构解析与二级结构分析：DSSP 注释、结构统计、UniProt 元数据",
+            entry="scripts/analyze_structure.py",
+            keywords=("pdb", "dssp", "structure", "secondary-structure", "uniprot"),
+        ),
+        SkillSpec(
+            name="protein-interactions",
+            category="结构生物学",
+            summary="蛋白质-配体相互作用分析：PLIP 解析、残基抽取、交互网络可视化",
+            entry="scripts/analyze_interactions.py",
+            keywords=("plip", "interaction", "hydrogen-bond", "ligand", "docking"),
+        ),
+        SkillSpec(
+            name="molecular-dynamics",
+            category="结构生物学",
+            summary="分子动力学模拟与轨迹分析：OpenMM 模拟、RMSD/RMSF/PCA/氢键分析",
+            entry="scripts/run_analysis.py",
+            keywords=("md", "openmm", "trajectory", "rmsd", "simulation"),
+        ),
+        SkillSpec(
+            name="peptide-design",
+            category="蛋白工程",
+            summary="抗菌肽设计与筛选：PepMLM 生成、序列特征分析、MMseqs2 聚类去冗余",
+            entry="scripts/analyze_peptides.py",
+            keywords=("peptide", "amp", "antimicrobial", "pepmlm", "clustering"),
+        ),
+        SkillSpec(
+            name="literature-search",
+            category="文献挖掘",
+            summary="学术文献检索与筛选：PubMed / OpenAlex / Semantic Scholar 多源检索与去重",
+            entry="scripts/search_literature.py",
+            keywords=("pubmed", "openalex", "literature", "citation", "papers"),
+        ),
+        SkillSpec(
+            name="scientific-figures",
+            category="数据可视化",
+            summary="顶刊级图表生成：ROC 曲线、混淆矩阵、热图、火山图、SHAP 摘要",
+            entry="scripts/make_figures.py",
+            keywords=("figure", "plot", "roc", "heatmap", "publication"),
+        ),
+    ]
+}
+
+
+def get_skill(name: str) -> SkillSpec | None:
+    """按名称查找技能。"""
+    return REGISTRY.get(name)
+
+
+def list_skills() -> list[SkillSpec]:
+    """返回全部已注册技能。"""
+    return list(REGISTRY.values())
+
+
+def skill_names() -> list[str]:
+    """返回全部技能名。"""
+    return list(REGISTRY.keys())

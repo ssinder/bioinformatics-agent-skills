@@ -1,0 +1,15 @@
+# protein-structure 技能依赖
+#
+# 核心功能（PDB 解析、几何计算、内置二级结构）仅依赖 Python 3.9+ 标准库，
+# 无需安装任何第三方包即可运行。
+#
+# 以下均为可选增强项：
+
+# UniProt 元数据查询（scripts/uniprot_client.py）
+requests>=2.28
+
+# 若希望用 Biopython 交叉校验解析结果（可选）
+# biopython>=1.80
+
+# 外部 DSSP 二级结构程序需单独安装，不在 pip 依赖内：
+#   conda install -c bioconda dssp   （提供 mkdssp 可执行文件）
