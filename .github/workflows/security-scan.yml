@@ -26,16 +26,24 @@ jobs:
         run: pip install pip-audit
 
       - name: Audit core dependencies
+        # 注意：GitHub Actions 的 run: 默认用 sh（dash）执行，不是 bash。
+        # 因此这里必须使用 POSIX 兼容语法，不能用 IGNORE_ARGS=() 这类 bash 数组。
         run: |
+          set -e
+          # 升级 pip 本身：审计工具链的旧版本会引入 pip 自身的漏洞告警
+          # （PYSEC-2026-3721，修复于 pip 26.2），与项目依赖无关。
+          python -m pip install --upgrade pip
           pip install -e .
-          # --ignore-vuln 可重复传入；用数组形式避免多次传参只保留最后一个。
-          IGNORE_ARGS=()
-          if pip-audit --progress-spinner off --strict; then
-            echo "no known vulnerabilities"
+          # --ignore-vuln 精确忽略 pip 自身的工具链告警；
+          # 项目依赖的任何漏洞仍然会导致失败。
+          if pip-audit --progress-spinner off --strict --ignore-vuln PYSEC-2026-3721; then
+            echo "no known vulnerabilities in core dependencies"
           else
-            echo "::warning::pip-audit reported findings, retrying with known-noise CVE ignored"
-            IGNORE_ARGS+=(--ignore-vuln CVE-2023-45803)
-            pip-audit --progress-spinner off --strict "${IGNORE_ARGS[@]}"
+            echo "::error::pip-audit found vulnerabilities in core dependencies"
+            echo "::error::请升级受影响依赖后重试"
+            pip-audit --progress-spinner off --strict --ignore-vuln PYSEC-2026-3721
+            exit 1
+          fi
 
       - name: Scan for hardcoded secrets
         run: |

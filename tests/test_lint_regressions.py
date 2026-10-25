@@ -27,6 +27,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "packages"))
 
 
+@pytest.fixture(scope="module")
+def peptide_props():
+    """加载 peptide_properties 模块（模块级 fixture，兼容 Python 3.9）。"""
+    sys.path.insert(0, str(REPO_ROOT / "skills" / "peptide-design" / "scripts"))
+    import peptide_properties
+
+    return peptide_properties
+
+
 class TestTypeHintResolution:
     """类型注解必须能被 typing.get_type_hints() 解析。"""
 
@@ -92,14 +101,6 @@ class TestSkillModuleExports:
 class TestPeptideIsoelectricPoint:
     """等电点二分求解的行为约束。"""
 
-    @pytest.fixture(scope="class")
-    @classmethod
-    def peptide_props(cls):
-        sys.path.insert(0, str(REPO_ROOT / "skills" / "peptide-design" / "scripts"))
-        import peptide_properties
-
-        return peptide_properties
-
     def test_net_charge_crosses_zero(self, peptide_props) -> None:
         seq = "KWKLFKKIEKVGQNIRDGIIKAGPA"
         charge = peptide_props.net_charge
@@ -128,14 +129,6 @@ class TestPeptideIsoelectricPoint:
 
 class TestModificationSuffixStripping:
     """化学修饰后缀（如 -NH2）必须被剥离，不影响分子量计算。"""
-
-    @pytest.fixture(scope="class")
-    @classmethod
-    def peptide_props(cls):
-        sys.path.insert(0, str(REPO_ROOT / "skills" / "peptide-design" / "scripts"))
-        import peptide_properties
-
-        return peptide_properties
 
     @pytest.mark.parametrize("suffix", ["-NH2", "-COOH", "-OH"])
     def test_suffix_stripped_from_sequence(self, peptide_props, suffix: str) -> None:

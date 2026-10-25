@@ -25,8 +25,23 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-import pandas as pd  # noqa: E402
+from biopipe_core.optional_deps import optional_import  # noqa: E402
+
+pd = optional_import('pandas')
+pd_HINT = '表格数据处理'
+
+
+def _require_pd():
+    """确保 pandas 可用，否则抛出带安装指引的异常。"""
+    if pd is None:
+        from biopipe_core.optional_deps import MissingDependencyError
+
+        raise MissingDependencyError('pandas', hint=pd_HINT)
+    return pd
+
+
 from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
+from biopipe_core.optional_deps import is_available  # noqa: E402
 
 LOGGER = get_logger("biopipe.bulk-rnaseq")
 
@@ -221,6 +236,13 @@ def build_metadata_template(samples: list[str]) -> pd.DataFrame:
 
 def main(args) -> int:
     """CLI 入口：构建 counts 矩阵。"""
+    # 依赖守卫：pandas 缺失时给出明确安装指引，
+    # 而不是让 --help 之类的元信息查询也一并崩溃。
+    if not is_available("pandas"):
+        raise SkillError(
+            "缺少依赖 pandas，构建 counts 矩阵无法运行。"
+            "\n请先安装: pip install pandas"
+        )
     quant_dir = Path(args.quant_dir).expanduser()
     if not quant_dir.exists():
         raise SkillError(f"Salmon 定量目录不存在: {quant_dir}")

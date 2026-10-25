@@ -25,11 +25,29 @@ Usage:
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Callable
 
-import numpy as np
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
+
+from biopipe_core.optional_deps import optional_import  # noqa: E402
+
+np = optional_import('numpy')
+np_HINT = '数值计算基础库'
+
+
+def _require_np():
+    """确保 numpy 可用，否则抛出带安装指引的异常。"""
+    if np is None:
+        from biopipe_core.optional_deps import MissingDependencyError
+
+        raise MissingDependencyError('numpy', hint=np_HINT)
+    return np
+
+
 from scipy.optimize import minimize, minimize_scalar
 from scipy.special import gammaln
 from scipy.stats import norm

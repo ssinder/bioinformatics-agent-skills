@@ -20,12 +20,27 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
+
+from biopipe_core.optional_deps import optional_import  # noqa: E402
+
+np = optional_import('numpy')
+np_HINT = '数值计算基础库'
+
+
+def _require_np():
+    """确保 numpy 可用，否则抛出带安装指引的异常。"""
+    if np is None:
+        from biopipe_core.optional_deps import MissingDependencyError
+
+        raise MissingDependencyError('numpy', hint=np_HINT)
+    return np
+
+
 
 from biopipe_core import cli_parser, get_config, get_logger, write_csv  # noqa: E402
 from biopipe_core.cli import SkillError, run_cli  # noqa: E402
+from biopipe_core.optional_deps import is_available  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -512,6 +527,13 @@ def _resolve_output_dir(output: str | None) -> Path:
 
 def main(args: argparse.Namespace) -> int:
     """技能主入口。"""
+    # 依赖守卫：numpy 缺失时给出明确安装指引，
+    # 而不是让 --help 之类的元信息查询也一并崩溃。
+    if not is_available("numpy"):
+        raise SkillError(
+            "缺少依赖 numpy，轨迹分析无法运行。"
+            "\n请先安装: pip install numpy"
+        )
     logger = get_logger(f"biopipe.{SKILL_NAME}")
     output_dir = _resolve_output_dir(args.output)
     results = _analyze(args)

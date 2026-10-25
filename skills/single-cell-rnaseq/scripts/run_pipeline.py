@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
 from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
 from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
+from biopipe_core.optional_deps import is_available  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -382,6 +383,15 @@ def generate_report(output_root: Path, result, annotations, ann_source: str,
 
 def main(args) -> int:
     """单细胞流程主函数。"""
+    # 依赖守卫：numpy / pandas / scipy 缺失时给出明确的安装指引，
+    # 而不是让 --help 之类的元信息查询也一并崩溃。
+    for module in ("numpy", "pandas", "scipy.sparse"):
+        if not is_available(module):
+            raise SkillError(
+                f"缺少依赖 {module}，单细胞流程无法运行。"
+                f"\n请先安装: pip install {module}"
+                f"\n或一次性安装: pip install 'biopipe-agent-skills[single-cell]'"
+            )
     config = get_config(args.config)
     output_root = Path(args.output).expanduser() if args.output else config.output_dir / "scrna"
     output_root = output_root.resolve()

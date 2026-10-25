@@ -24,6 +24,12 @@ from .io_utils import (
     write_fasta,
 )
 from .logging_utils import get_logger, setup_logging
+from .optional_deps import (
+    MissingDependencyError,
+    is_available,
+    optional_import,
+    require,
+)
 
 __version__ = "1.0.0"
 
@@ -47,5 +53,9 @@ __all__ = [
     "read_csv_safe",
     "write_csv",
     "ensure_unicode_csv",
+    "MissingDependencyError",
+    "optional_import",
+    "require",
+    "is_available",
     "__version__",
 ]

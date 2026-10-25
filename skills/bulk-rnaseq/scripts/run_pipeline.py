@@ -38,9 +38,26 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-import numpy as np  # noqa: E402
 from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
 from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
+from biopipe_core.optional_deps import optional_import  # noqa: E402
+
+# numpy 是可选依赖：缺失时仍可显示 --help 与参数说明，
+# 只有真正执行数值计算时才报错。
+np = optional_import("numpy")
+if np is None:
+    _NUMPY_HINT = "差异表达分析与可视化需要 numpy"
+else:
+    _NUMPY_HINT = ""
+
+
+def _require_numpy():
+    """确保 numpy 可用，否则抛出带安装指引的异常。"""
+    if np is None:
+        from biopipe_core.optional_deps import MissingDependencyError
+
+        raise MissingDependencyError("numpy", hint=_NUMPY_HINT, extra="rna-seq")
+    return np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -539,6 +556,7 @@ def step_enrichment(
 ) -> dict[str, Path]:
     """步骤 6：GO/KEGG 超几何富集分析 + BH FDR 校正。"""
     LOGGER.info("[6/8] GO/KEGG 富集分析")
+    np = _require_numpy()
     import pandas as pd
     from scipy import stats
 
@@ -645,6 +663,7 @@ def step_visualization(
 ) -> list[Path]:
     """步骤 7：生成火山图 / MA 图 / 富集条形图 / PCA 图 / 表达热图。"""
     LOGGER.info("[7/8] 可视化")
+    np = _require_numpy()
     import pandas as pd
 
     fig_dir.mkdir(parents=True, exist_ok=True)
