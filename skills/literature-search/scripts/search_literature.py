@@ -35,6 +35,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional
+
 from biopipe_core import (  # noqa: E402
     SkillError,
     cli_parser,
@@ -130,8 +132,8 @@ def _run_search(
     client: LiteratureClient,
     args: argparse.Namespace,
     query: str,
-    start_year: int | None,
-    end_year: int | None,
+    start_year: Optional[int],
+    end_year: Optional[int],
 ) -> list[dict]:
     """按选定数据源执行检索并汇总记录。"""
     records: list[dict] = []

@@ -12,7 +12,7 @@ from __future__ import annotations
 import csv
 from collections.abc import Iterable, Iterator, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 __all__ = [
     "read_fasta",
@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-def read_fasta(path: str | Path) -> Iterator[tuple[str, str]]:
+def read_fasta(path: Union[str, Path]) -> Iterator[tuple[str, str]]:
     """读取 FASTA 文件，逐条产出 ``(header, sequence)``。
 
     Args:
@@ -32,7 +32,7 @@ def read_fasta(path: str | Path) -> Iterator[tuple[str, str]]:
     Yields:
         ``(标题行去掉 '>' 与首段描述后的标识, 序列字符串)``。
     """
-    header: str | None = None
+    header: Optional[str] = None
     chunks: list[str] = []
 
     with open(path, encoding="utf-8", errors="replace") as handle:
@@ -54,7 +54,7 @@ def read_fasta(path: str | Path) -> Iterator[tuple[str, str]]:
         yield header, "".join(chunks)
 
 
-def write_fasta(records: Iterable[tuple[str, str]], path: str | Path, width: int = 60) -> Path:
+def write_fasta(records: Iterable[tuple[str, str]], path: Union[str, Path], width: int = 60) -> Path:
     """写出 FASTA 文件。
 
     Args:
@@ -78,7 +78,7 @@ def write_fasta(records: Iterable[tuple[str, str]], path: str | Path, width: int
     return out
 
 
-def read_csv_safe(path: str | Path, delimiter: str | None = None, encoding: str | None = None) -> list[dict[str, str]]:
+def read_csv_safe(path: Union[str, Path], delimiter: Optional[str] = None, encoding: Optional[str] = None) -> list[dict[str, str]]:
     """读取 CSV 为字典列表，自动处理 BOM 与编码回退。
 
     Args:
@@ -91,7 +91,7 @@ def read_csv_safe(path: str | Path, delimiter: str | None = None, encoding: str 
     """
     p = Path(path)
     encodings = [encoding] if encoding else ["utf-8-sig", "utf-8", "gbk", "latin-1"]
-    last_error: Exception | None = None
+    last_error: Optional[Exception] = None
 
     for enc in encodings:
         try:
@@ -116,8 +116,8 @@ def read_csv_safe(path: str | Path, delimiter: str | None = None, encoding: str 
 
 def write_csv(
     rows: Sequence[dict[str, Any]],
-    path: str | Path,
-    fieldnames: Sequence[str] | None = None,
+    path: Union[str, Path],
+    fieldnames: Optional[Sequence[str]] = None,
     delimiter: str = ",",
 ) -> Path:
     """写出 CSV 文件（UTF-8 带 BOM，Excel 直接打开不乱码）。
@@ -145,7 +145,7 @@ def write_csv(
     return out
 
 
-def ensure_unicode_csv(path: str | Path) -> Path:
+def ensure_unicode_csv(path: Union[str, Path]) -> Path:
     """把无 BOM 的 UTF-8 CSV 转换为带 BOM 版本，便于 Excel 正确识别中文。"""
     import tempfile
 

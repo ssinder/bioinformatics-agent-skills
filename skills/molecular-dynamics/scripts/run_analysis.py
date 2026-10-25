@@ -18,7 +18,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
@@ -106,7 +106,7 @@ def _build_parser() -> argparse.ArgumentParser:
 # ---------------------------------------------------------------------------
 
 
-def _parse_selection(selection: str | None, topology: tio.SimpleTopology) -> np.ndarray:
+def _parse_selection(selection: Optional[str], topology: tio.SimpleTopology) -> np.ndarray:
     """解析选择串，返回原子索引数组。
 
     支持：
@@ -512,7 +512,7 @@ def _write_outputs(results: dict, output_dir: Path, fmt: str) -> list[str]:
     return written
 
 
-def _resolve_output_dir(output: str | None) -> Path:
+def _resolve_output_dir(output: Optional[str]) -> Path:
     """解析输出目录。"""
     config = get_config()
     if output:

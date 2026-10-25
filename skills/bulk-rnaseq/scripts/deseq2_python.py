@@ -29,7 +29,7 @@ import sys
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional, Union
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
@@ -200,7 +200,7 @@ def _nb_glm_fit(
     X: np.ndarray,
     offset: np.ndarray,
     alpha: float,
-    beta_init: np.ndarray | None = None,
+    beta_init: Optional[np.ndarray] = None,
     max_iter: int = 60,
     tol: float = 1e-10,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -254,7 +254,7 @@ def _cr_loglik(
     X: np.ndarray,
     offset: np.ndarray,
     alpha: float,
-    beta_init: np.ndarray | None = None,
+    beta_init: Optional[np.ndarray] = None,
 ) -> tuple[float, np.ndarray, np.ndarray]:
     """Cox-Reid 调整后的负二项 profile 对数似然。
 
@@ -357,7 +357,7 @@ class DispersionTrend:
     sigma2: float
     residuals: np.ndarray = field(default_factory=lambda: np.zeros(0))
 
-    def __call__(self, mu: np.ndarray | float) -> np.ndarray | float:
+    def __call__(self, mu: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
         """计算给定均值下的趋势离散度。"""
         mu = np.asarray(mu, dtype=float)
         val = self.a0 + self.a1 / np.maximum(mu, 1e-8)
@@ -473,7 +473,7 @@ def estimate_map_dispersions(
     X: np.ndarray,
     size_factors: np.ndarray,
     trend: DispersionTrend,
-    mu_mean: np.ndarray | None = None,
+    mu_mean: Optional[np.ndarray] = None,
     n_grid: int = 15,
 ) -> np.ndarray:
     """在离散度先验下估计 MAP 离散度。
@@ -637,7 +637,7 @@ def run_deseq2(
     group_b: str,
     min_counts: int = 10,
     min_replicates: int = 1,
-    gene_names: Sequence[str] | None = None,
+    gene_names: Optional[Sequence[str]] = None,
 ) -> Deseq2Result:
     """执行完整的 DESeq2 风格差异表达分析。
 

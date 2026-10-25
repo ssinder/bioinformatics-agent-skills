@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 try:  # matplotlib 缺失时优雅降级
     import matplotlib
@@ -35,7 +35,7 @@ try:  # matplotlib 缺失时优雅降级
     import matplotlib.pyplot as plt
 
     MATPLOTLIB_AVAILABLE = True
-    _IMPORT_ERROR: str | None = None
+    _IMPORT_ERROR: Optional[str] = None
 except ImportError as exc:  # pragma: no cover - 依赖缺失路径
     MATPLOTLIB_AVAILABLE = False
     _IMPORT_ERROR = str(exc)
@@ -293,7 +293,7 @@ def apply_publication_style(style_name: str = "default") -> None:
 
 def save_figure(
     fig: Any,
-    filename: str | Path,
+    filename: Union[str, Path],
     formats: Sequence[str] = ("pdf", "png"),
     dpi: int = 300,
     **kwargs: Any,
@@ -355,7 +355,7 @@ def setup_multi_panel(
     nrows: int = 1,
     ncols: int = 1,
     width: float = 7.0,
-    height: float | None = None,
+    height: Optional[float] = None,
     wspace: float = 0.3,
     hspace: float = 0.3,
 ) -> tuple[Any, Any]:

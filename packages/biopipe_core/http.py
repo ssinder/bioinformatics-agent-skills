@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import random
 import time
-from typing import Any
+from typing import Any, Optional
 
 __all__ = ["http_session", "HttpError", "get_json", "post_json"]
 
@@ -31,19 +31,19 @@ _RETRY_STATUS = {408, 425, 429, 500, 502, 503, 504}
 class HttpError(RuntimeError):
     """HTTP 请求失败（已耗尽重试次数）。"""
 
-    def __init__(self, message: str, status: int | None = None, url: str | None = None):
+    def __init__(self, message: str, status: Optional[int] = None, url: Optional[str] = None):
         super().__init__(message)
         self.status = status
         self.url = url
 
 
 def http_session(
-    user_agent: str | None = None,
+    user_agent: Optional[str] = None,
     min_interval: float = 0.34,
     timeout: int = 60,
     retries: int = 4,
     backoff: float = 2.0,
-    extra_headers: dict[str, str] | None = None,
+    extra_headers: Optional[dict[str, str]] = None,
 ):
     """创建一个带重试与限速的 ``requests.Session``。
 
@@ -94,7 +94,7 @@ def _retrying(original, retries: int, backoff: float):
     """包装原 request 方法，加入指数退避重试。"""
 
     def wrapper(*args, **kwargs):
-        last_exc: Exception | None = None
+        last_exc: Optional[Exception] = None
         for attempt in range(retries + 1):
             try:
                 response = original(*args, **kwargs)
@@ -128,7 +128,7 @@ def _retrying(original, retries: int, backoff: float):
     return wrapper
 
 
-def get_json(url: str, session=None, params: dict[str, Any] | None = None, **kwargs) -> Any:
+def get_json(url: str, session=None, params: Optional[dict[str, Any]] = None, **kwargs) -> Any:
     """发起 GET 请求并解析 JSON。
 
     Args:

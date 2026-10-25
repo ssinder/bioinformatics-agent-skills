@@ -42,6 +42,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional
+
 from alphafold_models import select_best_model, summarize_confidence  # noqa: E402
 from biopipe_core import SkillError, cli_parser, get_logger, write_csv  # noqa: E402
 from biopipe_core.cli import run_cli  # noqa: E402
@@ -92,7 +94,7 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _resolve_output_dir(output: str | None) -> Path:
+def _resolve_output_dir(output: Optional[str]) -> Path:
     """解析输出目录。"""
     from biopipe_core import get_config
 
@@ -107,7 +109,7 @@ def _resolve_output_dir(output: str | None) -> Path:
     return path
 
 
-def _find_plip_executable(explicit: str | None = None) -> str | None:
+def _find_plip_executable(explicit: Optional[str] = None) -> Optional[str]:
     """查找 PLIP 可执行文件。"""
     if explicit:
         return explicit if Path(explicit).exists() else None
@@ -220,7 +222,7 @@ def analyze_report(
     output_dir: Path,
     make_mermaid: bool = False,
     make_pymol: bool = False,
-    structure: str | None = None,
+    structure: Optional[str] = None,
 ) -> dict:
     """解析单个 PLIP 报告并写出结果。
 
@@ -319,7 +321,7 @@ def main(args: argparse.Namespace) -> int:
         )
         conf_summary = summarize_confidence(best["confidence"])
 
-        structure_path: Path | None = None
+        structure_path: Optional[Path] = None
         if args.run_plip:
             if not args.plip_structure:
                 raise SkillError("使用 zip 输入时必须通过 --plip-structure 指定结构文件")

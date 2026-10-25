@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import importlib
 from types import ModuleType
+from typing import Optional
 
 __all__ = [
     "MissingDependencyError",
@@ -69,7 +70,7 @@ install_hint = {
 }
 
 
-def optional_import(name: str) -> ModuleType | None:
+def optional_import(name: str) -> Optional[ModuleType]:
     """尝试导入模块，失败时返回 ``None`` 而不抛异常。
 
     Args:

@@ -28,6 +28,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
+from typing import Optional
+
 from biopipe_core import cli_parser, get_config, get_logger  # noqa: E402
 from biopipe_core.cli import SkillError, run_cli  # noqa: E402
 
@@ -86,7 +88,7 @@ def _check_openmm() -> tuple[bool, str]:
     return True, "OpenMM 可用"
 
 
-def _resolve_output_dir(output: str | None) -> Path:
+def _resolve_output_dir(output: Optional[str]) -> Path:
     """解析输出目录。"""
     config = get_config()
     if output:

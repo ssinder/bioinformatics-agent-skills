@@ -39,6 +39,74 @@ def peptide_props():
 class TestTypeHintResolution:
     """类型注解必须能被 typing.get_type_hints() 解析。"""
 
+    def test_no_pep604_annotations_in_project(self) -> None:
+        """禁止在注解中使用 PEP 604 联合类型（``X | Y``）。
+
+        背景：``from __future__ import annotations`` 只让**注解不求值**，
+        但 ``typing.get_type_hints()`` 会**强制求值**。PEP 604 的 ``X | Y``
+        运算符是 Python 3.10 才引入的，在 3.9 上求值会抛：
+
+            TypeError: unsupported operand type(s) for |: 'type' and 'type'
+
+        本项目明确支持 Python 3.9（CI 矩阵含 3.9），因此注解必须统一使用
+        ``typing.Optional[X]`` / ``typing.Union[X, Y]``。
+        注意：PEP 585 泛型（``list[int]``、``tuple[str, int]``）在 3.9 是
+        合法的，不在此检查范围内。
+        """
+        import ast
+
+        offenders: list[str] = []
+        for base in ("packages", "skills", "tests"):
+            for path in sorted((REPO_ROOT / base).rglob("*.py")):
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+                for node in ast.walk(tree):
+                    annotations = []
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        args = node.args
+                        annotations = [
+                            a.annotation
+                            for a in list(args.posonlyargs)
+                            + list(args.args)
+                            + list(args.kwonlyargs)
+                        ]
+                        if args.vararg is not None:
+                            annotations.append(args.vararg.annotation)
+                        if args.kwarg is not None:
+                            annotations.append(args.kwarg.annotation)
+                        annotations.append(node.returns)
+                    elif isinstance(node, ast.AnnAssign):
+                        annotations = [node.annotation]
+
+                    for annotation in annotations:
+                        if annotation is None:
+                            continue
+                        for sub in ast.walk(annotation):
+                            if isinstance(sub, ast.BinOp) and isinstance(sub.op, ast.BitOr):
+                                rel = path.relative_to(REPO_ROOT)
+                                offenders.append(
+                                    f"{rel}:{sub.lineno} {getattr(node, 'name', '?')}"
+                                )
+
+        assert not offenders, (
+            "以下位置使用了 PEP 604 联合类型（Python 3.9 不兼容）：\n"
+            + "\n".join(offenders)
+        )
+
+    def test_python39_syntax_compatible(self) -> None:
+        """所有源文件必须能被 Python 3.9 解析。"""
+        import ast
+
+        offenders: list[str] = []
+        for base in ("packages", "skills", "tests"):
+            for path in sorted((REPO_ROOT / base).rglob("*.py")):
+                try:
+                    ast.parse(path.read_text(encoding="utf-8"), feature_version=(3, 9))
+                except SyntaxError as exc:
+                    rel = path.relative_to(REPO_ROOT)
+                    offenders.append(f"{rel}:{exc.lineno} {exc.msg}")
+
+        assert not offenders, "以下文件不兼容 Python 3.9：\n" + "\n".join(offenders)
+
     def test_io_utils_write_csv_hints_resolve(self) -> None:
         from biopipe_core import io_utils
 

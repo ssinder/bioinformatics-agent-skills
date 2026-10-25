@@ -35,6 +35,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional
+
 from biopipe_core import SkillError, cli_parser, get_config, get_logger, write_csv  # noqa: E402
 from biopipe_core.cli import run_cli  # noqa: E402
 from geometry import (  # noqa: E402
@@ -98,7 +100,7 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _resolve_output_dir(output: str | None) -> Path:
+def _resolve_output_dir(output: Optional[str]) -> Path:
     """解析输出目录（命令行 > 配置 > 当前目录）。"""
     config = get_config()
     if output:
@@ -130,9 +132,9 @@ def _second_structure_for(
     pdb_path: Path,
     structure,
     method: str,
-    executable: str | None,
+    executable: Optional[str],
     min_hbond_energy: float,
-) -> dict | None:
+) -> Optional[dict]:
     """按指定方式计算二级结构。"""
     if method in ("auto", "external"):
         exe = executable or find_dssp_executable()
@@ -165,7 +167,7 @@ def _second_structure_for(
 def analyze_structure(
     pdb_path: Path,
     dssp_method: str = "auto",
-    dssp_executable: str | None = None,
+    dssp_executable: Optional[str] = None,
     min_hbond_energy: float = -0.5,
     model_index: int = 1,
     query_uniprot: bool = False,
@@ -252,7 +254,7 @@ def _residue_type_counts(residues) -> dict:
     return dict(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])))
 
 
-def _query_uniprot(accession: str) -> dict | None:
+def _query_uniprot(accession: str) -> Optional[dict]:
     """按文件名（通常就是 UniProt accession）查询元数据。"""
     try:
         from uniprot_client import fetch_uniprot_entries

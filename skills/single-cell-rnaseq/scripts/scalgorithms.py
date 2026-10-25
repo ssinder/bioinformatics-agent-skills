@@ -36,7 +36,7 @@ import math
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
@@ -137,8 +137,8 @@ class PipelineResult:
     adata: Any
     backend: str
     qc_stats: dict[str, Any] = field(default_factory=dict)
-    cluster_summary: pd.DataFrame | None = None
-    marker_table: pd.DataFrame | None = None
+    cluster_summary: Optional[pd.DataFrame] = None
+    marker_table: Optional[pd.DataFrame] = None
     steps: list[str] = field(default_factory=list)
 
 
@@ -148,7 +148,7 @@ class PipelineResult:
 def compute_qc_metrics(
     adata: Any,
     mt_mask: np.ndarray,
-    hb_mask: np.ndarray | None = None,
+    hb_mask: Optional[np.ndarray] = None,
     use_scanpy: bool = False,
 ) -> dict[str, np.ndarray]:
     """计算单细胞质控指标。
@@ -214,7 +214,7 @@ def filter_cells_genes(
     min_genes: int = 200,
     min_counts: int = 100,
     max_mt_pct: float = 20.0,
-    max_hb_pct: float | None = None,
+    max_hb_pct: Optional[float] = None,
     min_cells_per_gene: int = 3,
 ) -> tuple[Any, dict[str, Any]]:
     """按质控阈值过滤细胞与基因。
@@ -485,7 +485,7 @@ def compute_pca(X: Any, n_comps: int = 50, seed: int = 0) -> tuple[np.ndarray, n
 def compute_neighbors(
     embedding: np.ndarray,
     n_neighbors: int = 15,
-    n_pcs: int | None = None,
+    n_pcs: Optional[int] = None,
     metric: str = "euclidean",
     prune: float = 1.0 / 15.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -1110,7 +1110,7 @@ def _run_scanpy_pipeline(
     min_genes: int = 200,
     min_counts: int = 100,
     max_mt_pct: float = 20.0,
-    max_hb_pct: float | None = None,
+    max_hb_pct: Optional[float] = None,
     min_cells_per_gene: int = 3,
     target_sum: float = 1e4,
     n_top_genes: int = 2000,
@@ -1121,7 +1121,7 @@ def _run_scanpy_pipeline(
     n_marker_genes: int = 100,
     seed: int = 0,
     compute_tsne_embedding: bool = True,
-    logger: Callable[[str], None] | None = None,
+    logger: Optional[Callable[[str], None]] = None,
 ) -> PipelineResult:
     """使用官方 scanpy 实现完整流程。
 
@@ -1362,7 +1362,7 @@ def run_pipeline(
     min_genes: int = 200,
     min_counts: int = 100,
     max_mt_pct: float = 20.0,
-    max_hb_pct: float | None = None,
+    max_hb_pct: Optional[float] = None,
     min_cells_per_gene: int = 3,
     target_sum: float = 1e4,
     n_top_genes: int = 2000,
@@ -1373,7 +1373,7 @@ def run_pipeline(
     n_marker_genes: int = 100,
     seed: int = 0,
     compute_tsne_embedding: bool = True,
-    logger: Callable[[str], None] | None = None,
+    logger: Optional[Callable[[str], None]] = None,
 ) -> PipelineResult:
     """执行完整的单细胞分析流程。
 

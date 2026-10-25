@@ -35,6 +35,8 @@ from pathlib import Path
 # 保证本文件既能被当作库 import，也能被直接执行。
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional, Union
+
 from pdb_parser import AA3_TO_AA1, Atom, Residue, Structure, dihedral_angle  # noqa: E402
 
 __all__ = [
@@ -79,7 +81,7 @@ C_O_BOND = 1.24
 N_H_ANGLE_DEG = 119.0
 
 
-def find_dssp_executable(candidates: tuple[str, ...] = ("mkdssp", "dssp", "mkdssp.exe")) -> str | None:
+def find_dssp_executable(candidates: tuple[str, ...] = ("mkdssp", "dssp", "mkdssp.exe")) -> Optional[str]:
     """在 PATH 中查找 DSSP 可执行文件。"""
     for name in candidates:
         found = shutil.which(name)
@@ -88,7 +90,7 @@ def find_dssp_executable(candidates: tuple[str, ...] = ("mkdssp", "dssp", "mkdss
     return None
 
 
-def _classify_backbone_atom(atom: Atom) -> str | None:
+def _classify_backbone_atom(atom: Atom) -> Optional[str]:
     """判断骨架原子属于 N 端 / C 端 / 羰基氧。"""
     name = atom.name.upper()
     if name == "N":
@@ -99,8 +101,8 @@ def _classify_backbone_atom(atom: Atom) -> str | None:
 
 
 def _rebuild_amide_hydrogens(
-    residue: Residue, prev_c: Atom | None
-) -> tuple[float, float, float] | None:
+    residue: Residue, prev_c: Optional[Atom]
+) -> Optional[tuple[float, float, float]]:
     """重建酰胺氢原子的坐标。
 
     绝大多数实验结构（X 射线 / NMR）不含极性氢原子。DSSP 用的是
@@ -166,7 +168,7 @@ def _rebuild_amide_hydrogens(
     return (ox + hx * scale, oy + hy * scale, oz + hz * scale)
 
 
-def _carbonyl_oxygen(residue: Residue) -> Atom | None:
+def _carbonyl_oxygen(residue: Residue) -> Optional[Atom]:
     """取残基的羰基氧原子（优先 O，找不到时用 OXT）。"""
     return residue.get("O") or residue.get("OXT")
 
@@ -232,7 +234,7 @@ def _build_backbone_records(chains) -> list[dict]:
     records: list[dict] = []
     for chain in chains:
         chain_records: list[dict] = []
-        prev_c: Atom | None = None
+        prev_c: Optional[Atom] = None
         for residue in chain:
             n_atom = residue.get("N")
             ca_atom = residue.get("CA")
@@ -299,7 +301,7 @@ def _hbond_matrix(records: list[dict]) -> list[list[float]]:
     return matrix
 
 
-def _phi_psi(record: dict, prev_record: dict | None, next_record: dict | None):
+def _phi_psi(record: dict, prev_record: Optional[dict], next_record: Optional[dict]):
     """计算残基的 φ / ψ 二面角（度）。"""
     phi = None
     psi = None
@@ -310,7 +312,7 @@ def _phi_psi(record: dict, prev_record: dict | None, next_record: dict | None):
     return phi, psi
 
 
-def classify_phi_psi(phi: float | None, psi: float | None) -> str:
+def classify_phi_psi(phi: Optional[float], psi: Optional[float]) -> str:
     """按 φ/ψ 落在 Ramachandran 图的哪个区域给出结构倾向。
 
     判据基于常见的经验分区：
@@ -525,10 +527,10 @@ def _statistics(secondary: list[dict]) -> dict:
 
 
 def run_external_dssp(
-    pdb_path: str | Path,
-    executable: str | None = None,
+    pdb_path: Union[str, Path],
+    executable: Optional[str] = None,
     timeout: int = 120,
-) -> dict | None:
+) -> Optional[dict]:
     """调用外部 DSSP 程序并解析输出。
 
     Args:
@@ -560,7 +562,7 @@ def run_external_dssp(
                                 Path(pdb_path).stem)
 
 
-def _parse_dssp_text(text: str, structure_id: str) -> dict | None:
+def _parse_dssp_text(text: str, structure_id: str) -> Optional[dict]:
     """解析传统 DSSP 文本格式。
 
     关键列：残基号 ``[5:10]``、链标识 ``[11]``、氨基酸 ``[13]``、
@@ -606,7 +608,7 @@ def _parse_dssp_text(text: str, structure_id: str) -> dict | None:
     }
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：对单个 PDB 打印二级结构判定结果。"""
     import argparse
 

@@ -19,7 +19,7 @@ from __future__ import annotations
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
@@ -177,7 +177,7 @@ def fetch_uniprot_entries(
     return results
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：查询 UniProt 并打印结果。"""
     import argparse
     import json

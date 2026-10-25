@@ -18,7 +18,7 @@ import sys
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
@@ -300,7 +300,7 @@ def _sniff_natoms(fh) -> int:
     return 0
 
 
-def dcd_header_info(path: str | Path) -> dict:
+def dcd_header_info(path: Union[str, Path]) -> dict:
     """解析 DCD header，返回关键字段（不读坐标）。
 
     Args:
@@ -331,7 +331,7 @@ def dcd_header_info(path: str | Path) -> dict:
     }
 
 
-def read_dcd(path: str | Path, read_frames: int | None = None) -> tuple[np.ndarray, dict]:
+def read_dcd(path: Union[str, Path], read_frames: Optional[int] = None) -> tuple[np.ndarray, dict]:
     """读取 DCD 轨迹（纯 Python + numpy 实现）。
 
     DCD 是 Fortran 风格的定长记录流。文件布局（CHARMM / NAMD 规范）::
@@ -545,7 +545,7 @@ def _pdb_topology_and_frame(
     return topology, np.asarray(coords, dtype=np.float64)
 
 
-def read_pdb_trajectory(path: str | Path) -> Trajectory:
+def read_pdb_trajectory(path: Union[str, Path]) -> Trajectory:
     """读取多模型（MODEL/ENDMDL）PDB 轨迹。
 
     单模型 PDB 也可读取，此时轨迹长度为 1 帧。
@@ -597,7 +597,7 @@ def read_pdb_trajectory(path: str | Path) -> Trajectory:
     )
 
 
-def read_xyz_trajectory(path: str | Path) -> Trajectory:
+def read_xyz_trajectory(path: Union[str, Path]) -> Trajectory:
     """读取多帧 XYZ 轨迹（无拓扑，元素按顺序猜测）。"""
     path = Path(path)
     lines = path.read_text(errors="ignore").splitlines()
@@ -647,7 +647,7 @@ def read_xyz_trajectory(path: str | Path) -> Trajectory:
 # ---------------------------------------------------------------------------
 
 
-def _load_with_mdanalysis(path: Path, start: int, stop: int, stride: int) -> Trajectory | None:
+def _load_with_mdanalysis(path: Path, start: int, stop: int, stride: int) -> Optional[Trajectory]:
     """尝试用 MDAnalysis 读取；不可用时返回 None。"""
     try:
         import MDAnalysis as mda  # type: ignore
@@ -698,9 +698,9 @@ def _load_with_mdanalysis(path: Path, start: int, stop: int, stride: int) -> Tra
 
 
 def load_trajectory(
-    path: str | Path,
+    path: Union[str, Path],
     start: int = 0,
-    stop: int | None = None,
+    stop: Optional[int] = None,
     stride: int = 1,
     prefer_mdanalysis: bool = True,
 ) -> Trajectory:
@@ -856,7 +856,7 @@ def residue_map_by_atom(topology: SimpleTopology) -> dict[int, tuple[str, int]]:
     return mapping
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行自检入口：打印轨迹概览。"""
     import argparse
 

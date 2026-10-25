@@ -52,7 +52,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 __all__ = [
     "PLIP_INTERACTION_TYPES",
@@ -99,7 +99,7 @@ _ITEM_TAGS = {
 }
 
 
-def parse_residue_label(label: str | None) -> dict:
+def parse_residue_label(label: Optional[str]) -> dict:
     """解析 PLIP 的 ``onf`` / ``onp`` 残基标签。
 
     PLIP 使用两种标签格式：
@@ -236,7 +236,7 @@ def _new_item_to_record(tag: str, element: ET.Element) -> dict:
     }
 
 
-def parse_plip_xml(path: str | Path) -> dict:
+def parse_plip_xml(path: Union[str, Path]) -> dict:
     """解析 PLIP XML 报告。
 
     Args:
@@ -319,7 +319,7 @@ def summarize_interactions(records: list[dict]) -> dict:
     return summary
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：解析 PLIP 报告并打印摘要。"""
     import argparse
     import json

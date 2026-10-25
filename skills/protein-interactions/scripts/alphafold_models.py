@@ -23,7 +23,7 @@ import json
 import re
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 __all__ = [
     "select_best_model",
@@ -120,9 +120,9 @@ def _score_of(confidence: dict) -> float:
 
 
 def select_best_model(
-    zip_path: str | Path,
-    member_prefix: str | None = None,
-) -> dict | None:
+    zip_path: Union[str, Path],
+    member_prefix: Optional[str] = None,
+) -> Optional[dict]:
     """在 AlphaFold DB 的 zip 包中选出置信度最佳的模型。
 
     Args:
@@ -213,7 +213,7 @@ def select_best_model(
     return max(results, key=lambda r: r["score"])
 
 
-def scan_directory(directory: str | Path, pattern: str = "*.zip") -> list[dict]:
+def scan_directory(directory: Union[str, Path], pattern: str = "*.zip") -> list[dict]:
     """扫描目录中所有 AlphaFold zip 包并选出每个包的最佳模型。
 
     Args:
@@ -239,7 +239,7 @@ def scan_directory(directory: str | Path, pattern: str = "*.zip") -> list[dict]:
     return out
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：列出 zip 中各条目的最佳模型。"""
     import argparse
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+from typing import Optional
 
 from .registry import REGISTRY, get_skill
 
@@ -69,7 +70,7 @@ def _print_skill_list() -> None:
     print("用法: biopipe <技能名> --help")
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     """biopipe 命令主函数。"""
     parser = _build_parser()
     args = parser.parse_args(argv)

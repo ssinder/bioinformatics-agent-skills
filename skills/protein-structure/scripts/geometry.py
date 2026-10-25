@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Sequence
+from typing import Optional
 
 __all__ = [
     "radius_of_gyration",
@@ -310,7 +311,7 @@ def bounding_box(atoms: Iterable) -> dict:
     return {"dx": dx, "dy": dy, "dz": dz, "volume": dx * dy * dz}
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：解析 PDB 并打印几何量。"""
     import argparse
 

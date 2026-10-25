@@ -32,6 +32,7 @@ import math
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional, Union
 
 __all__ = [
     "Atom",
@@ -155,7 +156,7 @@ class Residue:
     atoms: list[Atom] = field(default_factory=list)
     hetatm: bool = False
 
-    def get(self, name: str) -> Atom | None:
+    def get(self, name: str) -> Optional[Atom]:
         """按原子名取原子（大小写不敏感），取不到返回 None。"""
         upper = name.upper()
         for atom in self.atoms:
@@ -249,7 +250,7 @@ class Model:
     def n_atoms(self) -> int:
         return sum(c.n_atoms for c in self.chains)
 
-    def chain(self, chain_id: str) -> Chain | None:
+    def chain(self, chain_id: str) -> Optional[Chain]:
         """按 ID 取链。"""
         for c in self.chains:
             if c.chain_id == chain_id:
@@ -374,7 +375,7 @@ def dihedral_angle(
     return math.degrees(math.atan2(y, x))
 
 
-def _parse_atom_line(line: str, serial_hint: int) -> Atom | None:
+def _parse_atom_line(line: str, serial_hint: int) -> Optional[Atom]:
     """解析一行 ATOM/HETATM 记录。"""
     if len(line) < 54:
         return None
@@ -433,7 +434,7 @@ def parse_pdb_text(text: str, structure_id: str = "structure") -> Structure:
     - ``MODEL`` / ``ENDMDL`` 记录切分多模型。
     """
     structure = Structure(structure_id=structure_id)
-    current_model: Model | None = None
+    current_model: Optional[Model] = None
     model_index = 0
     residue_index: dict[tuple[str, int, str], Residue] = {}
     chain_index: dict[str, Chain] = {}
@@ -504,14 +505,14 @@ def parse_pdb_text(text: str, structure_id: str = "structure") -> Structure:
     return structure
 
 
-def parse_pdb_file(path: str | Path) -> Structure:
+def parse_pdb_file(path: Union[str, Path]) -> Structure:
     """解析单个 PDB 文件。"""
     p = Path(path)
     text = p.read_text(encoding="utf-8", errors="replace")
     return parse_pdb_text(text, structure_id=p.stem)
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：解析 PDB 并打印结构概要。"""
     import argparse
 

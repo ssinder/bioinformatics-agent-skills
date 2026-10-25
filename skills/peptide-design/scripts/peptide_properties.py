@@ -26,7 +26,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, Optional
 
 # ---------------------------------------------------------------- 常量表
 
@@ -314,8 +314,8 @@ def isoelectric_point(sequence: str) -> float:
     curve = charge_curve(sequence)
 
     # 找符号翻转区间
-    lo_idx: int | None = None
-    hi_idx: int | None = None
+    lo_idx: Optional[int] = None
+    hi_idx: Optional[int] = None
     for i in range(len(curve) - 1):
         q1 = curve[i][1]
         q2 = curve[i + 1][1]

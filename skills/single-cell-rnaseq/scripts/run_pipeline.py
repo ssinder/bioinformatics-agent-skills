@@ -36,6 +36,8 @@ from biopipe_core.optional_deps import is_available  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional
+
 from scalgorithms import SCANPY_AVAILABLE, run_pipeline  # noqa: E402
 from scdata import read_matrix, summarize_sparsity  # noqa: E402
 
@@ -50,8 +52,8 @@ DIR_FIG = "06_figures"
 DIR_REPORT = "07_report"
 
 
-def annotate_clusters(markers, adata, marker_file: Path | None,
-                      top_n: int = 30) -> tuple[dict[str, dict], str | None]:
+def annotate_clusters(markers, adata, marker_file: Optional[Path],
+                      top_n: int = 30) -> tuple[dict[str, dict], Optional[str]]:
     """基于 marker 基因重叠给 cluster 打细胞类型标签。
 
     优先使用用户提供的 marker 参考文件（CSV，需含 ``class_label``、

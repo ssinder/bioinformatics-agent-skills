@@ -43,6 +43,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional
+
 from biopipe_core import (  # noqa: E402
     SkillError,
     cli_parser,
@@ -86,7 +88,7 @@ def read_table(path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def to_float(value: str | None, default: float = 0.0) -> float:
+def to_float(value: Optional[str], default: float = 0.0) -> float:
     """安全转 float。"""
     if value is None:
         return default
@@ -99,7 +101,7 @@ def to_float(value: str | None, default: float = 0.0) -> float:
         return default
 
 
-def pick_column(rows: list[dict[str, str]], candidates: list[str]) -> str | None:
+def pick_column(rows: list[dict[str, str]], candidates: list[str]) -> Optional[str]:
     """从候选列名中挑出第一个实际存在的列。"""
     if not rows:
         return None
@@ -164,7 +166,7 @@ def bootstrap_auc_ci(
     tpr: list[float],
     n_bootstrap: int = 200,
     confidence: float = 0.95,
-) -> tuple[float | None, float | None]:
+) -> tuple[Optional[float], Optional[float]]:
     """用曲线点重采样做 AUC 的自助法置信区间。
 
     对 (FPR, TPR) 点对做有放回重采样后重算 AUC，取分位数。
@@ -838,7 +840,7 @@ def plot_feature_importance(rows: list[dict[str, str]], args: argparse.Namespace
     return saved
 
 
-def _is_number(value: str | None) -> bool:
+def _is_number(value: Optional[str]) -> bool:
     """判断字符串是否可解析为数字。"""
     if value is None:
         return False

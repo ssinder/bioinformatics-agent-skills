@@ -34,6 +34,8 @@ from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional
+
 from scalgorithms import compute_qc_metrics, filter_cells_genes  # noqa: E402
 from scdata import gene_is_hb, gene_is_mitochondrial, read_matrix, summarize_sparsity  # noqa: E402  # noqa: E402
 
@@ -46,7 +48,7 @@ def run_quality_control(
     min_genes: int = 200,
     min_counts: int = 100,
     max_mt_pct: float = 20.0,
-    max_hb_pct: float | None = None,
+    max_hb_pct: Optional[float] = None,
     min_cells_per_gene: int = 3,
     make_plots: bool = True,
 ) -> dict[str, Path]:

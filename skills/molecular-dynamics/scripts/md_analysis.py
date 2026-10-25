@@ -25,6 +25,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
+from typing import Optional
+
 from biopipe_core.optional_deps import optional_import  # noqa: E402
 
 np = optional_import('numpy')
@@ -66,7 +68,7 @@ __all__ = [
 def kabsch_align(
     mobile: np.ndarray,
     reference: np.ndarray,
-    weights: np.ndarray | None = None,
+    weights: Optional[np.ndarray] = None,
 ) -> tuple[np.ndarray, np.ndarray, float]:
     """Kabsch-Sander 最优刚体叠合。
 
@@ -128,7 +130,7 @@ def rmsd(
     coords_a: np.ndarray,
     coords_b: np.ndarray,
     align: bool = True,
-    weights: np.ndarray | None = None,
+    weights: Optional[np.ndarray] = None,
 ) -> float:
     """计算两组坐标的 RMSD。
 
@@ -157,7 +159,7 @@ def rmsd(
 # ---------------------------------------------------------------------------
 
 
-def rmsf(coords: np.ndarray, align_reference: int | None = 0) -> np.ndarray:
+def rmsf(coords: np.ndarray, align_reference: Optional[int] = 0) -> np.ndarray:
     """逐原子均方根涨落。
 
     Args:
@@ -182,7 +184,7 @@ def rmsf(coords: np.ndarray, align_reference: int | None = 0) -> np.ndarray:
     return np.sqrt(((coords - mean) ** 2).sum(axis=2).mean(axis=0))
 
 
-def radius_of_gyration(coords: np.ndarray, weights: np.ndarray | None = None) -> np.ndarray:
+def radius_of_gyration(coords: np.ndarray, weights: Optional[np.ndarray] = None) -> np.ndarray:
     """逐帧质量加权回旋半径。
 
     Args:
@@ -611,7 +613,7 @@ def _in_region_arr(phi: np.ndarray, psi: np.ndarray, regions) -> np.ndarray:
 def rmsd_matrix(
     coords: np.ndarray,
     max_frames: int = 200,
-    selection: np.ndarray | None = None,
+    selection: Optional[np.ndarray] = None,
 ) -> tuple[np.ndarray, list[int]]:
     """计算帧间 RMSD 矩阵。
 
@@ -650,8 +652,8 @@ def rmsd_matrix(
 
 def hierarchical_cluster(
     matrix: np.ndarray,
-    n_clusters: int | None = None,
-    threshold: float | None = None,
+    n_clusters: Optional[int] = None,
+    threshold: Optional[float] = None,
     method: str = "average",
 ) -> dict:
     """对 RMSD 矩阵做层次聚类。
@@ -848,7 +850,7 @@ def sasa_estimate(
 
     per_frame_total = np.zeros(n_frames, dtype=np.float64)
     per_frame_polar = np.zeros(n_frames, dtype=np.float64)
-    per_atom_last: np.ndarray | None = None
+    per_atom_last: Optional[np.ndarray] = None
 
     for f in range(n_frames):
         pos = coords[f]
@@ -890,7 +892,7 @@ def sasa_estimate(
 # ---------------------------------------------------------------------------
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行自检：对合成轨迹跑通全部核心算法。"""
     import argparse
 

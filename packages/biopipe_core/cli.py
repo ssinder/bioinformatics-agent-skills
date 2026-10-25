@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import logging
 from collections.abc import Sequence
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 __all__ = ["cli_parser", "run_cli", "SkillError"]
 
@@ -20,9 +20,9 @@ class SkillError(RuntimeError):
 
 
 def cli_parser(
-    prog: str | None = None,
+    prog: Optional[str] = None,
     description: str = "",
-    skill: str | None = None,
+    skill: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """创建带公共参数的解析器。
 
@@ -71,8 +71,8 @@ def cli_parser(
 
 def run_cli(
     main_func: Callable[[argparse.Namespace], Any],
-    argv: Sequence[str] | None = None,
-    parser: argparse.ArgumentParser | None = None,
+    argv: Optional[Sequence[str]] = None,
+    parser: Optional[argparse.ArgumentParser] = None,
     skill: str = "biopipe",
     version: str = "1.0.0",
 ) -> int:

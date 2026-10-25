@@ -24,7 +24,7 @@ import json
 import re
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable, Sequence
-from typing import Any
+from typing import Any, Optional
 
 from biopipe_core import SkillError, get_logger, http_session
 
@@ -68,7 +68,7 @@ CSV_FIELDS = [
 # ---------------------------------------------------------------- 工具函数
 
 
-def normalize_doi(doi: str | None) -> str:
+def normalize_doi(doi: Optional[str]) -> str:
     """把各种写法的 DOI 归一化为裸小写 DOI。
 
     ``https://doi.org/10.1234/ABC`` -> ``10.1234/abc``
@@ -84,7 +84,7 @@ def normalize_doi(doi: str | None) -> str:
     return text if text.startswith("10.") else ""
 
 
-def normalize_title(title: str | None) -> str:
+def normalize_title(title: Optional[str]) -> str:
     """标题归一化：转小写、去掉标点与多余空白，用于去重与模糊匹配。"""
     if not title:
         return ""
@@ -93,7 +93,7 @@ def normalize_title(title: str | None) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def clean_text(text: str | None) -> str:
+def clean_text(text: Optional[str]) -> str:
     """压缩空白并去掉 HTML 残留。"""
     if not text:
         return ""
@@ -102,7 +102,7 @@ def clean_text(text: str | None) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def parse_year(value: Any) -> int | None:
+def parse_year(value: Any) -> Optional[int]:
     """从多种字段形态中解析出 4 位年份。"""
     if value is None:
         return None
@@ -115,7 +115,7 @@ def parse_year(value: Any) -> int | None:
     return None
 
 
-def parse_date_range(spec: str | None) -> tuple[int | None, int | None]:
+def parse_date_range(spec: Optional[str]) -> tuple[Optional[int], Optional[int]]:
     """解析 ``--date-range`` 参数。
 
     支持 ``START:END``（如 ``2018:2024``）、``START:``（至今）、``:END``。
@@ -133,7 +133,7 @@ def parse_date_range(spec: str | None) -> tuple[int | None, int | None]:
     return start, end
 
 
-def build_query(topic: str | None, keywords: Sequence[str] | None) -> str:
+def build_query(topic: Optional[str], keywords: Optional[Sequence[str]]) -> str:
     """把主题与关键词拼成一条检索式。
 
     ``--topic`` 视为自由文本主检索式；``--keywords`` 作为附加 AND 条件，
@@ -224,9 +224,9 @@ class LiteratureClient:
 
     def __init__(
         self,
-        email: str | None = None,
-        ncbi_api_key: str | None = None,
-        s2_api_key: str | None = None,
+        email: Optional[str] = None,
+        ncbi_api_key: Optional[str] = None,
+        s2_api_key: Optional[str] = None,
         min_interval: float = 0.34,
     ) -> None:
         self.email = email
@@ -269,8 +269,8 @@ class LiteratureClient:
         self,
         query: str,
         max_results: int = 50,
-        start_year: int | None = None,
-        end_year: int | None = None,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None,
     ) -> list[dict[str, Any]]:
         """PubMed E-utilities 检索：esearch 取 PMID，再 esummary 取元数据。"""
         term = query
@@ -397,8 +397,8 @@ class LiteratureClient:
         self,
         query: str,
         max_results: int = 50,
-        start_year: int | None = None,
-        end_year: int | None = None,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None,
         min_citations: int = 0,
     ) -> list[dict[str, Any]]:
         """OpenAlex works 检索，返回归一化记录。"""
@@ -488,8 +488,8 @@ class LiteratureClient:
         self,
         query: str,
         max_results: int = 50,
-        start_year: int | None = None,
-        end_year: int | None = None,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None,
     ) -> list[dict[str, Any]]:
         """Semantic Scholar graph search，返回归一化记录。"""
         params: dict[str, Any] = {
@@ -718,8 +718,8 @@ def filter_records(
     min_abstract_length: int = 0,
     include_terms: Sequence[str] = (),
     exclude_terms: Sequence[str] = (),
-    start_year: int | None = None,
-    end_year: int | None = None,
+    start_year: Optional[int] = None,
+    end_year: Optional[int] = None,
 ) -> list[dict[str, Any]]:
     """按阈值与包含/排除词筛选文献。"""
     include_lower = [t.lower() for t in include_terms if t.strip()]

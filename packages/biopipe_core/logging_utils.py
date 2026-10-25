@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
+from typing import Optional, Union
 
 __all__ = ["get_logger", "setup_logging"]
 
@@ -25,7 +26,7 @@ _CONFIGURED: set[str] = set()
 def setup_logging(
     name: str,
     level: int = logging.INFO,
-    log_file: str | Path | None = None,
+    log_file: Optional[Union[str, Path]] = None,
     quiet: bool = False,
 ) -> logging.Logger:
     """配置并返回一个 logger。

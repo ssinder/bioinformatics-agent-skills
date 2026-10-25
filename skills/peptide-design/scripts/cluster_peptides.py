@@ -37,6 +37,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from typing import Optional
+
 from biopipe_core import (  # noqa: E402
     SkillError,
     cli_parser,
@@ -136,7 +138,7 @@ def average_linkage(
         return [[0]]
 
     # 固定槽位：active[i] 为该槽位的成员列表，None 表示已被合并
-    active: list[list[int] | None] = [[i] for i in range(n)]
+    active: list[Optional[list[int]]] = [[i] for i in range(n)]
     sizes = [1] * n
     # d[i][j] 为两个槽位之间的距离（i != j 时有效）
     d = [list(row) for row in distances]
@@ -260,7 +262,7 @@ def select_representatives(
 # ---------------------------------------------------------------- MMseqs2
 
 
-def find_mmseqs() -> str | None:
+def find_mmseqs() -> Optional[str]:
     """查找可用的 MMseqs2 可执行文件。"""
     for name in ("mmseqs", "mmseqs2", "mmseqs-linux-avx2"):
         path = shutil.which(name)

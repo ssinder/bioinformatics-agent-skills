@@ -40,6 +40,8 @@ def _require_pd():
     return pd
 
 
+from typing import Optional
+
 from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
 from biopipe_core.optional_deps import is_available  # noqa: E402
 
@@ -49,7 +51,7 @@ LOGGER = get_logger("biopipe.bulk-rnaseq")
 def build_counts_matrix(
     quant_dir: Path,
     output_dir: Path,
-    tx2gene_file: Path | None,
+    tx2gene_file: Optional[Path],
     min_counts: int = 0,
 ) -> dict[str, Path]:
     """从 Salmon 定量目录构建基因水平矩阵。

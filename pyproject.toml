@@ -93,7 +93,17 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
-ignore = ["E501", "B008"]
+ignore = [
+    "E501",
+    "B008",
+    # UP007 / UP045 建议把 Optional[X] / Union[X, Y] 改回 PEP 604 的 X | Y。
+    # 但本项目支持 Python 3.9，而 `from __future__ import annotations` 只让
+    # *注解不求值*；`typing.get_type_hints()` 会**强制求值**，此时
+    # `str | None` 在 3.9 上抛 TypeError。
+    # 因此这里显式禁用这两条规则，统一使用 typing 的兼容写法。
+    "UP007",
+    "UP045",
+]
 
 [tool.ruff.lint.per-file-ignores]
 "skills/**/scripts/*.py" = ["E402", "F401"]

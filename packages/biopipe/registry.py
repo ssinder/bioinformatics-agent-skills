@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 __all__ = ["SkillSpec", "REGISTRY", "get_skill", "list_skills", "skill_names"]
 
@@ -98,7 +99,7 @@ REGISTRY: dict[str, SkillSpec] = {
 }
 
 
-def get_skill(name: str) -> SkillSpec | None:
+def get_skill(name: str) -> Optional[SkillSpec]:
     """按名称查找技能。"""
     return REGISTRY.get(name)
 

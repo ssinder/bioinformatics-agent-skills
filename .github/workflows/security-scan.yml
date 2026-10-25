@@ -49,9 +49,7 @@ jobs:
           python scripts/ci_security_scan.py skills packages scripts
 
       - name: Verify no writes outside allowed dirs
-        run: |
-          set -e
-          PATTERN='open\s*\([^)]*["'"']w["'"']|Path\([^)]*\)\.write_'
-          if grep -rInE "$PATTERN" skills packages --include='*.py' | grep -vE 'output|results|work|data|figures|tmp|cache'; then
-            echo "::warning::Review writes outside standard output directories"
-          fi
+        # 说明：早先这里用 shell 正则实现，但单双引号混用在 sh(dash) 下
+        # 会直接语法错误。改用 Python 脚本，跨平台可靠。
+        # 该检查是"报告式"的：列出可疑写入路径供人工复核，不阻断流水线。
+        run: python scripts/ci_write_audit.py

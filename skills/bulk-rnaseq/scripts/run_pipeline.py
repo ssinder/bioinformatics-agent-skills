@@ -38,6 +38,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
+from typing import Optional
+
 from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
 from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
 from biopipe_core.optional_deps import optional_import  # noqa: E402
@@ -85,7 +87,7 @@ def _require_tool(name: str, logger=LOGGER) -> bool:
     return True
 
 
-def _run(cmd: list[str], logger=LOGGER, timeout: int | None = None) -> bool:
+def _run(cmd: list[str], logger=LOGGER, timeout: Optional[int] = None) -> bool:
     """执行外部命令，返回是否成功。
 
     Args:
@@ -222,7 +224,7 @@ def step_salmon_quant(trimmed_dir: Path, index_dir: Path, out_dir: Path, threads
     return ok
 
 
-def step_counts(quant_dir: Path, counts_dir: Path, tx2gene: Path | None) -> dict[str, Path]:
+def step_counts(quant_dir: Path, counts_dir: Path, tx2gene: Optional[Path]) -> dict[str, Path]:
     """步骤 4：构建基因水平 counts / TPM / FPKM 矩阵。"""
     LOGGER.info("[4/8] 构建 counts 矩阵")
     from build_counts_matrix import build_counts_matrix  # 局部导入，避免模块级耦合
@@ -836,7 +838,7 @@ def step_visualization(
 def step_report(
     output_root: Path,
     report_path: Path,
-    metadata_file: Path | None,
+    metadata_file: Optional[Path],
     group_a: str,
     group_b: str,
     backend: str,

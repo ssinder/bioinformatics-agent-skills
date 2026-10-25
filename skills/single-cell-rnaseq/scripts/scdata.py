@@ -32,7 +32,7 @@ import io
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
@@ -107,9 +107,9 @@ class SimpleAnnData:
         X: Any,
         obs: pd.DataFrame,
         var: pd.DataFrame,
-        obsm: dict[str, Any] | None = None,
-        varm: dict[str, Any] | None = None,
-        uns: dict[str, Any] | None = None,
+        obsm: Optional[dict[str, Any]] = None,
+        varm: Optional[dict[str, Any]] = None,
+        uns: Optional[dict[str, Any]] = None,
     ) -> None:
         self.X = X
         self.obs = obs
@@ -117,7 +117,7 @@ class SimpleAnnData:
         self.obsm = obsm or {}
         self.varm = varm or {}
         self.uns = uns or {}
-        self.raw: SimpleAnnData | None = None
+        self.raw: Optional[SimpleAnnData] = None
 
     # ------------------------------------------------------------------ #
     @property
@@ -194,7 +194,7 @@ class SimpleAnnData:
         """把重复的基因名改写为唯一名（原名 + ``-1``、``-2`` …）。"""
         self.var.index = _make_unique(self.var.index)
 
-    def write_h5ad(self, path: str | Path) -> Path:
+    def write_h5ad(self, path: Union[str, Path]) -> Path:
         """写出为 h5ad（需要 anndata）。
 
         Args:
@@ -268,7 +268,7 @@ def _decode(values: Any) -> list[str]:
     return out
 
 
-def read_10x_h5(path: str | Path) -> SimpleAnnData:
+def read_10x_h5(path: Union[str, Path]) -> SimpleAnnData:
     """读取 10x Genomics HDF5 矩阵。
 
     Args:
@@ -312,7 +312,7 @@ def _read_lines(path: Path) -> list[str]:
     return path.read_text(encoding="utf-8-sig").splitlines()
 
 
-def read_10x_mtx(directory: str | Path) -> SimpleAnnData:
+def read_10x_mtx(directory: Union[str, Path]) -> SimpleAnnData:
     """读取 10x MTX 目录。
 
     需要包含 ``matrix.mtx(.gz)``、``barcodes.tsv(.gz)`` 与
@@ -328,7 +328,7 @@ def read_10x_mtx(directory: str | Path) -> SimpleAnnData:
     if not directory.is_dir():
         raise ValueError(f"{directory} 不是目录")
 
-    def _find(*names: str) -> Path | None:
+    def _find(*names: str) -> Optional[Path]:
         for name in names:
             for candidate in (name, name + ".gz"):
                 p = directory / candidate
@@ -372,7 +372,7 @@ def read_10x_mtx(directory: str | Path) -> SimpleAnnData:
     return SimpleAnnData(mtx, obs, var)
 
 
-def read_dense_table(path: str | Path, sep: str | None = None) -> SimpleAnnData:
+def read_dense_table(path: Union[str, Path], sep: Optional[str] = None) -> SimpleAnnData:
     """读取稠密的 CSV/TSV 表达矩阵。
 
     自动判断方向：若行数明显多于列数（基因数 > 细胞数），则视为"行=基因"，
@@ -409,7 +409,7 @@ def read_dense_table(path: str | Path, sep: str | None = None) -> SimpleAnnData:
     return SimpleAnnData(numeric.to_numpy(dtype=float), obs, var)
 
 
-def read_h5ad(path: str | Path) -> SimpleAnnData:
+def read_h5ad(path: Union[str, Path]) -> SimpleAnnData:
     """读取 ``.h5ad`` 文件（需要 anndata）。"""
     try:
         import anndata as ad
@@ -488,7 +488,7 @@ def from_anndata(adata: Any) -> SimpleAnnData:
     return out
 
 
-def read_matrix(path: str | Path) -> SimpleAnnData:
+def read_matrix(path: Union[str, Path]) -> SimpleAnnData:
     """按扩展名/内容自动选择读取方式。
 
     Args:

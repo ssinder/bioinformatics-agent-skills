@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable, Sequence
+from typing import Optional
 
 __all__ = [
     "build_mermaid",
@@ -287,7 +288,7 @@ def residue_statistics(records: Sequence[dict]) -> dict:
     }
 
 
-def _main(argv: list[str] | None = None) -> int:
+def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：解析 PLIP 报告并输出网络图。"""
     import argparse
     from pathlib import Path

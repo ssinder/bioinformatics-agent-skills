@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 __all__ = [
     "ProjectConfig",
@@ -50,11 +50,11 @@ class ProjectConfig:
     output_dir: Path
     data_dir: Path
     figures_dir: Path
-    config_file: Path | None = None
+    config_file: Optional[Path] = None
     _extra: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_env(cls, config_file: str | os.PathLike[str] | None = None) -> ProjectConfig:
+    def from_env(cls, config_file: Optional[Union[str, os.PathLike[str]]] = None) -> ProjectConfig:
         """根据环境变量与可选配置文件构建配置。
 
         支持的配置文件格式为 JSON 或简单的 ``key=value`` 行，键为
@@ -64,7 +64,7 @@ class ProjectConfig:
         root = Path(env_root).expanduser().resolve() if env_root else Path.cwd().resolve()
 
         extra: dict[str, Any] = {}
-        cfg_path: Path | None = None
+        cfg_path: Optional[Path] = None
         if config_file:
             cfg_path = Path(config_file).expanduser().resolve()
             if not cfg_path.exists():
@@ -116,7 +116,7 @@ class ProjectConfig:
 _CONFIG_CACHE: dict[str, ProjectConfig] = {}
 
 
-def get_config(config_file: str | os.PathLike[str] | None = None, refresh: bool = False) -> ProjectConfig:
+def get_config(config_file: Optional[Union[str, os.PathLike[str]]] = None, refresh: bool = False) -> ProjectConfig:
     """获取（并缓存）当前项目配置。
 
     Args:
@@ -129,7 +129,7 @@ def get_config(config_file: str | os.PathLike[str] | None = None, refresh: bool 
     return _CONFIG_CACHE[key]
 
 
-def resolve_path(path: str | os.PathLike[str], base: Path | None = None) -> Path:
+def resolve_path(path: Union[str, os.PathLike[str]], base: Optional[Path] = None) -> Path:
     """把用户提供的路径解析为绝对路径。
 
     Args:
@@ -146,7 +146,7 @@ def resolve_path(path: str | os.PathLike[str], base: Path | None = None) -> Path
     return (root / p).resolve()
 
 
-def ensure_dir(path: str | os.PathLike[str]) -> Path:
+def ensure_dir(path: Union[str, os.PathLike[str]]) -> Path:
     """确保目录存在（递归创建）并返回其绝对路径。"""
     p = resolve_path(path)
     p.mkdir(parents=True, exist_ok=True)
