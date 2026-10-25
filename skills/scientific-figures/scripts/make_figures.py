@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """出版级科学图表生成入口（多子命令）。
 
 统一入口：``make_figures.py <子命令> --input ... --output ...``
@@ -52,12 +51,11 @@ from biopipe_core import (  # noqa: E402
     resolve_path,
     run_cli,
 )
-
 from figure_style import (  # noqa: E402
-    FigureStyleError,
     MATPLOTLIB_AVAILABLE,
     PAPER_COLORS,
     SEMANTIC_COLORS,
+    FigureStyleError,
     add_stats_box,
     apply_publication_style,
     get_color_palette,
@@ -587,9 +585,15 @@ def plot_shap(rows: list[dict[str, str]], args: argparse.Namespace) -> list[Path
     ax2.invert_yaxis()
     ax2.set_xlabel("Mean |SHAP Value|", fontsize=11, fontweight="bold")
     ax2.set_ylabel("Features", fontsize=11, fontweight="bold")
-    for bar, (feature, value, std) in zip(bars, top_features):
-        ax2.text(value + std + 0.005, bar.get_y() + bar.get_height() / 2,
-                 f"{value:.3f}", va="center", fontsize=7, color="#333333")
+    for bar, (_feature, value, std) in zip(bars, top_features):
+        ax2.text(
+            value + std + 0.005,
+            bar.get_y() + bar.get_height() / 2,
+            f"{value:.3f}",
+            va="center",
+            fontsize=7,
+            color="#333333",
+        )
     ax2.spines["top"].set_visible(False)
     ax2.spines["right"].set_visible(False)
     fig2.tight_layout()
@@ -649,7 +653,7 @@ def plot_class_distribution(rows: list[dict[str, str]], args: argparse.Namespace
     ax.invert_yaxis()
 
     max_val = max(values) if values else 1
-    for idx, (bar, (key, value)) in enumerate(zip(bars, top_items)):
+    for idx, (_bar, (key, value)) in enumerate(zip(bars, top_items)):
         kingdom, phylum, class_name = key
         label = f"{value:,} [{kingdom}-{phylum}]" if phylum else f"{value:,}"
         ax.text(value + max_val * 0.005, idx, label, va="center", ha="left",
@@ -713,7 +717,7 @@ def plot_secondary_structure(rows: list[dict[str, str]], args: argparse.Namespac
     ax.set_xticklabels([name for name, _ in ordered], fontsize=9, rotation=15, ha="right")
 
     total = sum(values) or 1
-    for idx, (bar, value) in enumerate(zip(bars, values)):
+    for idx, (_bar, value) in enumerate(zip(bars, values)):
         ax.text(idx, value + max(values) * 0.02, f"{value:,}\n({value / total * 100:.1f}%)",
                 ha="center", va="bottom", fontsize=8)
 
@@ -815,7 +819,7 @@ def plot_feature_importance(rows: list[dict[str, str]], args: argparse.Namespace
     ax.set_xticks(x_positions)
     ax.set_xticklabels([f for f, _, _ in items], rotation=45, ha="right", fontsize=7)
 
-    for idx, (bar, (feature, value, std)) in enumerate(zip(bars, items)):
+    for idx, (_bar, (_feature, value, std)) in enumerate(zip(bars, items)):
         ax.text(idx, value + std + max(values) * 0.02, f"{value:.3f}",
                 ha="center", va="bottom", fontsize=7)
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """DESeq2 风格的负二项差异表达统计（纯 NumPy/SciPy 实现）。
 
 本模块是 ``bulk-rnaseq`` 技能中 ``--backend python`` 的数值核心，移植并实现了
@@ -26,8 +25,9 @@ Usage:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Callable, Sequence
+from typing import Callable
 
 import numpy as np
 from scipy.optimize import minimize, minimize_scalar

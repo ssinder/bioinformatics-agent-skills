@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """UniProt 元数据查询客户端（基于共享层 ``http_session``）。
 
 仅在显式调用时才会发起网络请求；``requests`` 缺失时优雅降级为 ``None``。
@@ -18,8 +17,9 @@ Usage:
 from __future__ import annotations
 
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 

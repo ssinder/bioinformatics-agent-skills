@@ -23,18 +23,36 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Compile all Python files
-        run: python -m compileall -q skills packages scripts
+        run: python -m compileall -q skills packages scripts tests
 
       - name: Check every skill entry script exposes --help
         run: |
           set -e
-          for entry in skills/*/scripts/*.py; do
-            if grep -q 'bootstrap_cli\|argparse\|--help' "$entry"; then
-              echo "ok  $entry"
-            else
-              echo "MISSING CLI: $entry" && exit 1
-            fi
-          done
+          # 复用校验器的库模块判定逻辑，避免在 CI 中维护第二份重复实现。
+          # 库模块（core/helper/utils/properties/filters 等）由其他脚本 import 调用，
+          # 本就不需要 __main__ 入口。
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          from validate_skills import _is_library_module
+
+          failures = []
+          for entry in sorted(Path("skills").glob("*/scripts/*.py")):
+              source = entry.read_text(encoding="utf-8")
+              if _is_library_module(source, entry.name):
+                  print(f"lib  {entry}")
+              elif "bootstrap_cli" in source or "argparse" in source or "--help" in source:
+                  print(f"ok   {entry}")
+              else:
+                  failures.append(f"MISSING CLI: {entry}")
+
+          if failures:
+              print("\n".join(failures))
+              raise SystemExit(1)
+          print("\nall scripts expose a CLI entry or are declared library modules")
+          PY
 
   lint:
     name: Ruff lint
@@ -50,4 +68,4 @@ jobs:
         run: pip install ruff
 
       - name: Run ruff
-        run: ruff check skills packages scripts
+        run: ruff check skills packages scripts tests

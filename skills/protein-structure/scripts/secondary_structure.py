@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """二级结构判定：DSSP 外部程序 + 内置简化 DSSP 回退实现。
 
 模块提供两条独立通路：
@@ -367,7 +366,7 @@ def assign_secondary_structure(
     hbond_to: dict[int, float] = {}
     hbond_from: dict[int, float] = {}
     if use_hbond_pattern:
-        for i, donor in enumerate(records):
+        for i, _donor in enumerate(records):
             for j in range(len(records)):
                 e = energy[i][j]
                 if e < min_hbond_energy:
@@ -383,7 +382,7 @@ def assign_secondary_structure(
     assignments: dict[int, str] = {}
 
     if use_hbond_pattern:
-        for chain_id, indices in by_chain.items():
+        for _chain_id, indices in by_chain.items():
             for p, idx in enumerate(indices):
                 # n → n+4 : α 螺旋（供体在下游，受体在上游）
                 if p + 4 < len(indices):
@@ -411,7 +410,7 @@ def assign_secondary_structure(
                             assignments[j] = "I"
 
         # β-桥（DSSP 定义：至少一个桥，且不是螺旋残基）
-        for chain_id, indices in by_chain.items():
+        for _chain_id, indices in by_chain.items():
             for p, idx in enumerate(indices):
                 if assignments.get(idx) in HELIX_CODES:
                     continue

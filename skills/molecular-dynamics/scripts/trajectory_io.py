@@ -15,9 +15,10 @@ from __future__ import annotations
 
 import struct
 import sys
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -380,9 +381,7 @@ def read_dcd(path: str | Path, read_frames: int | None = None) -> tuple[np.ndarr
 
         n_read = 0
         pending_axes: list[np.ndarray] = []
-        pending_single: np.ndarray | None = None
         saw_unitcell_in_frame = False
-        axis_order = 0  # 记录该帧已收集到第几个轴
 
         while True:
             if limit and n_read >= limit:
@@ -426,7 +425,6 @@ def read_dcd(path: str | Path, read_frames: int | None = None) -> tuple[np.ndarr
                 block = np.frombuffer(
                     _read_record_body(fh, length), dtype="<f4", count=natoms * 3
                 )
-                pending_single = block
                 if n_read < coords.shape[0]:
                     coords[n_read, :, 0] = block[:natoms]
                     coords[n_read, :, 1] = block[natoms : 2 * natoms]
@@ -601,7 +599,6 @@ def read_xyz_trajectory(path: str | Path) -> Trajectory:
             i += 1
             continue
         i += 1
-        comment = lines[i] if i < len(lines) else ""
         i += 1
         xyz = np.zeros((natoms, 3), dtype=np.float64)
         for k in range(natoms):

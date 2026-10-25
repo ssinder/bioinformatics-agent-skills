@@ -62,6 +62,11 @@ dev = [
     "ruff>=0.4",
     "black>=24.3",
     "mypy>=1.9",
+    "numpy>=1.23",
+    "pandas>=1.5",
+    "scipy>=1.9",
+    "h5py>=3.8",
+    "MDAnalysis>=2.6",
 ]
 
 [project.urls]

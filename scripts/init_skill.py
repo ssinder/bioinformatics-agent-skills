@@ -357,7 +357,7 @@ def main(argv: list[str] | None = None) -> int:
     print("\n下一步:")
     print(f"  1. 编辑 {skill_dir / 'SKILL.md'} 的 description(决定何时被触发)")
     print(f"  2. 实现 {skill_dir / 'scripts' / args.entry} 的核心逻辑")
-    print(f"  3. 编写 references/ 下的两份参考文档")
+    print("  3. 编写 references/ 下的两份参考文档")
     print(f"  4. 校验: python scripts/validate_skills.py --skill {args.name} --strict")
     return 0
 

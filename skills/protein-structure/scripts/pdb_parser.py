@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """纯 Python PDB 解析器（不依赖 BioPython）。
 
 按 PDB v3.3 原子记录的固定列定义逐行解析 ``ATOM`` / ``HETATM`` 记录，
@@ -30,9 +29,9 @@ Usage:
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Iterator
 
 __all__ = [
     "Atom",
@@ -140,7 +139,7 @@ class Atom:
         """原子的范德华半径（未知元素取碳的值）。"""
         return VDW_RADII.get(self.element.upper(), 1.70)
 
-    def distance_to(self, other: "Atom") -> float:
+    def distance_to(self, other: Atom) -> float:
         """到另一个原子的欧氏距离（Å）。"""
         return math.dist(self.coord, other.coord)
 

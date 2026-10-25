@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """文献检索核心库：多源 API 客户端、归一化、去重、相关性打分、摘要富集。
 
 本模块被 ``search_literature.py`` 与 ``export_citations.py`` 复用，
@@ -24,7 +23,8 @@ import difflib
 import json
 import re
 import xml.etree.ElementTree as ET
-from typing import Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 from biopipe_core import SkillError, get_logger, http_session
 

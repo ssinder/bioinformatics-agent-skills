@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """生成 single-cell-rnaseq 流程的自检用合成数据（10x HDF5 + marker 参考表）。
 
 合成 4 个细胞群，每群有独特的 marker 基因高表达，用于验证：
@@ -7,9 +6,10 @@
 """
 
 import os
+
+import h5py
 import numpy as np
 import pandas as pd
-import h5py
 
 rng = np.random.default_rng(42)
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures_scrna")

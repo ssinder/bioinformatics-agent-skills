@@ -400,7 +400,7 @@ def validate_skill(skill_dir: Path) -> Result:
     normalized = [h.strip().lower() for h in headings]
     for section in REQUIRED_SECTIONS:
         if section.lower() not in normalized:
-            issues.append(Issue(skill, "error", f"missing-section", f"SKILL.md 缺少章节 '## {section}'"))
+            issues.append(Issue(skill, "error", "missing-section", f"SKILL.md 缺少章节 '## {section}'"))
 
     _check_scripts(skill_dir, skill, issues)
 

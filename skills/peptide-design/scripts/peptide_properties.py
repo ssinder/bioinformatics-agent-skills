@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """多肽理化性质计算库（完全自包含，不依赖 Biopython / numpy）。
 
 所有计算均为标准文献公式的直接实现：
@@ -210,6 +209,7 @@ def validate_sequence(sequence: str, allow_unknown: bool = True) -> tuple[str, l
 
 def count_composition(sequence: str) -> dict[str, int]:
     """统计 20 种标准氨基酸 + 未知残基的出现次数。"""
+    sequence = clean_sequence(sequence)
     counts = {aa: 0 for aa in RESIDUE_MASS}
     counts["X"] = 0
     for ch in sequence:
@@ -229,6 +229,7 @@ def molecular_weight(sequence: str) -> float:
     公式：``MW = Σ(残基平均质量) + H2O``。
     非标准残基按其标准母体残基质量计（X 按甘氨酸近似并标记）。
     """
+    sequence = clean_sequence(sequence)
     total = 0.0
     for ch in sequence:
         if ch in RESIDUE_MASS:
@@ -244,6 +245,7 @@ def monoisotopic_weight(sequence: str) -> float:
 
     单同位素残基质量 = 平均质量 - 同位素质量差。
     """
+    sequence = clean_sequence(sequence)
     mono_residue = {
         "A": 71.03711, "R": 156.10111, "N": 114.04293, "D": 115.02694,
         "C": 103.00919, "E": 129.04259, "Q": 128.05858, "G": 57.02146,
@@ -266,6 +268,7 @@ def net_charge(sequence: str, ph: float = 7.0) -> float:
     正电荷来自 N 端氨基 + Lys + Arg + His 的质子化比例；
     负电荷来自 C 端羧基 + Asp + Glu + Cys + Tyr 的去质子化比例。
     """
+    sequence = clean_sequence(sequence)
     counts = count_composition(sequence)
 
     def frac_protonated(pk: float) -> float:
@@ -292,6 +295,7 @@ def net_charge(sequence: str, ph: float = 7.0) -> float:
 
 def charge_curve(sequence: str, ph_min: float = 0.0, ph_max: float = 14.0, step: float = 0.1) -> list[tuple[float, float]]:
     """生成电荷曲线（pH, 净电荷）采样点。"""
+    sequence = clean_sequence(sequence)
     curve: list[tuple[float, float]] = []
     steps = int(round((ph_max - ph_min) / step))
     for i in range(steps + 1):
@@ -306,6 +310,7 @@ def isoelectric_point(sequence: str) -> float:
     在 pH 0–14（步长 0.1）的电荷曲线上定位符号翻转区间，
     再用二分法在该区间内求电荷为零的精确解。
     """
+    sequence = clean_sequence(sequence)
     curve = charge_curve(sequence)
 
     # 找符号翻转区间
@@ -326,14 +331,14 @@ def isoelectric_point(sequence: str) -> float:
 
     # 二分细化
     lo_ph, lo_q = curve[lo_idx]
-    hi_ph, hi_q = curve[hi_idx]
+    hi_ph = curve[hi_idx][0]
     for _ in range(60):
         mid_ph = (lo_ph + hi_ph) / 2.0
         mid_q = net_charge(sequence, mid_ph)
         if mid_q == 0:
             return round(mid_ph, 3)
         if lo_q * mid_q < 0:
-            hi_ph, hi_q = mid_ph, mid_q
+            hi_ph = mid_ph
         else:
             lo_ph, lo_q = mid_ph, mid_q
     return round((lo_ph + hi_ph) / 2.0, 3)
@@ -347,6 +352,7 @@ def kyte_doolittle(sequence: str) -> float:
 
     数值越大越疏水。典型参考：>1.8 强疏水，<0 强亲水。
     """
+    sequence = clean_sequence(sequence)
     if not sequence:
         return 0.0
     total = 0.0
@@ -363,6 +369,7 @@ def hydrophobic_moment(sequence: str) -> float:
 
     把疏水残基视作单位向量沿序列方向排布，计算合成向量的模长 / 长度。
     """
+    sequence = clean_sequence(sequence)
     n = len(sequence)
     if n == 0:
         return 0.0
@@ -382,6 +389,7 @@ def hydrophobic_moment(sequence: str) -> float:
 
 def aromaticity(sequence: str) -> float:
     """芳香性 = (F + W + Y + H) / 序列长度（Cornwell et al. 2013 简化式）。"""
+    sequence = clean_sequence(sequence)
     if not sequence:
         return 0.0
     counts = count_composition(sequence)
@@ -391,6 +399,7 @@ def aromaticity(sequence: str) -> float:
 
 def aliphatic_index(sequence: str) -> float:
     """脂肪族指数 = 100 × (Ala + Val + Ile + Leu) / 序列长度。"""
+    sequence = clean_sequence(sequence)
     if not sequence:
         return 0.0
     counts = count_composition(sequence)
@@ -409,6 +418,7 @@ def instability_index(sequence: str) -> float:
 
     值 < 40 表示蛋白/肽在生理条件下稳定。
     """
+    sequence = clean_sequence(sequence)
     n = len(sequence)
     if n < 3:
         return 0.0
@@ -429,6 +439,7 @@ def helix_sheet_tendency(sequence: str) -> dict[str, float]:
     返回归一化后的 α 螺旋、β 折叠、拐角比例以及多肽净电荷影响下的
     螺旋形成倾向（Helix propensity 修正）。
     """
+    sequence = clean_sequence(sequence)
     if not sequence:
         return {"helix_fraction": 0.0, "sheet_fraction": 0.0, "turn_fraction": 0.0,
                 "helix_propensity": 0.0}
@@ -485,6 +496,7 @@ def predicted_solubility(sequence: str) -> float:
     其中系数来自 Zhao 2009 (Protein Sci) 的残基级 log-s 贡献表。
     返回值为 log-s 值（越大越易溶）。
     """
+    sequence = clean_sequence(sequence)
     if not sequence:
         return 0.0
     counts = count_composition(sequence)
@@ -516,6 +528,7 @@ def extinction_coefficient(sequence: str, reduced: bool = True) -> float:
 
     ``ε = 5500×nTrp + 1490×nTyr``（还原型，无二硫键贡献）
     """
+    sequence = clean_sequence(sequence)
     counts = count_composition(sequence)
     epsilon = EXT_TRP * counts["W"] + EXT_TYR * counts["Y"]
     if not reduced:
@@ -532,6 +545,7 @@ def boman_index(sequence: str) -> float:
 
     疏水残基权重之和减去带电残基权重之和。值越高，潜在抗菌活性越强。
     """
+    sequence = clean_sequence(sequence)
     total = 0.0
     for ch in sequence:
         total += BOMAN_INDEX.get(ch, 0.0)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """多肽分类判别规则库：基于 GO 术语、关键词与理化性质的多维打分。
 
 提供三个层面的判别能力：
@@ -18,7 +17,14 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Sequence
+import sys
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from peptide_properties import clean_sequence  # noqa: E402
 
 # ---------------------------------------------------------------- GO 词表
 
@@ -451,6 +457,7 @@ def sequence_complexity(sequence: str) -> float:
 
     值越高说明序列组成越多样（Shannon entropy / log2(20)）。
     """
+    sequence = clean_sequence(sequence)
     import math
 
     if not sequence:
@@ -468,6 +475,7 @@ def sequence_complexity(sequence: str) -> float:
 
 def gc_content(sequence: str) -> float:
     """GC 含量。"""
+    sequence = clean_sequence(sequence)
     if not sequence:
         return 0.0
     gc = sum(1 for ch in sequence if ch in "GC")
@@ -476,6 +484,7 @@ def gc_content(sequence: str) -> float:
 
 def cys_rich(sequence: str, threshold: float = 0.15) -> bool:
     """是否富含半胱氨酸（阈值按序列长度的比例）。"""
+    sequence = clean_sequence(sequence)
     if not sequence:
         return False
     return sequence.count("C") / len(sequence) > threshold
@@ -483,6 +492,7 @@ def cys_rich(sequence: str, threshold: float = 0.15) -> bool:
 
 def find_repeated_motifs(sequence: str, motif_length: int = 3, min_repeat: int = 3) -> list[str]:
     """查找重复出现超过阈值的短 motif（用于识别保守结构域）。"""
+    sequence = clean_sequence(sequence)
     if len(sequence) < motif_length:
         return []
     counts: dict[str, int] = {}

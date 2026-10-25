@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """多肽序列聚类去冗余入口。
 
 优先调用外部 MMseqs2（``mmseqs easy-cluster``），若不可用则回退到自实现的
@@ -49,6 +48,7 @@ from biopipe_core import (  # noqa: E402
     write_csv,
     write_fasta,
 )
+from peptide_properties import clean_sequence  # noqa: E402
 
 LOGGER = get_logger("biopipe.peptide-design")
 
@@ -61,6 +61,7 @@ def kmer_set(sequence: str, k: int = 3) -> frozenset[str]:
 
     序列短于 k 时返回整条序列作为唯一 k-mer。
     """
+    sequence = clean_sequence(sequence)
     if not sequence:
         return frozenset()
     if len(sequence) < k:
@@ -84,6 +85,8 @@ def pairwise_identity(seq_a: str, seq_b: str) -> float:
 
     使用最长公共子序列（Needleman-Wunsch 的简化版：只算匹配不计 gap 惩罚）。
     """
+    seq_a = clean_sequence(seq_a)
+    seq_b = clean_sequence(seq_b)
     if not seq_a or not seq_b:
         return 0.0
     if seq_a == seq_b:

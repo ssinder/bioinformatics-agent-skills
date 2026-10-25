@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """蛋白质结构分析入口：PDB 解析 → 几何计算 → 二级结构 → 元数据。
 
 功能：
@@ -38,7 +37,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from biopipe_core import SkillError, cli_parser, get_config, get_logger, write_csv  # noqa: E402
 from biopipe_core.cli import run_cli  # noqa: E402
-
 from geometry import (  # noqa: E402
     bounding_box,
     end_to_end_distance,
@@ -57,7 +55,7 @@ LOGGER = get_logger("biopipe.protein-structure")
 
 SKILL_NAME = "protein-structure"
 
-__all__ = ["analyze_structure", "build_parser", "main"]
+__all__ = ["analyze_structure", "main"]
 
 
 def _build_parser() -> argparse.ArgumentParser:

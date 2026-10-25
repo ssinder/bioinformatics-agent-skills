@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """多肽序列分析入口：理化性质计算、抗菌判别、筛选与导出。
 
 功能链路：
@@ -46,7 +45,6 @@ from biopipe_core import (  # noqa: E402
     write_csv,
     write_fasta,
 )
-
 from peptide_filters import (  # noqa: E402
     annotate_go_distribution,
     classify,
@@ -147,7 +145,7 @@ def _detect_format(path: Path, declared: str) -> str:
         return "csv"
     # 内容嗅探：以 '>' 开头视为 FASTA
     try:
-        with open(path, "r", encoding="utf-8", errors="replace") as handle:
+        with open(path, encoding="utf-8", errors="replace") as handle:
             head = handle.read(4096).lstrip()
         return "fasta" if head.startswith(">") else "csv"
     except OSError:

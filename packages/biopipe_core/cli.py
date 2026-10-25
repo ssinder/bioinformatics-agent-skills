@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import argparse
 import logging
-import sys
-from typing import Any, Callable, Sequence
+from collections.abc import Sequence
+from typing import Any, Callable
 
 __all__ = ["cli_parser", "run_cli", "SkillError"]
 

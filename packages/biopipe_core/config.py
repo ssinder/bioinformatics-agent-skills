@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 __all__ = [
     "ProjectConfig",
@@ -54,7 +54,7 @@ class ProjectConfig:
     _extra: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_env(cls, config_file: str | os.PathLike[str] | None = None) -> "ProjectConfig":
+    def from_env(cls, config_file: str | os.PathLike[str] | None = None) -> ProjectConfig:
         """根据环境变量与可选配置文件构建配置。
 
         支持的配置文件格式为 JSON 或简单的 ``key=value`` 行，键为
@@ -95,7 +95,7 @@ class ProjectConfig:
             _extra=extra,
         )
 
-    def ensure_dirs(self) -> "ProjectConfig":
+    def ensure_dirs(self) -> ProjectConfig:
         """创建所有输出目录，返回自身以便链式调用。"""
         for directory in (self.work_dir, self.output_dir, self.data_dir, self.figures_dir):
             directory.mkdir(parents=True, exist_ok=True)

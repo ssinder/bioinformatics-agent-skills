@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """轻量 AnnData 容器与 10x / 矩阵文件读取。
 
 ``scanpy`` / ``anndata`` 未必在所有环境可用，而单细胞流程的第一步
@@ -76,7 +75,7 @@ class SimpleAnnData:
         self.obsm = obsm or {}
         self.varm = varm or {}
         self.uns = uns or {}
-        self.raw: "SimpleAnnData | None" = None
+        self.raw: SimpleAnnData | None = None
 
     # ------------------------------------------------------------------ #
     @property
@@ -105,7 +104,7 @@ class SimpleAnnData:
         return self.var.index
 
     # ------------------------------------------------------------------ #
-    def copy(self) -> "SimpleAnnData":
+    def copy(self) -> SimpleAnnData:
         """深拷贝（矩阵复制，元数据复制）。"""
         X = self.X.copy() if hasattr(self.X, "copy") else np.array(self.X, copy=True)
         return SimpleAnnData(
@@ -117,7 +116,7 @@ class SimpleAnnData:
             dict(self.uns),
         )
 
-    def subset_cells(self, mask: np.ndarray) -> "SimpleAnnData":
+    def subset_cells(self, mask: np.ndarray) -> SimpleAnnData:
         """按布尔掩码筛选细胞，返回新对象。"""
         mask = np.asarray(mask, dtype=bool)
         X = self.X[mask]
@@ -130,7 +129,7 @@ class SimpleAnnData:
             dict(self.uns),
         )
 
-    def subset_genes(self, mask: np.ndarray) -> "SimpleAnnData":
+    def subset_genes(self, mask: np.ndarray) -> SimpleAnnData:
         """按布尔掩码筛选基因，返回新对象。"""
         mask = np.asarray(mask, dtype=bool)
         X = self.X[:, mask]
@@ -307,7 +306,7 @@ def read_10x_mtx(directory: str | Path) -> SimpleAnnData:
     feature_lines = [ln for ln in _read_lines(feature_file) if ln.strip()]
     gene_names = [ln.split("\t")[0] for ln in feature_lines]
 
-    with open(mtx_file, "r", encoding="utf-8") as handle:
+    with open(mtx_file, encoding="utf-8") as handle:
         header = handle.readline()
         if not header.startswith("%"):
             raise ValueError(f"{mtx_file} 不是合法的 MTX 文件")
@@ -385,7 +384,7 @@ def read_h5ad(path: str | Path) -> SimpleAnnData:
     return SimpleAnnData(adata.X, obs, var, obsm=obsm, uns=uns)
 
 
-def to_anndata(adata: "SimpleAnnData") -> Any:
+def to_anndata(adata: SimpleAnnData) -> Any:
     """把 :class:`SimpleAnnData` 转换为官方的 ``anndata.AnnData``。
 
     scanpy 后端需要真正的 ``AnnData`` 对象；本函数负责在两种容器之间

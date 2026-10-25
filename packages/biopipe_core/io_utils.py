@@ -10,8 +10,9 @@
 from __future__ import annotations
 
 import csv
+from collections.abc import Iterable, Iterator, Sequence
 from pathlib import Path
-from typing import Iterable, Iterator, Sequence
+from typing import Any
 
 __all__ = [
     "read_fasta",
@@ -34,7 +35,7 @@ def read_fasta(path: str | Path) -> Iterator[tuple[str, str]]:
     header: str | None = None
     chunks: list[str] = []
 
-    with open(path, "r", encoding="utf-8", errors="replace") as handle:
+    with open(path, encoding="utf-8", errors="replace") as handle:
         for raw in handle:
             line = raw.strip()
             if not line:
@@ -94,7 +95,7 @@ def read_csv_safe(path: str | Path, delimiter: str | None = None, encoding: str 
 
     for enc in encodings:
         try:
-            with open(p, "r", encoding=enc, newline="") as handle:
+            with open(p, encoding=enc, newline="") as handle:
                 sample = handle.read(4096)
                 handle.seek(0)
                 if delimiter is None:

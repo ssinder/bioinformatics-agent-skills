@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """蛋白质相互作用分析入口。
 
 流程：
@@ -43,10 +42,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from alphafold_models import select_best_model, summarize_confidence  # noqa: E402
 from biopipe_core import SkillError, cli_parser, get_logger, write_csv  # noqa: E402
 from biopipe_core.cli import run_cli  # noqa: E402
-
-from alphafold_models import select_best_model, summarize_confidence  # noqa: E402
 from interaction_network import (  # noqa: E402
     build_mermaid,
     build_pymol_script,

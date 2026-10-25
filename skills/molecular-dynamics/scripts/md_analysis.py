@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import math
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 
@@ -302,7 +302,6 @@ def hbond_analysis(
     n_frames, n_atoms, _ = coords.shape
     elements = [str(e).strip().upper() for e in elements]
 
-    h_names = {n.upper() for n in donor_h_names}
     is_h = np.array([e in ("H", "D") for e in elements], dtype=bool)
     acceptor_mask = np.array([e in _ACCEPTOR_ELEMENTS for e in elements], dtype=bool)
     donor_mask = np.array([e in _DONOR_ELEMENTS for e in elements], dtype=bool)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """从 Salmon 定量结果构建基因水平 counts / TPM / FPKM 矩阵。
 
 移植自原仓库 ``rnaseq_python/scripts/04_build_counts_matrix.py``，去掉了硬编码路径、
@@ -26,9 +25,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, get_config, SkillError  # noqa: E402
-
 import pandas as pd  # noqa: E402
+from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
 
 LOGGER = get_logger("biopipe.bulk-rnaseq")
 

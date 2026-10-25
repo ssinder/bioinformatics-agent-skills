@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """多源学术文献检索与筛选入口。
 
 功能链路：多源检索（PubMed / OpenAlex / Semantic Scholar）-> 归一化到统一 schema
@@ -46,7 +45,6 @@ from biopipe_core import (  # noqa: E402
     run_cli,
     write_csv,
 )
-
 from literature_core import (  # noqa: E402
     CSV_FIELDS,
     SOURCE_LABELS,

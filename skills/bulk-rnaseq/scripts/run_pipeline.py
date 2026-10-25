@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """bulk RNA-seq 端到端分析流程。
 
 整合原仓库 ``rnaseq_python/scripts/`` 下的 8 个步骤：
@@ -39,10 +38,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, get_config, SkillError  # noqa: E402
-from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
-
 import numpy as np  # noqa: E402
+from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
+from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -222,7 +220,7 @@ def _load_counts_and_metadata(
     counts_file: Path,
     metadata_file: Path,
     min_counts: int,
-) -> tuple["object", "object", list[str]]:
+) -> tuple[object, object, list[str]]:
     """读取 counts 矩阵与样本元数据，返回样本 x 基因矩阵、分组标签与样本名。"""
     import pandas as pd
 
@@ -482,8 +480,9 @@ def load_go_annotation(go_file: Path) -> tuple[dict, dict]:
         ``(gene_go, go_info)``：基因到 ``(ont, go_id, go_name)`` 集合的字典，
         以及 GO ID 到各本体名称的字典。
     """
-    import pandas as pd
     from collections import defaultdict
+
+    import pandas as pd
 
     df = pd.read_csv(go_file)
     LOGGER.info("GO 注释记录: %d 条", len(df))
@@ -626,7 +625,7 @@ def step_enrichment(
         all_path = out_dir / "enrichment_summary_all.csv"
         all_df.to_csv(all_path, index=False)
         outputs["summary"] = all_path
-        for ont, df in results_by_ont.items():
+        for ont, _df in results_by_ont.items():
             outputs[ont] = out_dir / f"enrichment_{ont}.csv"
     return outputs
 
@@ -1002,11 +1001,10 @@ def main(args) -> int:
         LOGGER.warning("缺少 counts 矩阵或元数据，跳过差异表达分析")
 
     # 6: 富集分析
-    enr_outputs: dict[str, Path] = {}
     go_file = Path(args.go_annotation).expanduser() if args.go_annotation else None
     de_for_enrich = de_outputs.get("significant")
     if de_for_enrich and go_file and go_file.exists():
-        enr_outputs = step_enrichment(
+        step_enrichment(
             de_file=de_for_enrich,
             go_file=go_file,
             out_dir=enr_dir,

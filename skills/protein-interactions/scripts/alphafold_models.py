@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """AlphaFold 模型选择与置信度处理。
 
 从 AlphaFold DB 下载的 zip 包中，每个条目包含多个模型（``*_model_1.cif`` …

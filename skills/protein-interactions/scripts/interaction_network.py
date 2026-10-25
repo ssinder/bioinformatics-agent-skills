@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """相互作用网络图生成（Mermaid）与 PyMOL 标注脚本生成。
 
 - :func:`build_mermaid` —— 生成 Mermaid flowchart 描述的残基相互作用网络；
@@ -16,7 +15,7 @@ Usage:
 from __future__ import annotations
 
 import re
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 __all__ = [
     "build_mermaid",

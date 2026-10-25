@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """生成 bulk-rnaseq 流程的自检用合成数据（Salmon 定量 + 元数据 + GO 注释）。"""
 
 import os
+
 import numpy as np
 import pandas as pd
 
@@ -62,7 +62,7 @@ for i, g in enumerate(genes):
     go_rows.append({
         "EnsemblPlants": g,
         "Gene Ontology (biological process)": terms,
-        "Gene Ontology (cellular component)": f"cytosol [GO:0005829]" if i < 30 else "",
+        "Gene Ontology (cellular component)": "cytosol [GO:0005829]" if i < 30 else "",
         "Gene Ontology (molecular function)": "",
     })
 pd.DataFrame(go_rows).to_csv(os.path.join(BASE, "go_annotation.csv"), index=False)

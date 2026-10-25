@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """单细胞分析算法核心（双后端：scanpy 与纯 NumPy/SciPy/sklearn 降级实现）。
 
 所有算法都提供两个实现路径：
@@ -789,7 +788,7 @@ def _umap_approx(
     # 学习率与负样本数随 epoch 退火（与 umap-learn 的 schedule 类似）
     alpha = 1.0
     n_neg = 5
-    for epoch in range(n_epochs):
+    for _epoch in range(n_epochs):
         # --- 吸引力 ---
         diff = layout[src] - layout[dst]                    # (E, d)
         dist_sq = np.sum(diff**2, axis=1)                    # (E,)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """PLIP 报告（XML）解析器 —— 纯标准库实现。
 
 PLIP（Protein-Ligand Interaction Profiler）在 `--xml` 模式下会输出一个

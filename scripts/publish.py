@@ -142,10 +142,10 @@ def main(argv: list[str] | None = None) -> int:
     owner, repo = args.repo.split("/", 1)
 
     if args.dry_run:
-        print(f"\n[DRY RUN] 将执行以下操作:")
+        print("\n[DRY RUN] 将执行以下操作:")
         print(f"  1. 创建/确认仓库 {args.repo}")
-        print(f"  2. 设置 description、homepage、topics")
-        print(f"  3. 推送 main 分支")
+        print("  2. 设置 description、homepage、topics")
+        print("  3. 推送 main 分支")
         return 0
 
     print(f"\n[1/4] 检查仓库 {args.repo}")
@@ -178,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"      [FAIL] 查询失败: {data.get('message')}")
         return 1
 
-    print(f"\n[2/4] 更新仓库元数据")
+    print("\n[2/4] 更新仓库元数据")
     api_call(
         "PATCH",
         f"/repos/{owner}/{repo}",
@@ -187,7 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     print("      [OK] description / homepage / topics 已设置")
 
-    print(f"\n[3/4] 设置分支保护与 Pages")
+    print("\n[3/4] 设置分支保护与 Pages")
     api_call(
         "PUT",
         f"/repos/{owner}/{repo}/topics",
@@ -200,7 +200,7 @@ def main(argv: list[str] | None = None) -> int:
         print("\n[4/4] 跳过推送 (--no-push)")
         return 0
 
-    print(f"\n[4/4] 推送代码")
+    print("\n[4/4] 推送代码")
     remote_url = f"https://github.com/{args.repo}.git"
 
     def run(cmd: list[str]) -> tuple[int, str]:

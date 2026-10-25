@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """引用格式导出脚本。
 
 把 ``search_literature.py`` 产出的统一 schema CSV 导出为多种参考文献格式：
@@ -33,7 +32,6 @@ from biopipe_core import (  # noqa: E402
     resolve_path,
     run_cli,
 )
-
 from literature_core import parse_record_rows, write_citations  # noqa: E402
 
 LOGGER = get_logger("biopipe.literature-search")

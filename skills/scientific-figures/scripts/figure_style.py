@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """出版级科学绘图样式模块。
 
 移植自原仓库 ``data_visualization/scripts/common_style.py``，并做了以下增强：
@@ -24,8 +23,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 try:  # matplotlib 缺失时优雅降级
     import matplotlib

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """结构几何量计算（纯 Python，仅依赖标准库）。
 
 提供：
@@ -18,7 +17,7 @@ Usage:
 from __future__ import annotations
 
 import math
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 __all__ = [
     "radius_of_gyration",

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """批量结构分析：遍历目录中的 PDB 文件并汇总统计。
 
 与 :mod:`analyze_structure` 的单文件分析共用同一套算法（纯 Python PDB 解析 +
@@ -29,10 +28,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from analyze_structure import analyze_structure  # noqa: E402
 from biopipe_core import SkillError, cli_parser, get_logger, write_csv  # noqa: E402
 from biopipe_core.cli import run_cli  # noqa: E402
-
-from analyze_structure import analyze_structure  # noqa: E402
 
 LOGGER = get_logger("biopipe.protein-structure")
 SKILL_NAME = "protein-structure"

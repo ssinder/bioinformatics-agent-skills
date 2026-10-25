@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """独立的单细胞质量控制（QC）步骤。
 
 移植自原仓库 ``scrna_python/scripts/02_quality_control.py``，去掉了硬编码路径、
@@ -30,14 +29,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, get_config, SkillError  # noqa: E402
+from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
 from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from scdata import read_matrix, summarize_sparsity  # noqa: E402
 from scalgorithms import compute_qc_metrics, filter_cells_genes  # noqa: E402
-from scdata import gene_is_hb, gene_is_mitochondrial  # noqa: E402
+from scdata import gene_is_hb, gene_is_mitochondrial, read_matrix, summarize_sparsity  # noqa: E402  # noqa: E402
 
 LOGGER = get_logger("biopipe.single-cell-rnaseq")
 
