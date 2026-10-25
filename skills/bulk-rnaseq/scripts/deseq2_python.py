@@ -48,10 +48,6 @@ def _require_np():
     return np
 
 
-from scipy.optimize import minimize, minimize_scalar
-from scipy.special import gammaln
-from scipy.stats import norm
-
 __all__ = [
     "MIN_DISP",
     "Deseq2Result",
@@ -178,6 +174,9 @@ def _nb_loglik(y: np.ndarray, mu: np.ndarray, alpha: float) -> float:
     Returns:
         对数似然值。
     """
+    # scipy 仅在此处需要：局部导入保证 --help 等元信息查询不受缺依赖影响
+    from scipy.special import gammaln
+
     if alpha <= 0:
         return -np.inf
     r = 1.0 / alpha
@@ -580,6 +579,9 @@ def wald_test(
     Returns:
         字典，键为 ``baseMean`` / ``log2FoldChange`` / ``lfcSE`` / ``stat`` / ``pvalue``。
     """
+    # scipy 仅在此处需要：局部导入保证 --help 等元信息查询不受缺依赖影响
+    from scipy.stats import norm
+
     counts = np.asarray(counts, dtype=float)
     n_samples, n_genes = counts.shape
     offset = np.log(np.maximum(size_factors, 1e-12))

@@ -81,8 +81,6 @@ def _require_sp():
     return sp
 
 
-from scipy.sparse.linalg import svds
-
 __all__ = [
     "SCANPY_AVAILABLE",
     "PipelineResult",
@@ -448,6 +446,9 @@ def compute_pca(X: Any, n_comps: int = 50, seed: int = 0) -> tuple[np.ndarray, n
         - ``variance_ratio`` 各主成分解释的方差比例
         - ``components`` 载荷矩阵，形状 ``(n_comps, n_genes)``
     """
+    # scipy 仅在稀疏分支需要：局部导入保证 --help 等元信息查询不受缺依赖影响
+    from scipy.sparse.linalg import svds
+
     if sp.issparse(X):
         Xc = X.astype(float)
         n_obs, n_vars = Xc.shape

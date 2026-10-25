@@ -28,22 +28,19 @@ jobs:
       - name: Audit core dependencies
         # 注意：GitHub Actions 的 run: 默认用 sh（dash）执行，不是 bash。
         # 因此这里必须使用 POSIX 兼容语法，不能用 IGNORE_ARGS=() 这类 bash 数组。
+        #
+        # 为什么用 scripts/ci_dependency_audit.py 而不是直接调 pip-audit：
+        # pip-audit 默认审计整个环境，会把 editable 安装的项目自身
+        # （biopipe-agent-skills，不发布到 PyPI）当成待审依赖而报
+        # "Dependency not found on PyPI"，配合 --strict 必然失败。
+        # 该脚本改为审计依赖清单，既保持严格又不误报。
         run: |
           set -e
           # 升级 pip 本身：审计工具链的旧版本会引入 pip 自身的漏洞告警
           # （PYSEC-2026-3721，修复于 pip 26.2），与项目依赖无关。
           python -m pip install --upgrade pip
           pip install -e .
-          # --ignore-vuln 精确忽略 pip 自身的工具链告警；
-          # 项目依赖的任何漏洞仍然会导致失败。
-          if pip-audit --progress-spinner off --strict --ignore-vuln PYSEC-2026-3721; then
-            echo "no known vulnerabilities in core dependencies"
-          else
-            echo "::error::pip-audit found vulnerabilities in core dependencies"
-            echo "::error::请升级受影响依赖后重试"
-            pip-audit --progress-spinner off --strict --ignore-vuln PYSEC-2026-3721
-            exit 1
-          fi
+          python scripts/ci_dependency_audit.py
 
       - name: Scan for hardcoded secrets
         run: |

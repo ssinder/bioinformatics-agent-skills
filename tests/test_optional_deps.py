@@ -135,3 +135,28 @@ class TestSkillScriptsDegradeGracefully:
         assert "usage" in proc.stdout.lower() or "用法" in proc.stdout, (
             f"{script} 的 --help 未输出用法说明"
         )
+
+    def test_all_entry_scripts_help_without_scientific_stack(self, blocked_env) -> None:
+        """全量回归：所有技能脚本都不能有顶层硬依赖。
+
+        背景：`secondary_structure.py` 曾因未把脚本目录加入 sys.path 而在
+        独立运行时报 `No module named 'pdb_parser'`。该缺陷恰好落在
+        上面那个参数化列表之外，因此本用例做全量兜底。
+        """
+        failures: list[str] = []
+        scripts = self._entry_scripts()
+
+        for entry in scripts:
+            proc = subprocess.run(
+                [sys.executable, str(entry), "--help"],
+                capture_output=True,
+                text=True,
+                timeout=120,
+                env=blocked_env,
+                cwd=str(REPO_ROOT),
+            )
+            if proc.returncode != 0:
+                rel = entry.relative_to(REPO_ROOT)
+                failures.append(f"{rel}: 退出码 {proc.returncode}\n{(proc.stderr or '')[-400:]}")
+
+        assert not failures, "以下脚本在无科学计算栈下 --help 失败：\n" + "\n".join(failures)

@@ -27,10 +27,15 @@ from __future__ import annotations
 import math
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
-from pdb_parser import AA3_TO_AA1, Atom, Residue, Structure, dihedral_angle
+# 把同目录的脚本模块目录加入 sys.path，
+# 保证本文件既能被当作库 import，也能被直接执行。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from pdb_parser import AA3_TO_AA1, Atom, Residue, Structure, dihedral_angle  # noqa: E402
 
 __all__ = [
     "DSSP_CODES",
