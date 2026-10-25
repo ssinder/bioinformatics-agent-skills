@@ -38,3 +38,9 @@ jobs:
               raise SystemExit(f"注册表中缺少 SKILL.md 的技能: {missing}")
           print(f"all {len(REGISTRY)} registered skills have SKILL.md")
           PY
+
+      - name: Verify documentation index is in sync
+        # 技能索引页 docs/skills/index.md 由 scripts/build_docs_index.py
+        # 从各技能的 SKILL.md 自动生成。若不同步，说明有人改了
+        # SKILL.md 的 description 却忘了重新生成索引。
+        run: python scripts/build_docs_index.py --check

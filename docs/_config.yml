@@ -1,0 +1,57 @@
+# GitHub Pages 站点配置
+#
+# 使用 Jekyll（GitHub Pages 原生支持），不引入额外构建依赖——
+# 保持项目的「少依赖」理念：文档站只是把仓库里的 Markdown 渲染出来。
+
+title: BioinfoAgent Skills
+description: 面向计算生物学的标准 Agent Skills 工具库 — 遵循 Agent Skills 开放标准
+lang: zh-CN
+
+# 仓库信息
+repository: ssinder/bioinformatics-agent-skills
+
+# 站点源：docs 目录
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  toc_levels: 2..4
+
+# 插件
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-relative-links
+  - jekyll-optional-front-matter
+  - jekyll-readme-index
+
+# 排除不需要的文件
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .sass-cache
+  - node_modules
+
+# 默认布局
+defaults:
+  - scope:
+      path: ""
+      type: "skills"
+    values:
+      layout: "default"
+
+# 导航
+nav:
+  - title: 首页
+    url: /
+  - title: 快速上手
+    url: /getting-started.html
+  - title: 技能总览
+    url: /skills/
+  - title: 技能规范
+    url: /SKILL_SPEC.html
+  - title: 贡献指南
+    url: https://github.com/ssinder/bioinformatics-agent-skills/blob/main/CONTRIBUTING.md
+  - title: GitHub
+    url: https://github.com/ssinder/bioinformatics-agent-skills

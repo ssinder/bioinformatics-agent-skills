@@ -1,0 +1,76 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "skills/*/SKILL.md"
+      - "scripts/build_docs_index.py"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一分支只保留一个部署任务，避免并发写入冲突
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate skills index
+        # 技能索引页是从 SKILL.md 自动生成的。
+        # 提交前先重新生成一次，保证站点内容与代码一致。
+        run: |
+          set -e
+          pip install pyyaml
+          python scripts/build_docs_index.py
+          # 如果生成结果与仓库中的不一致，说明索引已漂移。
+          # 这里只提示，不阻断部署——真正的同步检查在 CI 的 docs-consistency 里。
+          git diff --quiet docs/skills/index.md || \
+            echo "::warning::技能索引与 SKILL.md 不同步，请运行 python scripts/build_docs_index.py"
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build with Jekyll
+        run: |
+          set -e
+          gem install bundler
+          bundle config set --local path vendor/bundle
+          bundle install
+          bundle exec jekyll build --source docs --destination _site
+        env:
+          JEKYLL_ENV: production
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
