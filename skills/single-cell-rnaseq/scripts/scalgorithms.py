@@ -1123,10 +1123,13 @@ def _run_scanpy_pipeline(
     ad = to_anndata(adata)
     ad.var_names_make_unique()
 
-    mt_mask = gene_is_hb(ad.var_names)  # 占位，下面立即覆盖
     mt_mask = gene_is_mitochondrial(ad.var_names)
     hb_mask = gene_is_hb(ad.var_names)
     log(f"线粒体基因: {int(mt_mask.sum())}, 血红蛋白基因: {int(hb_mask.sum())}")
+
+    # scanpy 的 qc_vars 依赖 var 中的布尔标记列
+    ad.var["mt"] = mt_mask
+    ad.var["hb"] = hb_mask
 
     # --- 1. 质控 ---
     sc.pp.calculate_qc_metrics(
@@ -1194,7 +1197,7 @@ def _run_scanpy_pipeline(
     }
     log(
         f"PCA 完成: {ad.obsm['X_pca'].shape[1]} 个主成分, 前 5 个累计解释 "
-        f"{float(np.sum(ad.obsm['X_pca'].shape[0] * 0 + np.sum(ad.uns['pca']['variance_ratio'][:5]))) * 100:.1f}%"
+        f"{float(np.sum(ad.uns['pca']['variance_ratio'][:5])) * 100:.1f}%"
     )
 
     # --- 5. 邻接图 ---
