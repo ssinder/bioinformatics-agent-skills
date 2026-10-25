@@ -142,6 +142,6 @@ matplotlib.rcParams["axes.unicode_minus"] = False
 
 ## 下一步
 
-- 了解各技能能做什么 → [技能目录](skills.md)
-- 了解技能规范并贡献新技能 → [SKILL_SPEC.md](SKILL_SPEC.md)
-- 了解共享工具层 API → [AGENTS.md](../AGENTS.md)
+- 了解各技能能做什么 → [技能目录]({{ '/skills.html' | relative_url }})
+- 了解技能规范并贡献新技能 → [SKILL_SPEC.md]({{ '/SKILL_SPEC.html' | relative_url }})
+- 了解共享工具层 API → [AGENTS.md](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/AGENTS.md)

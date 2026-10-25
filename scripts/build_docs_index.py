@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""生成技能索引页 docs/skills/index.md。
+"""生成技能索引页 docs/skills/index.md，并把同一份表格内嵌到首页。
 
 从每个技能的 SKILL.md frontmatter 读取 name / description，
 生成一个自动维护的技能总览表。
@@ -8,7 +8,7 @@
 ----------------
 手工维护的索引一定会和代码漂移——加了新技能却忘了更新文档表，
 或者改了 description 却没同步索引。这里从 SKILL.md 直接读取，
-保证索引与实际技能一致。
+保证索引与实际技能一致。首页与索引页共用同一份数据，两处不会不一致。
 
 用法：
     python scripts/build_docs_index.py            # 生成
@@ -25,13 +25,25 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = REPO_ROOT / "skills"
 OUTPUT = REPO_ROOT / "docs" / "skills" / "index.md"
+HOME = REPO_ROOT / "docs" / "index.md"
 
-_HEADER = """# 技能总览 / Skills Overview
+# 技能源码在仓库根的 skills/ 下，不在 docs/ 下，
+# 因此站点上的链接必须指向 GitHub 上的实际文件，否则会 404。
+REPO_BLOB = "https://github.com/ssinder/bioinformatics-agent-skills/blob/main/skills"
+
+_MARKER_START = "<!-- SKILLS_TABLE_START -->"
+_MARKER_END = "<!-- SKILLS_TABLE_END -->"
+
+_HEADER = """---
+layout: default
+title: 技能总览
+---
+
+# 技能总览 / Skills Overview
 
 > 本页由 `scripts/build_docs_index.py` 自动生成，请勿手工编辑。
 
-下表列出本仓库提供的全部 Agent Skills。点击技能名可查看该技能的
-详细文档与源码。
+下表列出本仓库提供的全部 Agent Skills。
 
 | 技能 / Skill | 说明 / Description |
 |---|---|
@@ -47,7 +59,7 @@ git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
 ```
 
-详见 [快速上手](../getting-started.md)。
+详见 [快速上手](/getting-started.html)。
 """
 
 
@@ -97,20 +109,36 @@ def _clean_description(raw: str) -> str:
     return text
 
 
-def build_index() -> str:
+def _skill_rows() -> list[str]:
+    """构建技能表格行。"""
     rows: list[str] = []
-    skill_dirs = sorted(d for d in SKILLS_DIR.iterdir() if d.is_dir()) if SKILLS_DIR.is_dir() else []
+    if not SKILLS_DIR.is_dir():
+        return rows
 
-    for skill_dir in skill_dirs:
+    for skill_dir in sorted(d for d in SKILLS_DIR.iterdir() if d.is_dir()):
         skill_md = skill_dir / "SKILL.md"
         if not skill_md.is_file():
             continue
         meta = _parse_frontmatter(skill_md)
         name = meta.get("name", skill_dir.name)
         desc = _clean_description(meta.get("description", ""))
-        rows.append(f"| [`{name}`](./{skill_dir.name}/SKILL.md) | {desc} |")
+        link = f"{REPO_BLOB}/{skill_dir.name}/SKILL.md"
+        rows.append(f"| [`{name}`]({link}) | {desc} |")
+    return rows
 
-    return _HEADER + "\n".join(rows) + "\n" + _FOOTER
+
+def build_index() -> str:
+    """生成 docs/skills/index.md 的完整内容。"""
+    return _HEADER + "\n".join(_skill_rows()) + "\n" + _FOOTER
+
+
+def _apply_to_home(home_text: str, table: str) -> str:
+    """把表格写入首页的标记区之间。"""
+    if _MARKER_START not in home_text or _MARKER_END not in home_text:
+        return home_text
+    pre = home_text.split(_MARKER_START)[0]
+    post = home_text.split(_MARKER_END)[1]
+    return f"{pre}{_MARKER_START}\n{table}\n{_MARKER_END}{post}"
 
 
 def main() -> int:
@@ -119,25 +147,34 @@ def main() -> int:
     args = parser.parse_args()
 
     content = build_index()
+    table = "\n".join(_skill_rows())
+
+    home_current = HOME.read_text(encoding="utf-8") if HOME.is_file() else ""
+    home_updated = _apply_to_home(home_current, table)
 
     if args.check:
+        problems: list[str] = []
         if not OUTPUT.is_file():
-            print(f"::error::{OUTPUT.relative_to(REPO_ROOT)} 不存在，请运行 scripts/build_docs_index.py")
-            return 1
-        current = OUTPUT.read_text(encoding="utf-8")
-        if current != content:
-            print(
-                f"::error::{OUTPUT.relative_to(REPO_ROOT)} 与 SKILL.md 不同步，"
-                "请运行 python scripts/build_docs_index.py"
-            )
+            problems.append(f"{OUTPUT.relative_to(REPO_ROOT)} 不存在")
+        elif OUTPUT.read_text(encoding="utf-8") != content:
+            problems.append(f"{OUTPUT.relative_to(REPO_ROOT)} 与 SKILL.md 不同步")
+        if home_updated != home_current:
+            problems.append("docs/index.md 中的技能表格与 SKILL.md 不同步")
+
+        if problems:
+            for p in problems:
+                print(f"::error::{p}，请运行 python scripts/build_docs_index.py")
             return 1
         print("技能索引页与 SKILL.md 保持同步")
         return 0
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(content, encoding="utf-8")
-    skill_count = content.count("\n| [")
-    print(f"已生成 {OUTPUT.relative_to(REPO_ROOT)}（{skill_count} 个技能）")
+    if home_updated != home_current:
+        HOME.write_text(home_updated, encoding="utf-8")
+        print("已更新 docs/index.md 中的技能表格")
+
+    print(f"已生成 {OUTPUT.relative_to(REPO_ROOT)}（{len(_skill_rows())} 个技能）")
     return 0
 
 

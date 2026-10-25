@@ -5,12 +5,12 @@
 
 source "https://rubygems.org"
 
+# 注意：GitHub Pages 只允许官方白名单内的插件。
+# jekyll-relative-links / jekyll-optional-front-matter / jekyll-readme-index
+# 都不在白名单里，线上构建会失败，因此这里不声明它们。
 gem "jekyll", "~> 4.3"
 gem "jekyll-feed", "~> 0.17"
 gem "jekyll-seo-tag", "~> 2.8"
-gem "jekyll-relative-links", "~> 0.7"
-gem "jekyll-optional-front-matter", "~> 0.3"
-gem "jekyll-readme-index", "~> 0.3"
 
 # Windows/JRuby 上需要
 platforms :mingw, :x64_mingw, :mswin, :jruby do

@@ -44,3 +44,9 @@ jobs:
         # 从各技能的 SKILL.md 自动生成。若不同步，说明有人改了
         # SKILL.md 的 description 却忘了重新生成索引。
         run: python scripts/build_docs_index.py --check
+
+      - name: Static-check documentation site
+        # 本机没有 Ruby，Jekyll 构建只能在 CI 里做，错误信息往往晦涩。
+        # 这里在提交阶段就挑出可静态发现的问题：非白名单插件、
+        # front matter 语法错误、站内断链。
+        run: python scripts/ci_docs_check.py

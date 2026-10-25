@@ -18,12 +18,14 @@ kramdown:
   toc_levels: 2..4
 
 # 插件
+#
+# 注意：GitHub Pages 只允许**官方白名单内的插件**。以下三个不在白名单里，
+# 用它们会导致线上构建失败（本地 jekyll build 却能通过）：
+#   jekyll-relative-links / jekyll-optional-front-matter / jekyll-readme-index
+# 因此这里只保留白名单插件，相对链接改用绝对路径。
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
-  - jekyll-relative-links
-  - jekyll-optional-front-matter
-  - jekyll-readme-index
 
 # 排除不需要的文件
 exclude:

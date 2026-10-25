@@ -27,15 +27,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Ruby
+        # 说明：不要用 `gem install bundler` —— Ubuntu runner 的
+        # /var/lib/gems 是系统目录，runner 用户无写权限，会报
+        # Gem::FilePermissionError。ruby/setup-ruby 会把 bundler
+        # 与依赖装到用户可写的目录。
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: docs
+
       - name: Regenerate skills index
         # 技能索引页是从 SKILL.md 自动生成的。
-        # 提交前先重新生成一次，保证站点内容与代码一致。
+        # 构建前先重新生成一次，保证站点内容与代码一致。
         run: |
           set -e
           pip install pyyaml
           python scripts/build_docs_index.py
-          # 如果生成结果与仓库中的不一致，说明索引已漂移。
-          # 这里只提示，不阻断部署——真正的同步检查在 CI 的 docs-consistency 里。
+          # 真正的同步检查在 CI 的 skill-spec-validation 里做（会阻断），
+          # 这里只提示，不阻断部署。
           git diff --quiet docs/skills/index.md || \
             echo "::warning::技能索引与 SKILL.md 不同步，请运行 python scripts/build_docs_index.py"
 
@@ -43,25 +54,18 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Build with Jekyll
-        run: |
-          set -e
-          gem install bundler
-          bundle config set --local path vendor/bundle
-          bundle install
-          bundle exec jekyll build --source docs --destination _site
-        env:
-          JEKYLL_ENV: production
+        # 使用官方 Pages action，它只允许 GitHub Pages 白名单内的插件，
+        # 与实际部署环境一致；本地自行 `jekyll build` 可能通过但线上会失败。
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: ./_site
 
   deploy:
     name: Deploy to GitHub Pages
