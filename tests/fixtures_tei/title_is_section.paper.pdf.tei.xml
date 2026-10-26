@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="doc">
+
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">INTRODUCTION</title>
+        <author>
+          <persName><forename type="first">Carol</forename><surname>White</surname></persName>
+        </author>
+      </titleStmt>
+      <publicationStmt><publisher>Example Press</publisher></publicationStmt>
+      <sourceDesc>
+        <biblStruct>
+          <monogr><title>Another Journal</title></monogr>
+        </biblStruct>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <textClass>
+        <keywords>
+          <term>single cell</term>
+          <term>trajectory inference</term>
+        </keywords>
+      </textClass>
+    </profileDesc>
+  </teiHeader>
+
+
+  <text>
+    <body>
+      <div xmlns="http://www.tei-c.org/ns/1.0">
+        <head n="1">Introduction</head>
+        <p>Single-cell RNA sequencing reveals cellular heterogeneity at scale.</p>
+        <p>Trajectory inference methods differ substantially in their assumptions.</p>
+      </div>
+      <div xmlns="http://www.tei-c.org/ns/1.0">
+        <head n="2">Results</head>
+        <p>Our benchmark spans fourteen datasets.</p>
+      </div>
+    </body>
+  </text>
+
+</TEI>

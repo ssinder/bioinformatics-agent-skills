@@ -1,0 +1,20 @@
+# paper-fulltext-extract 技能依赖
+#
+# 核心功能（TEI XML 解析、章节树抽取、关键词/参考文献/图表抽取、
+# 语料索引与检索、Markdown/HTML 输出）**仅依赖 Python 3.9+ 标准库**，
+# 无需安装任何第三方包即可运行。
+#
+# 唯一的外部依赖是 GROBID 服务本身，它是 Java 程序，不在 pip 依赖内，
+# 需用 Docker 单独部署：
+#
+#   docker run -it -p 8070:8070 kermitt/grobid
+#
+# 首次启动需要下载模型，等日志出现 "Server started" 才算就绪。
+#
+# 以下均为可选增强项：
+
+# 仓库级 SKILL.md frontmatter 校验（由 scripts/validate_skills.py 使用）
+PyYAML>=6.0
+
+# 若希望直接读取 PDF 元信息（GROBID 之外的补充路径）
+# pypdf>=4.0

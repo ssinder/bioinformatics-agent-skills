@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="doc">
+
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">INTRODUC TI ON</title>
+        <author>
+          <persName><forename type="first">Dave</forename><surname>Brown</surname></persName>
+        </author>
+      </titleStmt>
+      <publicationStmt><publisher>Example Press</publisher></publicationStmt>
+      <sourceDesc>
+        <biblStruct><monogr><title>Third Journal</title></monogr></biblStruct>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <textClass>
+        <keywords>
+          <term>protein folding</term>
+        </keywords>
+      </textClass>
+    </profileDesc>
+  </teiHeader>
+
+
+  <text>
+    <body>
+      <div xmlns="http://www.tei-c.org/ns/1.0">
+        <head n="1">INTRODUC TI ON</head>
+        <p>Protein folding prediction has advanced rapidly in recent years.</p>
+      </div>
+    </body>
+  </text>
+
+</TEI>

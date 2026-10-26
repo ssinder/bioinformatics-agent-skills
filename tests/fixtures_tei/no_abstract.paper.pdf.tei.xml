@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="doc">
+
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">A minimal record without abstract or keywords</title>
+        <author>
+          <persName><forename type="first">Frank</forename><surname>Miller</surname></persName>
+        </author>
+      </titleStmt>
+      <publicationStmt><publisher>Example Press</publisher></publicationStmt>
+      <sourceDesc>
+        <biblStruct><monogr><title>Fifth Journal</title></monogr></biblStruct>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+
+
+  <text>
+    <body>
+      <div xmlns="http://www.tei-c.org/ns/1.0">
+        <head n="1">Introduction</head>
+        <p>This document has neither abstract nor keyword elements.</p>
+      </div>
+    </body>
+  </text>
+
+</TEI>

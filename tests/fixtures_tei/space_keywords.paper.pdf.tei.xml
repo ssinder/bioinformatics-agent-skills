@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="doc">
+
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Multi-omic integration for cancer subtyping</title>
+        <author>
+          <persName><forename type="first">Eve</forename><surname>Green</surname></persName>
+        </author>
+      </titleStmt>
+      <publicationStmt><publisher>Example Press</publisher></publicationStmt>
+      <sourceDesc>
+        <biblStruct><monogr><title>Fourth Journal</title></monogr></biblStruct>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <textClass>
+        <keywords>tumor necrosis factor, glycolysis pathway, immune infiltration</keywords>
+      </textClass>
+    </profileDesc>
+  </teiHeader>
+
+
+  <text>
+    <body>
+      <div xmlns="http://www.tei-c.org/ns/1.0">
+        <head n="1">Introduction</head>
+        <p>Multi-omic integration reveals tumour cell states.</p>
+      </div>
+    </body>
+  </text>
+
+</TEI>

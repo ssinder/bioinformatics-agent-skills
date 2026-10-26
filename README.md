@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Skills](https://img.shields.io/badge/Skills-15-brightgreen.svg)](#-available-skills)
+[![Skills](https://img.shields.io/badge/Skills-16-brightgreen.svg)](#-available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
@@ -131,6 +131,7 @@ python skills/literature-search/scripts/search_literature.py \
 |------|------|----------|
 | [`literature-search`](skills/literature-search/) | 多源学术文献检索 | PubMed · OpenAlex · Semantic Scholar · DOI 去重 · RIS/BibTeX 导出 |
 | [`bioproject-search`](skills/bioproject-search/) | NCBI BioProject 元数据检索 | E-utilities API · 标题/描述/物种 · 关键词筛选 · CSV/JSON 导出 |
+| [`paper-fulltext-extract`](skills/paper-fulltext-extract/) | PDF 文献全文结构化抽取 | GROBID 转 TEI · 章节树/图表/参考文献解析 · JSON/MD/HTML 输出 · 语料检索 · 引言首句 |
 
 ### 📊 数据可视化 / Scientific Visualization
 
@@ -159,7 +160,7 @@ OpenMM 没装?照样能解析 DCD 轨迹并做 RMSD/PCA。依赖可选,能力不
 
 ```
 bioinformatics-agent-skills/
-├── skills/                    # 15 个独立可安装的技能
+├── skills/                    # 16 个独立可安装的技能
 │   ├── bulk-rnaseq/
 │   │   ├── SKILL.md           # 触发描述 + 工作流 + 验证方法
 │   │   ├── scripts/           # 可执行脚本

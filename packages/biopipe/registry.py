@@ -147,6 +147,16 @@ REGISTRY: dict[str, SkillSpec] = {
             entry="scripts/run_docking.py",
             keywords=("docking", "lightdock", "gso", "swarm", "dfire", "local"),
         ),
+        SkillSpec(
+            name="paper-fulltext-extract",
+            category="文献挖掘",
+            summary="PDF 文献全文结构化抽取：GROBID 转 TEI、章节树/图表/参考文献解析、语料检索、引言首句",
+            entry="scripts/extract_fulltext.py",
+            keywords=(
+                "pdf", "tei", "grobid", "fulltext", "pdf-parsing",
+                "corpus", "literature-mining", "introduction",
+            ),
+        ),
     ]
 }
 
