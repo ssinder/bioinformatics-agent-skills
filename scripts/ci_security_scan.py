@@ -28,22 +28,49 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # 形如  API_KEY = "....."  /  password = '.....'
+#
+# 关于前缀的处理（重要）
+# ----------------------
+# 这里刻意**不要求**变量名从行首开始，而是允许任意前缀
+# （``APP_SECRET``、``FEISHU_APP_SECRET``、``_MY_TOKEN`` 等）。
+#
+# 早期实现用的是 ``\b(secret)\b``，而 ``\b`` 要求两侧是词边界 ——
+# 但下划线与字母**同属单词字符**，所以 ``APP_SECRET`` 里 ``P`` 与 ``S``
+# 之间不存在词边界，整个模式匹配不上。这导致老仓库里泄露的
+# ``APP_SECRET = "prOd..."`` **完全逃过了扫描** ——
+# 而那正是本次改造中发现的真实安全问题。
+#
+# 现在改用 ``(?<![A-Za-z0-9])`` 作为前缀断言：只阻止前面紧邻字母/数字，
+# 但允许下划线与大写字母组合出的常见命名风格。
+#
+# 另外三点：
+# 1. 变量名用 ``(?P<name>...)`` **整体捕获**，报告里给出的是
+#    ``FEISHU_APP_SECRET`` 这样的完整名字，而不是最后一个片段
+#    ``app_secret`` —— 后者对定位毫无帮助。
+# 2. 关键词后带负向前瞻 ``(?![A-Za-z0-9_])``：变量名必须**以**关键词
+#    结尾。``TOKENIZER`` / ``SECRETARY`` 这类只是碰巧含有关键词的
+#    普通变量名不算命中，避免误报。
+# 3. 赋值处允许**类型注解**：``APP_SECRET: str = "..."``。
+#    老实现的 ``\s*[:=]\s*`` 会先撞上注解里的冒号，导致整行漏报。
 CREDENTIAL_ASSIGNMENT = re.compile(
     r"""(?ix)
-    \b(
-        api[_-]?key |
-        apikey |
-        secret[_-]?key |
-        secret |
-        client[_-]?secret |
-        password |
-        passwd |
-        pwd |
-        access[_-]?token |
-        auth[_-]?token |
-        private[_-]?key
-    )\b
-    \s*[:=]\s*
+    (?<![A-Za-z0-9])
+    (?P<name>
+        (?: [A-Za-z_][A-Za-z0-9_]*? )?
+        (?:
+            api[_-]?key | apikey | secret[_-]?key | secret |
+            client[_-]?secret | password | passwd | pwd |
+            access[_-]?token | auth[_-]?token | api[_-]?token |
+            refresh[_-]?token | private[_-]?key |
+            app[_-]?secret | app[_-]?id | bot[_-]?token | token
+        )
+        (?![A-Za-z0-9_])
+    )
+    \s*
+    (?:
+        :\s*[A-Za-z_][\w\[\], .|]*\s*=\s*     # 带类型注解的赋值
+      | [:=]\s*                                # 普通赋值 / 字典键
+    )
     (?P<quote>["'])
     (?P<value>[^"'\n]{8,})
     (?P=quote)
@@ -153,7 +180,7 @@ def scan_paths(targets: list[Path]) -> list[tuple[str, int, str, str]]:
                         continue
                     if _line_is_safe(line, match):
                         continue
-                    name = match.group(1)
+                    name = match.group("name")
                     try:
                         rel = file.relative_to(REPO_ROOT)
                     except ValueError:
