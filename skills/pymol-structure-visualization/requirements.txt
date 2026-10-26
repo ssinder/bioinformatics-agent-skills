@@ -1,0 +1,16 @@
+# pymol-structure-visualization 技能依赖
+#
+# 核心功能（PDB 解析、网格空间划分、残基化学分类、CSV/JSON/Mermaid/PyMOL
+# 脚本生成）**仅依赖 Python 3.9+ 标准库**，无需安装任何第三方包即可运行。
+#
+# 这是一个刻意的设计：接触分析必须能在任何机器上跑（包括 CI 容器、
+# 无 PyMOL 的服务器），PyMOL 只是可选的渲染端。
+#
+# 以下均为可选增强项：
+
+# PyMOL —— 仅用于执行生成的 .pml 可视化脚本，不是分析环节的依赖。
+#   conda install -c conda-forge pymol-open-source
+#   或从 https://pymol.org 下载安装
+
+# 可选：若希望用 Biopython 交叉校验解析结果
+# biopython>=1.80

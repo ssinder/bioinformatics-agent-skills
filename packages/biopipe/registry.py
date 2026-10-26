@@ -75,6 +75,14 @@ REGISTRY: dict[str, SkillSpec] = {
             keywords=("md", "openmm", "trajectory", "rmsd", "simulation"),
         ),
         SkillSpec(
+            name="pymol-structure-visualization",
+            category="结构生物学",
+            summary="链间残基接触分析：网格空间划分 + 残基化学分类，输出热点残基与 PyMOL 脚本",
+            entry="scripts/analyze_contacts.py",
+            keywords=("pymol", "contact", "interface", "hydrogen-bond",
+                     "salt-bridge", "hotspot", "visualization"),
+        ),
+        SkillSpec(
             name="peptide-design",
             category="蛋白工程",
             # 注意：这里描述的是**实际实现的能力**——自研轻量 CNN 分类器，
