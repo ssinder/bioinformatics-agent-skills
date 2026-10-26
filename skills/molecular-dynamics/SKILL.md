@@ -11,7 +11,7 @@ description: >-
 license: MIT
 compatibility: Python 3.9+; requires numpy; optional scipy, MDAnalysis, OpenMM
 metadata:
-  version: "1.0"
+  version: "1.1"
   last-reviewed: "2026-10-25"
   skill-author: sinder
 ---
@@ -74,11 +74,22 @@ python scripts/run_analysis.py --input traj.dcd --topology system.pdb \
 python scripts/run_analysis.py --input traj.dcd --topology system.pdb \
     --analysis cluster --n-clusters 5 --output results/
 
-# 用 OpenMM 跑一段模拟
+# 用 OpenMM 跑一段模拟（生产期）
 python scripts/run_simulation.py --input system.pdb --output results/ --steps 100000
+
+# 复合物的分阶段平衡协议（NVT → NPT → 生产期，带位置限制）
+python scripts/run_simulation.py --input complex.pdb --output results/ \
+    --nvt-steps 50000 --npt-steps 50000 --restraints backbone \
+    --monitor-chain-separation --steps 500000
+
+# 生产期也保持弱位置限制（k=10 kJ/mol/Å²）
+python scripts/run_simulation.py --input complex.pdb --output results/ \
+    --nvt-steps 50000 --restraints backbone --production-restraint-force-constant 10
 ```
 
 ## Workflow
+
+### Analysis path
 
 1. **Load** — `trajectory_io.py` reads the trajectory. MDAnalysis is tried
    first; otherwise the built-in parsers handle `.dcd` (Fortran record stream),
@@ -93,6 +104,36 @@ python scripts/run_simulation.py --input system.pdb --output results/ --steps 10
    hydrogen bonds, PCA, dihedral series, Ramachandran, conformational
    clustering, inter-chain contacts and SASA.
 5. **Report** — writes `md_analysis.json` and `md_analysis_frames.csv`.
+
+### Simulation path (`run_simulation.py`)
+
+The simulation follows a **staged equilibration protocol**, which is the
+standard way to avoid the two classic failure modes of complex simulations:
+chains drifting apart during equilibration, and sampling a structure that
+never relaxed out of its crystal-packing geometry.
+
+1. **Minimise** — `simulation.minimizeEnergy()` removes the steric clashes
+   inherited from the input structure.
+2. **NVT equilibration** (`--nvt-steps`) — constant volume, velocities
+   re-drawn at the target temperature. Optional position restraints
+   (`--restraints`) hold the backbone in place so only side chains and
+   solvent relax.
+3. **NPT equilibration** (`--npt-steps`) — a `MonteCarloBarostat` is added
+   and the simulation is **rebuilt** so the pressure coupling takes effect
+   on the density.
+4. **Production** — position restraints are removed by default (use
+   `--production-restraint-force-constant` to keep a weak version). Chain
+   separation is monitored throughout if `--monitor-chain-separation` is set.
+5. **Stability check** — the final coordinates are screened for NaN / Inf /
+   numerical blow-up; if found, the simulation is rolled back to the input
+   structure and the reason is recorded in the report.
+
+> **Implementation note.** Position restraints must be added to the
+> `System` **before** the `Simulation` (and therefore the `Context`) is
+> created — modifying `system` afterwards does not rebuild the context, so
+> the force would silently never take effect. The same applies when adding
+> the barostat or removing the restraints: the simulation is rebuilt and
+> positions plus velocities are carried over.
 
 ## Parameters
 
@@ -115,10 +156,29 @@ python scripts/run_simulation.py --input system.pdb --output results/ --steps 10
 | `--max-cluster-frames` | `200` | 参与聚类的最大帧数 |
 | `--format` | `both` | `json` / `csv` / `both` |
 
-`run_simulation.py` 额外参数：`--force-field`（`amber14` / `amber99` / `charmm36`）、
-`--solvent`（`none` / `implicit` / `vacuum`）、`--steps`、`--equilibration-steps`、
-`--minimize-steps`、`--temperature`、`--friction`、`--timestep`、`--platform`、
-`--check-only`。
+`run_simulation.py` 额外参数：
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--force-field` | `amber14` | 力场预设：`amber14` / `amber99` / `charmm36` |
+| `--solvent` | `implicit` | 溶剂处理：`none` / `implicit` / `vacuum` |
+| `--steps` | `1000` | 生产期步数 |
+| `--equilibration-steps` | `100` | NVT/NPT 之后的通用平衡步数 |
+| `--minimize-steps` | `200` | 能量最小化步数 |
+| `--temperature` | `300.0` | 温度（K） |
+| `--friction` | `1.0` | Langevin 摩擦系数 /ps |
+| `--timestep` | `0.002` | 积分步长（ps） |
+| `--platform` | — | OpenMM 平台名（CUDA / CPU / OpenCL） |
+| `--nvt-steps` | `0` | NVT 平衡步数（0 = 跳过） |
+| `--npt-steps` | `0` | NPT 平衡步数（0 = 跳过） |
+| `--pressure` | `1.0` | NPT 目标压力（bar） |
+| `--restraints` | `none` | 平衡期位置限制：`none` / `backbone` / `ca` / `heavy` / `all` |
+| `--restraint-force-constant` | `100.0` | 位置限制力常数（kJ/mol/Å²） |
+| `--production-restraint-force-constant` | `0.0` | 生产期位置限制力常数（>0 表示保留限制） |
+| `--monitor-chain-separation` | off | 监测链间距离，检测复合物解离 |
+| `--chain-separation-threshold` | `30.0` | 链间距告警阈值（Å） |
+| `--chain-monitor-interval` | `10000` | 链分离检查间隔（步） |
+| `--check-only` | off | 仅检查 OpenMM 是否可用并退出 |
 
 ## Outputs
 
@@ -129,7 +189,7 @@ python scripts/run_simulation.py --input system.pdb --output results/ --steps 10
 | `trajectory.dcd` | OpenMM 模拟输出轨迹（`run_simulation.py`） |
 | `final_state.pdb` | 模拟末态结构（`run_simulation.py`） |
 | `state.csv` | 模拟过程状态报告（能量、温度、体积） |
-| `simulation_report.json` | 模拟参数与结果摘要 |
+| `simulation_report.json` | 模拟参数与结果摘要（含 `stages` / `restraints` / `stability` / `chain_separation`） |
 
 ## Validation
 
@@ -161,6 +221,23 @@ python scripts/run_simulation.py --input system.pdb --output results/ --steps 10
   5000-7000 Å². Much lower values indicate collapsed/over-packed structures.
 - **DCD parsing**: the parsed `n_atoms` must match the topology atom count;
   a mismatch means the DCD and topology do not correspond.
+- **Equilibration stages**: `simulation_report.json` → `stages` must list every
+  stage that was requested. A requested `--nvt-steps` that does not appear
+  means the stage was silently skipped.
+- **Chain separation**: when `--monitor-chain-separation` is on, the
+  `chain_separation` block must exist and `final_check.separated` must be
+  `false` for a stable complex. A `true` value means the chains drifted
+  apart — check the starting structure (usually a docking pose that was
+  never relaxed) before trusting any downstream analysis.
+- **Restraint effect**: with `--restraints backbone` on, the NVT trajectory
+  must show a noticeably smaller backbone RMSD than an unrestrained run. If
+  the numbers are identical, the restraints never took effect — this happens
+  when the force is added to the `System` after the `Context` was created.
+- **Stability**: `stability.should_rollback` must be `false` for a healthy
+  run. If it is `true`, the report's `stability.reason` explains whether the
+  coordinates went NaN, hit Inf, or blew up numerically — a NaN in the very
+  first frames usually points at a bad force field or missing hydrogens
+  rather than at the dynamics themselves.
 
 ## References
 

@@ -10,7 +10,13 @@
 2. 依据 `--force-field` 选择力场（默认 `amber14-all.xml`，并自动补充隐式溶剂
    `implicit/gbn2.xml` 与 `implicit/obc2.xml`）；
 3. 建立非周期体系，加入柔性氢（`hydrogens=add`）；
-4. 用 Langevin Middle 恒温器做最小化 + 生产性 MD；
+4. 执行**分阶段平衡协议**（可选）：
+
+   - 能量最小化
+   - **NVT 平衡**（可选位置限制）
+   - **NPT 平衡**（可选压力耦合）
+   - 生产性 MD
+
 5. 写出 DCD 轨迹、最终结构与状态报告。
 
 OpenMM 不可用时，脚本会给出明确的安装提示并以非零码退出（不静默降级为
@@ -27,11 +33,18 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional
 
 from biopipe_core import cli_parser, get_config, get_logger  # noqa: E402
 from biopipe_core.cli import SkillError, run_cli  # noqa: E402
+from md_equilibration import (  # noqa: E402
+    ChainSeparationMonitor,
+    build_restraint_force,
+    select_restraint_atoms,
+    stabilize_after_nan,
+)
 
 SKILL_NAME = "molecular-dynamics"
 
@@ -64,6 +77,27 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--report-interval", type=int, default=100, help="状态报告间隔（步，默认 100）")
     parser.add_argument("--trajectory-interval", type=int, default=100, help="轨迹写出间隔（步，默认 100）")
     parser.add_argument("--check-only", action="store_true", help="仅检查 OpenMM 是否可用并退出")
+
+    # ---- 分阶段平衡协议 ----
+    parser.add_argument("--nvt-steps", type=int, default=0,
+                        help="NVT 平衡步数（默认 0 = 跳过）")
+    parser.add_argument("--npt-steps", type=int, default=0,
+                        help="NPT 平衡步数（默认 0 = 跳过）")
+    parser.add_argument("--pressure", type=float, default=1.0,
+                        help="NPT 目标压力（bar，默认 1.0）")
+    parser.add_argument("--restraints", choices=("none", "backbone", "ca", "heavy", "all"),
+                        default="none",
+                        help="平衡阶段的位置限制模式（默认 none）")
+    parser.add_argument("--restraint-force-constant", type=float, default=100.0,
+                        help="位置限制力常数（kJ/mol/Å²，默认 100）")
+    parser.add_argument("--production-restraint-force-constant", type=float, default=0.0,
+                        help="生产期位置限制力常数（>0 表示生产期也保持限制，默认 0 = 撤除）")
+    parser.add_argument("--monitor-chain-separation", action="store_true",
+                        help="在模拟过程中监测链间距离，检测复合物解离")
+    parser.add_argument("--chain-separation-threshold", type=float, default=30.0,
+                        help="链间距离告警阈值（Å，默认 30）")
+    parser.add_argument("--chain-monitor-interval", type=int, default=10000,
+                        help="链分离检查间隔（步，默认 10000）")
     return parser
 
 
@@ -102,7 +136,16 @@ def _resolve_output_dir(output: Optional[str]) -> Path:
 
 
 def _run_openmm(args: argparse.Namespace, output_dir: Path) -> dict:
-    """真正调用 OpenMM 执行模拟。"""
+    """真正调用 OpenMM 执行模拟。
+
+    平衡协议（按需启用）::
+
+        最小化 → NVT（可加位置限制）→ NPT（可加气压计）→ 生产期
+
+    位置限制的施加时机很关键：必须**在创建 Simulation 之前**加到
+    ``System`` 上。Context 一旦创建，改 System 不会重建 Context，
+    力将完全不生效（老仓库 md_modules/runner.py 正是在这里出错）。
+    """
     import openmm
     from openmm import app, unit
 
@@ -134,6 +177,47 @@ def _run_openmm(args: argparse.Namespace, output_dir: Path) -> dict:
         rigidWater=True,
     )
 
+    # ---- 位置限制：必须在创建 Simulation 之前加到 System ----
+    restraint_indices: list[int] = []
+    restraint_force = None
+    restraint_force_index: Optional[int] = None
+    if args.restraints != "none" and args.nvt_steps > 0:
+        restraint_indices = select_restraint_atoms(topology, args.restraints)
+        if not restraint_indices:
+            raise SkillError(
+                f"位置限制模式 '{args.restraints}' 没有匹配到任何原子，"
+                f"请检查输入结构"
+            )
+        logger.info(
+            "施加位置限制: 模式=%s, 原子数=%d, k=%.1f kJ/mol/Å²",
+            args.restraints, len(restraint_indices), args.restraint_force_constant,
+        )
+        # 记录索引：移除力时要用（Force 自身没有 getForceIndex）
+        restraint_force_index = system.getNumForces()
+        restraint_force = build_restraint_force(
+            system,
+            restraint_indices,
+            positions,
+            args.restraint_force_constant,
+        )
+
+    # ---- 链分离监测器 ----
+    monitor = None
+    if args.monitor_chain_separation:
+        monitor = ChainSeparationMonitor(
+            topology,
+            threshold=args.chain_separation_threshold,
+            report_interval=args.chain_monitor_interval,
+        )
+        monitor.set_initial_positions(positions, unit)
+        logger.info(
+            "链分离监测已启用，初始链间距离: %s",
+            ", ".join(
+                f"{k}={v:.1f} Å"
+                for k, v in (monitor.initial_distances or {}).items()
+            ) or "（单链体系，无需监测）",
+        )
+
     integrator = openmm.LangevinMiddleIntegrator(
         args.temperature * unit.kelvin,
         args.friction / unit.picosecond,
@@ -146,14 +230,95 @@ def _run_openmm(args: argparse.Namespace, output_dir: Path) -> dict:
     simulation = app.Simulation(topology, system, integrator, platform)
     simulation.context.setPositions(positions)
 
+    stage_log: list[dict] = []
+
     if args.minimize_steps > 0:
         logger.info("能量最小化 %d 步", args.minimize_steps)
         simulation.minimizeEnergy()
         simulation.context.setVelocitiesToTemperature(args.temperature * unit.kelvin)
+        stage_log.append({"stage": "minimize", "steps": args.minimize_steps})
+
+    # ---- NVT 平衡 ----
+    if args.nvt_steps > 0:
+        logger.info("NVT 平衡 %d 步 = %.1f ps", args.nvt_steps, args.nvt_steps * args.timestep)
+        simulation.context.setVelocitiesToTemperature(args.temperature * unit.kelvin)
+        simulation.step(args.nvt_steps)
+        stage_log.append({
+            "stage": "nvt",
+            "steps": args.nvt_steps,
+            "restraints": args.restraints,
+        })
+
+    # ---- NPT 平衡 ----
+    if args.npt_steps > 0:
+        logger.info(
+            "NPT 平衡 %d 步 = %.1f ps（压力 %.2f bar）",
+            args.npt_steps, args.npt_steps * args.timestep, args.pressure,
+        )
+        # 气压计必须加在 System 上并**重建 Simulation**才生效
+        system.addForce(
+            openmm.MonteCarloBarostat(
+                args.pressure * unit.bar, args.temperature * unit.kelvin
+            )
+        )
+        state = simulation.context.getState(getPositions=True, getVelocities=True)
+        integrator = openmm.LangevinMiddleIntegrator(
+            args.temperature * unit.kelvin,
+            args.friction / unit.picosecond,
+            args.timestep * unit.picoseconds,
+        )
+        simulation = app.Simulation(topology, system, integrator, platform)
+        simulation.context.setPositions(state.getPositions())
+        simulation.context.setVelocities(state.getVelocities())
+        simulation.step(args.npt_steps)
+        stage_log.append({
+            "stage": "npt",
+            "steps": args.npt_steps,
+            "pressure_bar": args.pressure,
+        })
 
     if args.equilibration_steps > 0:
         logger.info("平衡 %d 步", args.equilibration_steps)
         simulation.step(args.equilibration_steps)
+        stage_log.append({"stage": "equilibrate", "steps": args.equilibration_steps})
+
+    # ---- 生产期：撤除位置限制（除非显式要求保持） ----
+    if restraint_force is not None:
+        keep = args.production_restraint_force_constant > 0
+        if keep:
+            logger.info(
+                "生产期保持位置限制（k=%.1f kJ/mol/Å²）",
+                args.production_restraint_force_constant,
+            )
+            # 直接改 force 的参数后重建 Context —— 比 updateParametersInContext
+            # 更稳：NPT 阶段可能已经重建过 Simulation，force 与 context 的
+            # 绑定关系不再确定，重建可以保证参数确实生效。
+            for particle in range(restraint_force.getNumParticles()):
+                restraint_force.setParticleParameter(
+                    particle, 1, args.production_restraint_force_constant
+                )
+            state = simulation.context.getState(getPositions=True, getVelocities=True)
+            integrator = openmm.LangevinMiddleIntegrator(
+                args.temperature * unit.kelvin,
+                args.friction / unit.picosecond,
+                args.timestep * unit.picoseconds,
+            )
+            simulation = app.Simulation(topology, system, integrator, platform)
+            simulation.context.setPositions(state.getPositions())
+            simulation.context.setVelocities(state.getVelocities())
+        else:
+            logger.info("生产期撤除位置限制")
+            system.removeForce(restraint_force_index)
+            # 移除力后同样需要重建 Context
+            state = simulation.context.getState(getPositions=True, getVelocities=True)
+            integrator = openmm.LangevinMiddleIntegrator(
+                args.temperature * unit.kelvin,
+                args.friction / unit.picosecond,
+                args.timestep * unit.picoseconds,
+            )
+            simulation = app.Simulation(topology, system, integrator, platform)
+            simulation.context.setPositions(state.getPositions())
+            simulation.context.setVelocities(state.getVelocities())
 
     traj_path = output_dir / "trajectory.dcd"
     state_path = output_dir / "final_state.pdb"
@@ -178,7 +343,28 @@ def _run_openmm(args: argparse.Namespace, output_dir: Path) -> dict:
     logger.info("开始生产性 MD: %d 步, 时间步 %.4f ps", args.steps, args.timestep)
     simulation.step(args.steps)
 
+    # ---- NaN / 发散检测与回滚 ----
     final_positions = simulation.context.getState(getPositions=True).getPositions()
+    stability = stabilize_after_nan(final_positions, rollback_positions=positions)
+    if stability["should_rollback"]:
+        logger.error("检测到数值异常（%s），已回滚到输入结构", stability["reason"])
+        simulation.context.setPositions(positions)
+        simulation.context.setVelocitiesToTemperature(args.temperature * unit.kelvin)
+        final_positions = simulation.context.getState(getPositions=True).getPositions()
+
+    # ---- 链分离终检 ----
+    chain_report = None
+    if monitor is not None:
+        final_check = monitor.check(final_positions, unit, step=args.steps)
+        chain_report = monitor.get_summary()
+        chain_report["final_check"] = {
+            "chain_distances": final_check["chain_distances"],
+            "separated": final_check["separated"],
+        }
+        if final_check["separated"]:
+            for message in final_check["warnings"]:
+                logger.warning("链分离告警: %s", message)
+
     with open(state_path, "w", encoding="utf-8") as handle:
         app.PDBFile.writeFile(simulation.topology, final_positions, handle)
 
@@ -202,6 +388,15 @@ def _run_openmm(args: argparse.Namespace, output_dir: Path) -> dict:
         "minimize_steps": args.minimize_steps,
         "equilibration_steps": args.equilibration_steps,
         "production_steps": args.steps,
+        "stages": stage_log,
+        "restraints": {
+            "mode": args.restraints,
+            "n_atoms": len(restraint_indices),
+            "force_constant": args.restraint_force_constant,
+            "retained_in_production": args.production_restraint_force_constant > 0,
+        },
+        "stability": stability,
+        "chain_separation": chain_report,
         "trajectory": str(traj_path),
         "final_state": str(state_path),
         "state_csv": str(output_dir / "state.csv"),

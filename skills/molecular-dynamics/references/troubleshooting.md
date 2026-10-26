@@ -283,12 +283,68 @@ pip install openmm
 * 减小体系（截取残基范围）；
 * `--solvent vacuum`（仅用于快速测试，不建议做正式分析）。
 
+### 3.5 位置限制看起来没生效
+
+**症状**：开了 `--restraints backbone`，但 NVT 阶段的骨架 RMSD 和
+不加限制时几乎一样。
+
+**原因**：位置限制加到了 `System` 上，但 `Simulation`（以及 `Context`）
+**已经创建**。OpenMM 的 Context 在创建时就把力场编译进计算核，
+之后改 `System` 不会重建 Context —— 力**静默失效**，不报错也不生效。
+
+**对策**：位置限制必须在 `app.Simulation(...)` 之前加到 `System` 上。
+本技能的实现已经按这个顺序执行；如果你自己写了模拟脚本，
+请检查这个顺序。同样的道理适用于加气压计和撤除限制，
+两者都需要**重建 Simulation** 并显式搬运 positions + velocities。
+
+验证方法：对比开/关限制时 NVT 轨迹的骨架 RMSD，应有明显差异。
+
+### 3.6 链在模拟中分离了
+
+**症状**：`chain_separation.final_check.separated` 为 `true`，
+或模拟途中出现链间距告警。
+
+**对策**：
+
+1. **先检查输入结构** —— 大多数情况下解离的根源是起始姿态不物理
+   （对接姿态没松弛、界面有原子穿插）。先用 `--minimize-steps`
+   加大最小化，再跑 NVT。
+2. **加位置限制** —— `--nvt-steps 50000 --restraints backbone`，
+   让侧链和溶剂先松弛，把界面稳住。
+3. **降低初始温度冲击** —— 先用较短、温度较低的 NVT 段
+   （例如 100 K → 300 K 分两步），再进生产期。
+4. **检查是不是误报** —— 阈值 30 Å 对超大体系可能偏小，
+   可用 `--chain-separation-threshold` 调整。若两个体系本来就离得远
+   （例如有共价交联），绝对距离会一直很大，这时应关注
+   `distance_history` 里的**相对变化**而非绝对值。
+
+### 3.7 重建 Simulation 后轨迹跳变
+
+**症状**：NPT 阶段或撤除限制后，轨迹出现一个明显的坐标跳变。
+
+**原因**：重建 `Simulation` 时没有搬运当前的位置和速度。新 Context
+的初始位置是 0，跑到第一次 `step` 之前都停在原点。
+
+**对策**：重建后必须显式搬运状态：
+
+```python
+state = simulation.context.getState(getPositions=True, getVelocities=True)
+simulation = app.Simulation(topology, system, integrator, platform)
+simulation.context.setPositions(state.getPositions())
+simulation.context.setVelocities(state.getVelocities())
+```
+
+**注意速度也要搬** —— 只搬位置的话，体系速度为零，等于在生产期
+开头做了一次隐式的"零动能重启"，前几百步的行为完全失真。
+
 ## 4. 自检清单
 
 ```bash
-# 1) 三个入口的帮助
+# 1) 四个入口的帮助
 python skills/molecular-dynamics/scripts/run_analysis.py --help
 python skills/molecular-dynamics/scripts/run_simulation.py --help
+python skills/molecular-dynamics/scripts/trajectory_io.py --help
+python skills/molecular-dynamics/scripts/md_equilibration.py --help
 
 # 2) 轨迹解析器自检
 python skills/molecular-dynamics/scripts/trajectory_io.py --input work/md_test_trajectory.dcd
@@ -302,6 +358,10 @@ python skills/molecular-dynamics/scripts/run_analysis.py \
     --topology work/md_test_topology.pdb \
     --output work/out_md
 
-# 5) 规范校验
+# 5) 平衡协议自检（仅检查 OpenMM 是否可用）
+python skills/molecular-dynamics/scripts/run_simulation.py \
+    --input work/md_test_topology.pdb --check-only
+
+# 6) 规范校验
 python scripts/validate_skills.py
 ```
