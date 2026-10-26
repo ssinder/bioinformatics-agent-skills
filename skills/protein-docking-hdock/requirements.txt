@@ -1,0 +1,14 @@
+# HDOCK 蛋白质对接技能依赖
+#
+# requests —— 提交 HDOCK 作业与抓取结果页（必需）
+#
+# 这个技能**不需要 selenium**。HDOCK 虽然没有公开的 REST API，但它的提交页
+# 是一个标准的 HTML form POST（无 CSRF token、无隐藏字段、无 JS 签名），
+# 结果页的分数也在普通 HTML 表格里。因此纯 HTTP 就够用，比启动一个
+# 浏览器实例快两个数量级，也不依赖本机装 Edge/Chrome 与对应的 driver。
+#
+# 老仓库的 requirements 里有 selenium + webdriver-manager：
+#   selenium>=4.0.0
+#   webdriver-manager>=3.8.6
+# 它们配合硬编码的 msedgedriver 路径使用，换一台机器就跑不了。
+requests>=2.25.0

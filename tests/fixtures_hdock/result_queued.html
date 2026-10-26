@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<title> HDOCK Server: Job results for 6adf1c9e1eb6e</title><meta http-equiv="refresh" content="10" />    <link href="/style.css" rel="stylesheet" type="text/css">
+
+ </head>
+<script language="JavaScript" type="text/javascript">
+
+function popup(mylink, windowname)
+{
+if (! window.focus)return true;
+var href;
+if (typeof(mylink) == 'string')
+   href=mylink;
+else
+   href=mylink.href;
+window.open(href, windowname, 'width=1020,height=600,scrollbars=yes');
+return false;
+}
+
+function formAction (action, id)
+{
+        if (action == 'show')
+        {
+                document.getElementById("optionForm"+id).style.display= "block";
+                document.getElementById("option"+id).href= "javascript:formAction('hide', "+id+")";
+		document.getElementById("showtext"+id).innerHTML = "Hide)";
+        }
+
+        if (action == 'hide')
+        {
+                document.getElementById("optionForm"+id).style.display= "none";
+                document.getElementById("option"+id).href= "javascript:formAction('show', "+id+")";
+		document.getElementById("showtext"+id).innerHTML = "Show)";
+        }
+}
+
+
+</script>
+
+<body>
+
+<table style="width:%100; border:0; cellspacing:0 cellpadding:0">
+
+<tr style="height:100px;">
+        <td style="padding:10px 10px 10px 10px;background-image:url('/image/complex.png');">
+        <br>
+        <div align="center" style="text-shadow:3px 3px 3px gray;font-weight:bold;line-height:100%;font-size:2.6em;color:black">
+        HDOCK SERVER<font style="font-size:18px;color:blue"> </font>
+        </div>
+
+<div id="left" style="float:left ;  width:31%; "></div>
+<div id="right" style="float:right ;  width:69%; ">
+<p style="font-size:120%;">
+Protein-protein and protein-DNA/RNA docking
+based on a hybrid algorithm of template-based modeling and <i>ab initio</i> free docking.
+</p>
+</div>
+
+</td>
+</tr>
+
+<tr style="height:18px; background-color:white">
+	<td style="text-align:center;font-weight:bold;padding:5px 0px 5px 0px;
+	 border-bottom-color:black;
+  border-bottom-style:solid; border-bottom-width:0.5px;">
+
+[<a target="_blank" href="http://huanglab.phys.hust.edu.cn">Huang Lab</a>] &nbsp;
+[<a target="_blank" href="/">HDOCK</a>]  &nbsp;
+[<a target="_blank" href="/help.php" target="_blank">Help</a>]  &nbsp;
+[<a target="_blank" href="/data/example/">Output example</a>] &nbsp;
+
+</td>
+</tr>
+</table>
+
+<center>
+
+<script>
+var dots = window.setInterval( function() {
+
+var wait = document.getElementById("wait");
+if(wait!=null){
+    if ( wait.innerHTML.length > 3 ){ 
+        wait.innerHTML = "";
+	}
+    else {
+        wait.innerHTML += ".";
+	}
+	}
+    },600);
+</script>
+
+
+<table style="line-height:120%; padding:60 10 20 10; cellpadding:10px"><tr><td width=500px align=left><h3>Your HDOCK job <i>biopipe_http_test
+</i> is QUEUED.</h3>This page is automatically refreshed every 10 seconds. If the page hangs, you may press F5 to manually refresh this page anytime.<br><br>Your results will be shown on this page once your job is finished.<br><br>You can <b>bookmark this page</b> and access the results later.<br><br>If you have provided a valid email address, you will be also notified by email when your job is finished.<br><br>Your HDOCK results are stored for two weeks.</td> </tr></table>

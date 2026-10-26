@@ -133,6 +133,13 @@ REGISTRY: dict[str, SkillSpec] = {
             entry="scripts/fetch_compounds.py",
             keywords=("pubchem", "taxonomy", "compound", "cas", "smiles", "ncbi"),
         ),
+        SkillSpec(
+            name="protein-docking-hdock",
+            category="结构生物学",
+            summary="HDOCK 蛋白质对接：HTTP 提交作业、轮询取 Docking Score 与置信度、下载模型",
+            entry="scripts/submit_docking.py",
+            keywords=("docking", "hdock", "protein-protein", "complex", "score"),
+        ),
     ]
 }
 
