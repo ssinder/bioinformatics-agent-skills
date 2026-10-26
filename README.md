@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Skills](https://img.shields.io/badge/Skills-10-brightgreen.svg)](#-available-skills)
+[![Skills](https://img.shields.io/badge/Skills-11-brightgreen.svg)](#-available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
@@ -29,7 +29,7 @@
 让 Claude Code、Cursor、Codex 等任意支持 [Agent Skills 开放标准](https://agentskills.io/) 的
 AI 助手获得**领域专业知识、可复现流程和验证检查** —— 而不只是会调用 API 的通才。
 
-覆盖转录组学、单细胞、蛋白结构、分子动力学、抗菌肽设计、文献挖掘与出版级图表。
+覆盖转录组学、单细胞、蛋白结构、分子动力学、抗菌肽设计、文献挖掘、NCBI BioProject 元数据与出版级图表。
 
 > 转型自 [`ssinder/Bioinformatics_pipeline`](https://github.com/ssinder/Bioinformatics_pipeline)——
 > 217 个真实科研脚本,重构为符合开放标准的可发现、可触发、可复现技能库。
@@ -121,6 +121,7 @@ python skills/literature-search/scripts/search_literature.py \
 | 技能 | 描述 | 关键能力 |
 |------|------|----------|
 | [`literature-search`](skills/literature-search/) | 多源学术文献检索 | PubMed · OpenAlex · Semantic Scholar · DOI 去重 · RIS/BibTeX 导出 |
+| [`bioproject-search`](skills/bioproject-search/) | NCBI BioProject 元数据检索 | E-utilities API · 标题/描述/物种 · 关键词筛选 · CSV/JSON 导出 |
 
 ### 📊 数据可视化 / Scientific Visualization
 
@@ -149,7 +150,7 @@ OpenMM 没装?照样能解析 DCD 轨迹并做 RMSD/PCA。依赖可选,能力不
 
 ```
 bioinformatics-agent-skills/
-├── skills/                    # 8 个独立可安装的技能
+├── skills/                    # 11 个独立可安装的技能
 │   ├── bulk-rnaseq/
 │   │   ├── SKILL.md           # 触发描述 + 工作流 + 验证方法
 │   │   ├── scripts/           # 可执行脚本
@@ -248,8 +249,8 @@ and why). Heavy dependencies degrade gracefully — the core algorithms are impl
 Python so the skills work even in minimal environments.
 
 **Domains covered:** bulk RNA-seq, single-cell RNA-seq, protein structure analysis, protein-ligand
-interactions, molecular dynamics, antimicrobial peptide design, literature mining, and
-publication-quality figures.
+interactions, molecular dynamics, antimicrobial peptide design, literature mining, NCBI BioProject
+metadata retrieval, and publication-quality figures.
 
 ```bash
 pip install -e .

@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<RecordSet><DocumentSummary uid="212358">
+    <Project>
+        <ProjectID>
+            <ArchiveID accession="PRJNA212358" archive="NCBI" id="212358"/>
+        </ProjectID>
+        <ProjectDescr>
+            <Name>Hyalella azteca</Name>
+            <Title>Gene expression profiles of Hyalella azteca populations with different pyrethroid sensitivities</Title>
+            <Description>The goal of the study was to investigate gene expression differences in Hyalella azteca exposed to pyrethroid insecticides and compare a laboratory strain to a wild population believed to be resistant to the pesticides. H. azteca reared in the laboratory at the University of CA, Berkeley (UCB) were exposed to cyfluthrin, a commerical pyrethroid insecticide for 96-h. A wild population collected from Grayson Creek (GC), CA was reared in the laboratory for several days and also exposed to cyfluthrin. Toxicity testing revealed that GC animals were two orders of magnitude less sensitive to cyfluthrin compared to the laboratory animals with the no observed effect concentration (NOEC) for UCB = 0.4 ng/L and GC= 170 ng/L. Unexposed, control animals and animals exposed to 0.4 ng/L (GC and UCB) or 170 ng/L cyfluthrin were collected following 96-h treatments. Differences in gene expression were measured using a custom Hyalella azteca microarray. Gene expression profiles revealed that laboratory H. azteca responded to cyfluthrin through differential expression of genes involved in neurological system processes. In contract, H. azteca from Grayson Creek showed a pattern of oxidative stress through the differential expression of glutathione-S-transferases, heat shock proteins, and other genes involved in oxidation-reduction processes. Overall design: Four replicate exposures consisting of ten animals were collected for each treatment or control. A one-color hybridization protocol was used so that each sample was labeled with cy3 and only one sample was hybridized to each array.</Description>
+            <ExternalLink label="">
+                <dbXREF db="GEO">
+                    <ID>GSE48943</ID>
+                </dbXREF>
+            </ExternalLink>
+            <Publication date="2013-10-08T00:00:00Z" id="24065824" status="ePublished">
+                <Reference/>
+                <StructuredCitation>
+                    <Title>Multiple origins of pyrethroid insecticide resistance across the species complex of a nontarget aquatic crustacean, Hyalella azteca.</Title>
+                    <Journal>
+                        <JournalTitle>Proceedings of the National Academy of Sciences of the United States of America</JournalTitle>
+                        <Year>2013</Year>
+                        <Volume>110</Volume>
+                        <Issue>41</Issue>
+                        <PagesFrom>16532</PagesFrom>
+                        <PagesTo>7</PagesTo>
+                    </Journal>
+                    <AuthorSet>
+                        <Author>
+                            <Name>
+                                <First>Donald P</First>
+                                <Last>Weston</Last>
+                            </Name>
+                            <Consortium>Department of Integrative Biology, University of California, Berkeley, CA 94720.</Consortium>
+                        </Author>
+                        <Author>
+                            <Name>
+                                <First>Helen C</First>
+                                <Last>Poynton</Last>
+                            </Name>
+                        </Author>
+                        <Author>
+                            <Name>
+                                <First>Gary A</First>
+                                <Last>Wellborn</Last>
+                            </Name>
+                        </Author>
+                        <Author>
+                            <Name>
+                                <First>Michael J</First>
+                                <Last>Lydy</Last>
+                            </Name>
+                        </Author>
+                        <Author>
+                            <Name>
+                                <First>Bonnie J</First>
+                                <Last>Blalock</Last>
+                            </Name>
+                        </Author>
+                        <Author>
+                            <Name>
+                                <First>Maria S</First>
+                                <Last>Sepulveda</Last>
+                            </Name>
+                        </Author>
+                        <Author>
+                            <Name>
+                                <First>John K</First>
+                                <Last>Colbourne</Last>
+                            </Name>
+                        </Author>
+                    </AuthorSet>
+                </StructuredCitation>
+                <DbType>ePubmed</DbType>
+            </Publication>
+            <Relevance>
+                <Other>Unknown</Other>
+            </Relevance>
+        </ProjectDescr>
+        <ProjectType>
+            <ProjectTypeSubmission>
+                <Target capture="eWhole" material="eTranscriptome" sample_scope="eMultiisolate">
+                    <Organism species="294128" taxID="294128">
+                        <OrganismName>Hyalella azteca</OrganismName>
+                        <Supergroup>eEukaryotes</Supergroup>
+                    </Organism>
+                </Target>
+                <Method method_type="eArray"/>
+                <Objectives>
+                    <Data data_type="eExpression"/>
+                </Objectives>
+                <ProjectDataTypeSet>
+                    <DataType>Transcriptome or Gene expression</DataType>
+                </ProjectDataTypeSet>
+            </ProjectTypeSubmission>
+        </ProjectType>
+    </Project>
+    <Submission last_update="2013-10-23" submitted="2013-07-16" submission_id="SUB365098">
+        <Description>
+            <!-- Submitter information has been removed -->
+            <Organization role="owner" type="institute">
+                <Name>Poynton Lab, Environmental, Earth and Ocean Sciences, UMass Boston</Name>
+                <!-- Contact information has been removed -->
+            </Organization>
+            <Access>public</Access>
+        </Description>
+        <Action action_id="SUB365098-1"/>
+    </Submission>
+</DocumentSummary>
+
+<DocumentSummary uid="355343">
+    <Project>
+        <ProjectID>
+            <ArchiveID accession="PRJNA355343" archive="NCBI" id="355343"/>
+            <LocalID>bp0</LocalID>
+            <LocalID>bp0</LocalID>
+        </ProjectID>
+        <ProjectDescr>
+            <Name>Salmonella enterica subsp. enterica serovar Typhi strain:429038</Name>
+            <Title>Salmonella enterica genome sequencing</Title>
+            <Description>Cephalosporin resistant Salmonella Typhi</Description>
+            <ProjectReleaseDate>2016-12-15T00:00:00Z</ProjectReleaseDate>
+            <LocusTagPrefix biosample_id="SAMN06074336">BST87</LocusTagPrefix>
+        </ProjectDescr>
+        <ProjectType>
+            <ProjectTypeSubmission>
+                <Target capture="eWhole" material="eGenome" sample_scope="eMonoisolate">
+                    <Organism species="28901" taxID="90370">
+                        <OrganismName>Salmonella enterica subsp. enterica serovar Typhi</OrganismName>
+                        <Strain>429038</Strain>
+                        <Supergroup>eBacteria</Supergroup>
+                    </Organism>
+                </Target>
+                <Method method_type="eSequencing"/>
+                <Objectives>
+                    <Data data_type="eSequence"/>
+                </Objectives>
+                <IntendedDataTypeSet>
+                    <DataType>genome sequencing</DataType>
+                </IntendedDataTypeSet>
+                <ProjectDataTypeSet>
+                    <DataType>Genome sequencing and assembly</DataType>
+                </ProjectDataTypeSet>
+            </ProjectTypeSubmission>
+        </ProjectType>
+    </Project>
+    <Submission last_update="2016-11-29" submission_id="SUB2134136" submitted="2016-11-29">
+        <Description>
+            <!-- Submitter information has been removed -->
+            <Organization role="owner" type="institute">
+                <Name>Christian Medical College</Name>
+                <!-- Contact information has been removed -->
+            </Organization>
+            <Access>public</Access>
+        </Description>
+        <Action action_id="SUB2134136-1"/>
+        <Action action_id="SUB2134136-3"/>
+        <Action action_id="SUB2134136-bs0"/>
+    </Submission>
+</DocumentSummary>
+
+<DocumentSummary uid="172563">
+    <Project>
+        <ProjectID>
+            <ArchiveID accession="PRJNA172563" archive="NCBI" id="172563"/>
+            <CenterID center="dbgapss_spuid" id="0">bp_data_submission_phs000532</CenterID>
+        </ProjectID>
+        <ProjectDescr>
+            <Name>Homo sapiens</Name>
+            <Title>CGCI: Non-Hodgkin Lymphoma (NHL)</Title>
+            <Description>The Office of Cancer Genomics (OCG) at the National Cancer Institute sponsored a series of studies as part of the Cancer Genome Characterization Initiative (CGCI) to assess novel emerging sequencing technologies in cancer. The CGCI program included comprehensive characterization of the genetic aberrations found in different pediatric and/or adult tumors. CGCI characterized a number of B-cell non-Hodgkin lymphomas (including diffuse large B-cell lymphoma (DLBCL), follicular lymphoma (FL), and adult and pediatric Burkitt lymphomas). All data from these projects is available at the NCI Genomic Data Commons. In combination, the lymphoid cancers (non-Hodgkin lymphoma, Hodgkin lymphoma, myeloma and chronic lymphocytic leukemia), constitute the fourth most common malignancy in both men and... (for more see dbGaP study page.)</Description>
+            <ExternalLink label="">
+                <dbXREF db="dbGaP">
+                    <ID>phs000532</ID>
+                </dbXREF>
+            </ExternalLink>
+            <Relevance>
+                <Medical>yes</Medical>
+            </Relevance>
+        </ProjectDescr>
+        <ProjectType>
+            <ProjectTypeSubmission>
+                <Target capture="eOther" material="eOther" sample_scope="eMultiisolate">
+                    <Organism species="9606" taxID="9606">
+                        <OrganismName>Homo sapiens</OrganismName>
+                        <Supergroup>eEukaryotes</Supergroup>
+                    </Organism>
+                </Target>
+                <Method method_type="eOther"/>
+                <Objectives>
+                    <Data data_type="ePhenotype"/>
+                </Objectives>
+                <ProjectDataTypeSet>
+                    <DataType>Phenotype or Genotype</DataType>
+                </ProjectDataTypeSet>
+            </ProjectTypeSubmission>
+        </ProjectType>
+    </Project>
+    <Submission submission_id="SUB13465728">
+        <Description>
+            <!-- Submitter information has been removed -->
+            <Organization role="owner" type="institute">
+                <Name>NIH</Name>
+                <!-- Contact information has been removed -->
+            </Organization>
+            <Access>public</Access>
+        </Description>
+        <Action action_id="SUB13465728-bp_data_submission_phs000532"/>
+    </Submission>
+    <ProjectLinks>
+        <Link>
+            <ProjectIDRef archive="NCBI" id="172563" accession="PRJNA172563"/>
+            <Hierarchical type="TopAdmin">
+                <MemberID archive="NCBI" id="74795" accession="PRJNA74795"/>
+            </Hierarchical>
+        </Link>
+    </ProjectLinks>
+</DocumentSummary>
+
+</RecordSet>

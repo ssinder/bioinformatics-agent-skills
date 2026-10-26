@@ -1,0 +1,5 @@
+# BioProject 检索技能依赖
+#
+# requests —— 访问 NCBI E-utilities（esearch / efetch）（必需）
+# 其余功能（XML 解析、关键词筛选、CSV/JSON 导出）只用标准库。
+requests>=2.25.0

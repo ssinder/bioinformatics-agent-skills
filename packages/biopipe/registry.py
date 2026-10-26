@@ -112,6 +112,13 @@ REGISTRY: dict[str, SkillSpec] = {
             entry="scripts/download_structures.py",
             keywords=("alphafold", "afdb", "structure", "plddt", "prediction"),
         ),
+        SkillSpec(
+            name="bioproject-search",
+            category="文献挖掘",
+            summary="NCBI BioProject 元数据检索：E-utilities 取标题/描述/物种，支持关键词筛选",
+            entry="scripts/search_bioprojects.py",
+            keywords=("bioproject", "ncbi", "e-utilities", "prjna", "metadata"),
+        ),
     ]
 }
 
