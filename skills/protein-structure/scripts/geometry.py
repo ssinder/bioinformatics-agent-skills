@@ -17,8 +17,18 @@ Usage:
 from __future__ import annotations
 
 import math
+import sys
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 from typing import Optional
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from biopipe_core import get_logger  # noqa: E402
+from pdb_parser import parse_pdb_file  # noqa: E402
+
+logger = get_logger("biopipe.protein-structure")
 
 __all__ = [
     "radius_of_gyration",
@@ -321,8 +331,6 @@ def _main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("input", help="PDB 文件路径")
     args = parser.parse_args(argv)
 
-    from pdb_parser import parse_pdb_file
-
     structure = parse_pdb_file(args.input)
     atoms = structure.atoms()
     logger.info("Rg: %.3f Å", radius_of_gyration(atoms)["rg"])
@@ -333,11 +341,4 @@ def _main(argv: Optional[list[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    import sys
-    from pathlib import Path
-
-    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
-    from biopipe_core import get_logger
-
-    logger = get_logger("biopipe.protein-structure")
     sys.exit(_main())

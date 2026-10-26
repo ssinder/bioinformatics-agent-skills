@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import re
 import sys
 from pathlib import Path
@@ -26,11 +27,13 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO_ROOT / "skills" / "alphafold-db"
+FIXTURES_SELECT = REPO_ROOT / "tests" / "fixtures_alphafold_select"
 sys.path.insert(0, str(REPO_ROOT / "packages"))
 sys.path.insert(0, str(SKILL_DIR / "scripts"))
 
 import alphafold_client  # noqa: E402
 import download_structures  # noqa: E402
+import select_best_model  # noqa: E402
 
 
 class _FakeResponse:
@@ -450,3 +453,247 @@ class TestCliSurface:
             download_structures.build_parser().parse_args(["--help"])
         assert exc.value.code == 0
         assert "AlphaFold" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# 最佳模型选择（从老仓库 dock_lightdock/scripts/extract_best_alphafold.py 并入）
+# --------------------------------------------------------------------------
+#
+# 老脚本的问题：
+# 1. 硬编码个人路径（下载目录与输入目录都是模块常量）。
+# 2. 只认 ``fold_{design}_model_*.cif`` 一种命名，用字符串 replace 反推
+#    置信度文件名——命名一变就彻底失效。
+# 3. ``sorted(glob(...))[0]`` 取"第一个"CIF，多模型时取到的是**字典序最小**
+#    的那个，不是置信度最高的那个。
+# 4. 转换失败只返回 0 原子，调用方分不清"文件是空的"与"解析器出错"。
+# 5. 没有汇总表。
+# --------------------------------------------------------------------------
+
+
+class TestSelectBestModelDiscovery:
+    """结构文件与置信度文件的发现与配对。"""
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def standard(cls):
+        return select_best_model.collect_models(
+            FIXTURES_SELECT / "standard", "ranking_score"
+        )
+
+    def test_finds_all_models(self, standard):
+        assert len(standard) == 4
+
+    def test_best_is_highest_ranking_score(self, standard):
+        """核心回归：最优是 ranking_score 最高的那个，不是编号最小的。
+
+        夹具里 rank 2 的 ranking_score=0.884 最高，而 rank 0 只有 0.551。
+        按字典序取第一个会挑中 rank 0。
+        """
+        assert standard[0]["rank"] == 2
+        assert select_best_model.rank_value(standard[0]["confidence"], "ranking_score") == pytest.approx(0.884)
+
+    def test_dictionary_order_would_pick_wrong_model(self, standard):
+        """夹具必须能区分"字典序第一个"与"分数最高"。"""
+        first_by_name = sorted(
+            (FIXTURES_SELECT / "standard").glob("*.cif"), key=lambda p: p.name
+        )[0]
+        assert first_by_name.name == "fold_model_0.cif"
+        # 而按分数选出来的最佳是 model_2
+        assert standard[0]["structure"].name == "fold_model_2.cif"
+
+    def test_confidence_paired_by_rank(self, standard):
+        for model in standard:
+            assert model["confidence_file"] is not None
+            assert model["confidence_file"].name.endswith(
+                f"_{model['rank']}.json"
+            )
+
+    def test_works_with_irregular_naming(self):
+        """不依赖命名约定——文件名里没有编号也能配对。"""
+        models = select_best_model.collect_models(
+            FIXTURES_SELECT / "irregular", "ranking_score"
+        )
+        assert len(models) == 2
+        assert models[0]["rank"] == 2
+
+    def test_broken_confidence_does_not_crash(self):
+        """置信度 JSON 损坏时不应让整个脚本崩溃。"""
+        models = select_best_model.collect_models(
+            FIXTURES_SELECT / "broken", "ranking_score"
+        )
+        assert len(models) == 1
+        assert models[0]["confidence"] == {}
+
+    def test_empty_directory(self):
+        models = select_best_model.collect_models(
+            FIXTURES_SELECT / "empty", "ranking_score"
+        )
+        assert models == []
+
+
+class TestSelectBestModelRanking:
+    """排序指标。"""
+
+    def test_rank_by_ptm(self):
+        models = select_best_model.collect_models(FIXTURES_SELECT / "standard", "ptm")
+        assert select_best_model.rank_value(models[0]["confidence"], "ptm") == pytest.approx(0.93)
+
+    def test_rank_by_mean_plddt(self):
+        models = select_best_model.collect_models(
+            FIXTURES_SELECT / "standard", "mean_plddt"
+        )
+        assert select_best_model.rank_value(
+            models[0]["confidence"], "mean_plddt"
+        ) == pytest.approx(91.7)
+
+    def test_missing_metric_sorts_last(self):
+        """没有该指标的模型排最后，而不是被当成 0 混进去。
+
+        ``standard`` 目录里 rank 1 的 mean_plddt 最低（74.3），
+        如果缺失指标被当成 0 参与比较，它就会排到最前面。
+        """
+        models = select_best_model.collect_models(
+            FIXTURES_SELECT / "standard", "mean_plddt"
+        )
+        # 完整指标的都按数值降序
+        scores = [
+            select_best_model.rank_value(m["confidence"], "mean_plddt")
+            for m in models
+            if select_best_model.rank_value(m["confidence"], "mean_plddt") is not None
+        ]
+        assert scores == sorted(scores, reverse=True)
+        assert scores[0] == pytest.approx(91.7)
+
+    def test_missing_metric_returns_none(self):
+        """不存在的指标返回 None，而不是 0。"""
+        models = select_best_model.collect_models(
+            FIXTURES_SELECT / "irregular", "mean_plddt"
+        )
+        assert all(
+            select_best_model.rank_value(m["confidence"], "mean_plddt") is None
+            for m in models
+        )
+
+    def test_rank_value_handles_bad_types(self):
+        assert select_best_model.rank_value({"ptm": "abc"}, "ptm") is None
+        assert select_best_model.rank_value({}, "ptm") is None
+        assert select_best_model.rank_value({"ptm": None}, "ptm") is None
+
+
+class TestSelectBestModelConversion:
+    """CIF → PDB 转换。"""
+
+    def test_fallback_converter_extracts_atoms(self, tmp_path):
+        cif = FIXTURES_SELECT / "standard" / "fold_model_0.cif"
+        pdb = tmp_path / "out.pdb"
+        atoms = select_best_model.cif_to_pdb_fallback(cif, pdb)
+        assert atoms == 3
+        content = pdb.read_text(encoding="utf-8")
+        assert content.count("ATOM  ") == 3
+        assert "MET" in content
+        assert content.rstrip().endswith("END")
+
+    def test_fallback_produces_fixed_width_records(self, tmp_path):
+        """PDB 记录是定宽的——链 ID 在第 22 列，坐标各占 8 列。"""
+        cif = FIXTURES_SELECT / "standard" / "fold_model_0.cif"
+        pdb = tmp_path / "out.pdb"
+        select_best_model.cif_to_pdb_fallback(cif, pdb)
+        for line in pdb.read_text(encoding="utf-8").splitlines():
+            if line.startswith("ATOM"):
+                assert len(line) >= 66
+                assert line[21] == "A"  # 链 ID
+                float(line[30:38])  # x
+                float(line[38:46])  # y
+                float(line[46:54])  # z
+
+    def test_convert_to_pdb_on_cif(self, tmp_path):
+        cif = FIXTURES_SELECT / "standard" / "fold_model_0.cif"
+        ok, detail = select_best_model.convert_to_pdb(cif, tmp_path / "out.pdb")
+        assert ok
+        assert (tmp_path / "out.pdb").is_file()
+        assert "原子" in detail
+
+    def test_convert_to_pdb_on_pdb_is_copy(self, tmp_path):
+        source = FIXTURES_SELECT / "irregular" / "structure_0.pdb"
+        ok, _ = select_best_model.convert_to_pdb(source, tmp_path / "copy.pdb")
+        assert ok
+        assert (tmp_path / "copy.pdb").is_file()
+
+    def test_conversion_failure_returns_false(self, tmp_path):
+        broken = tmp_path / "broken.cif"
+        broken.write_text("data_x\n#\n", encoding="utf-8")
+        ok, detail = select_best_model.convert_to_pdb(broken, tmp_path / "out.pdb")
+        assert ok is False
+        assert "失败" in detail
+
+
+class TestSelectBestModelCli:
+    """命令行接口。"""
+
+    def test_rank_only_writes_report(self, tmp_path):
+        code = select_best_model.main(
+            [
+                "--input-dir",
+                str(FIXTURES_SELECT / "standard"),
+                "--output-dir",
+                str(tmp_path),
+                "--rank-only",
+            ]
+        )
+        assert code == 0
+        csv_path = tmp_path / "model_ranking.csv"
+        assert csv_path.is_file()
+        content = csv_path.read_text(encoding="utf-8-sig")
+        # 最佳是 rank 2
+        assert "fold_model_2.cif" in content
+        assert "0.884000" in content
+
+    def test_converts_best_model(self, tmp_path):
+        code = select_best_model.main(
+            [
+                "--input-dir",
+                str(FIXTURES_SELECT / "standard"),
+                "--output-dir",
+                str(tmp_path),
+            ]
+        )
+        assert code == 0
+        produced = list(tmp_path.glob("*.pdb"))
+        assert len(produced) == 1
+        assert produced[0].name == "fold_model_2.pdb"
+
+    def test_keep_all_converts_everything(self, tmp_path):
+        code = select_best_model.main(
+            [
+                "--input-dir",
+                str(FIXTURES_SELECT / "standard"),
+                "--output-dir",
+                str(tmp_path),
+                "--keep-all",
+            ]
+        )
+        assert code == 0
+        assert len(list(tmp_path.glob("*.pdb"))) == 4
+
+    def test_missing_input_dir(self, tmp_path):
+        assert select_best_model.main(["--input-dir", str(tmp_path / "nope")]) == 2
+
+    def test_empty_input_dir(self, tmp_path):
+        code = select_best_model.main(
+            ["--input-dir", str(FIXTURES_SELECT / "empty"), "--output-dir", str(tmp_path)]
+        )
+        assert code == 1
+
+    def test_json_report_written(self, tmp_path):
+        select_best_model.main(
+            [
+                "--input-dir",
+                str(FIXTURES_SELECT / "standard"),
+                "--output-dir",
+                str(tmp_path),
+                "--rank-only",
+            ]
+        )
+        data = json.loads((tmp_path / "model_ranking.json").read_text(encoding="utf-8"))
+        assert data["rank_by"] == "ranking_score"
+        assert data["models"][0]["rank"] == 2

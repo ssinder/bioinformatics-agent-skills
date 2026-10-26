@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from biopipe_core.optional_deps import optional_import  # noqa: E402
 

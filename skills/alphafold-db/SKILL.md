@@ -10,9 +10,9 @@ description: >-
   AlphaFold models, retrieving predicted structures by UniProt accession, or
   collecting AlphaFold confidence metrics (pLDDT) is requested.
 license: MIT
-compatibility: Python 3.9+; needs requests for network access; no third-party package required for offline metadata processing
+compatibility: Python 3.9+; needs requests for network access; no third-party package required for offline metadata processing; biopython optional for CIF→PDB conversion (a built-in fallback converter is used when it is absent)
 metadata:
-  version: "1.0"
+  version: "1.1"
   last-reviewed: "2026-10-25"
   skill-author: sinder
 ---
@@ -34,6 +34,9 @@ model. The same response also carries per-protein confidence metrics (global pLD
 and the residue fractions in each confidence band) which are **free** and can be used
 to filter low-quality models *before* downloading anything.
 
+The skill also handles the second half of the AlphaFold workflow: **selecting the
+best model from a multi-sample prediction** and converting it to PDB format.
+
 ## When to Use This Skill
 
 - Fetching predicted structures for a list of UniProt accessions
@@ -41,6 +44,8 @@ to filter low-quality models *before* downloading anything.
 - Screening a proteome for low-confidence regions before committing to downloads
 - Refreshing an existing structure collection after AlphaFold DB publishes new models
 - Populating a docking or interaction-analysis project with predicted coordinates
+- Picking the highest-confidence model out of an AlphaFold Server / ColabFold /
+  AlphaFold DB prediction package and converting it to PDB
 
 ## Quick Start
 
@@ -61,6 +66,12 @@ python scripts/download_structures.py --ids ids.txt --min-plddt 70 --output-dir 
 
 # 保留 AlphaFold 原始文件名
 python scripts/download_structures.py --ids ids.txt --output-dir structures/ --keep-original-name
+
+# 从多模型预测包里选最佳模型并转成 PDB
+python scripts/select_best_model.py --input-dir folds/ --output-dir best/
+
+# 只要排名表，不做转换
+python scripts/select_best_model.py --input-dir folds/ --rank-only
 ```
 
 ## Workflow
@@ -85,6 +96,8 @@ python scripts/download_structures.py --ids ids.txt --output-dir structures/ --k
 
 ## Parameters
 
+### `download_structures.py`
+
 | Parameter | Default | Description |
 |---|---|---|
 | `--ids` | required | Accession list or path(s) to text files containing accessions |
@@ -95,6 +108,17 @@ python scripts/download_structures.py --ids ids.txt --output-dir structures/ --k
 | `--keep-original-name` | off | Keep `AF-{ID}-F1-model_vN.pdb` instead of `{ID}.pdb` |
 | `--timeout` | `120` | Per-request timeout in seconds |
 
+### `select_best_model.py`
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--input-dir` | required | Directory holding the prediction package (structures + `summary_confidences_*.json`) |
+| `--output-dir` | `<input>_selected` | Where the selected model and ranking tables are written |
+| `--rank-only` | off | Only write the ranking table; convert nothing |
+| `--rank-by` | `ranking_score` | Metric used for ordering: `ranking_score` / `ptm` / `iptm` / `mean_plddt` |
+| `--keep-all` | off | Convert every model instead of only the best one |
+| `--no-convert` | off | Copy the original files without converting CIF → PDB |
+
 ## Outputs
 
 | File | Content |
@@ -102,6 +126,9 @@ python scripts/download_structures.py --ids ids.txt --output-dir structures/ --k
 | `{accession}.pdb` | Downloaded AlphaFold prediction (or `AF-{ID}-F1-model_vN.pdb` with `--keep-original-name`) |
 | `alphafold_metadata.csv` | One row per protein: accession, gene, description, organism, model version, global pLDDT, confidence-band fractions, structure URLs |
 | `alphafold_metadata.json` | Same content as nested JSON |
+| `model_ranking.csv` | One row per model: position, rank, file names, ranking_score, pTM, ipTM, mean pLDDT, disorder, clash |
+| `model_ranking.json` | Same content as nested JSON (plus the `rank_by` key used) |
+| `{structure_stem}.pdb` | The selected model converted to PDB format |
 
 ## Validation
 
@@ -121,6 +148,15 @@ python scripts/download_structures.py --ids ids.txt --output-dir structures/ --k
 - **Coverage** — roughly 230 million entries cover the UniProt reference proteomes;
   if many accessions report "no prediction", confirm the accessions are canonical
   rather than isoform or isoform-variant identifiers.
+- **ranking_score is a ranking metric, not an accuracy metric** — the official
+  definition is `0.8 × ipTM + 0.2 × pTM + 0.5 × fraction_disordered − 100 × has_clash`.
+  It is designed to *order* predictions, not to be interpreted as "how good" the
+  structure is. A structure with `ranking_score = 1.0` is the best of its batch,
+  not a 100%-accurate model.
+- **PDB column alignment** — PDB records are fixed-width. A converted file must have
+  the chain ID at column 22, the residue number at 23–26, and the coordinates at
+  31–38 / 39–46 / 47–54. Misaligned records are silently misread by every
+  downstream tool, so check with `awk 'substr($0,22,1)'` if a structure looks off.
 
 ## References
 

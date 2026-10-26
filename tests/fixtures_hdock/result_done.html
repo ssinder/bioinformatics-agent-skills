@@ -1,0 +1,626 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<title> HDOCK Server: Job results for 6adf1c9e1eb6e</title>    <link href="/style.css" rel="stylesheet" type="text/css">
+
+ </head>
+<script language="JavaScript" type="text/javascript">
+
+function popup(mylink, windowname)
+{
+if (! window.focus)return true;
+var href;
+if (typeof(mylink) == 'string')
+   href=mylink;
+else
+   href=mylink.href;
+window.open(href, windowname, 'width=1020,height=600,scrollbars=yes');
+return false;
+}
+
+function formAction (action, id)
+{
+        if (action == 'show')
+        {
+                document.getElementById("optionForm"+id).style.display= "block";
+                document.getElementById("option"+id).href= "javascript:formAction('hide', "+id+")";
+		document.getElementById("showtext"+id).innerHTML = "Hide)";
+        }
+
+        if (action == 'hide')
+        {
+                document.getElementById("optionForm"+id).style.display= "none";
+                document.getElementById("option"+id).href= "javascript:formAction('show', "+id+")";
+		document.getElementById("showtext"+id).innerHTML = "Show)";
+        }
+}
+
+
+</script>
+
+<body>
+
+<table style="width:%100; border:0; cellspacing:0 cellpadding:0">
+
+<tr style="height:100px;">
+        <td style="padding:10px 10px 10px 10px;background-image:url('/image/complex.png');">
+        <br>
+        <div align="center" style="text-shadow:3px 3px 3px gray;font-weight:bold;line-height:100%;font-size:2.6em;color:black">
+        HDOCK SERVER<font style="font-size:18px;color:blue"> </font>
+        </div>
+
+<div id="left" style="float:left ;  width:31%; "></div>
+<div id="right" style="float:right ;  width:69%; ">
+<p style="font-size:120%;">
+Protein-protein and protein-DNA/RNA docking
+based on a hybrid algorithm of template-based modeling and <i>ab initio</i> free docking.
+</p>
+</div>
+
+</td>
+</tr>
+
+<tr style="height:18px; background-color:white">
+	<td style="text-align:center;font-weight:bold;padding:5px 0px 5px 0px;
+	 border-bottom-color:black;
+  border-bottom-style:solid; border-bottom-width:0.5px;">
+
+[<a target="_blank" href="http://huanglab.phys.hust.edu.cn">Huang Lab</a>] &nbsp;
+[<a target="_blank" href="/">HDOCK</a>]  &nbsp;
+[<a target="_blank" href="/help.php" target="_blank">Help</a>]  &nbsp;
+[<a target="_blank" href="/data/example/">Output example</a>] &nbsp;
+
+</td>
+</tr>
+</table>
+
+<center>
+
+<script>
+var dots = window.setInterval( function() {
+
+var wait = document.getElementById("wait");
+if(wait!=null){
+    if ( wait.innerHTML.length > 3 ){ 
+        wait.innerHTML = "";
+	}
+    else {
+        wait.innerHTML += ".";
+	}
+	}
+    },600);
+</script>
+
+
+<h2>Your HDOCK results for job <i>biopipe_http_test
+</i></h2><strong>Download Files</strong><br><table style="line-height:160%; padding:5 0 10 0; cellpadding:10px"><tr><td width=auto align=center><div class=division2><a href=rec_6adf1c9e1eb6e.pdb>Receptor PDB file</a>&nbsp;&nbsp;<a href=lig_6adf1c9e1eb6e.pdb>Ligand PDB file</a> &nbsp;&nbsp;<br>&nbsp;[<a href=model_0.pdb>0</a>]&nbsp;[<a href=model_1.pdb>1</a>]&nbsp;[<a href=model_2.pdb>2</a>]&nbsp;[<a href=model_3.pdb>3</a>]&nbsp;[<a href=model_4.pdb>4</a>]&nbsp;[<a href=model_5.pdb>5</a>]&nbsp;[<a href=model_6.pdb>6</a>]&nbsp;[<a href=model_7.pdb>7</a>]&nbsp;[<a href=model_8.pdb>8</a>]&nbsp;[<a href=model_9.pdb>9</a>]&nbsp;[<a href=model_10.pdb>10</a>]&nbsp;[<a href=model_11.pdb>11</a>]&nbsp;[<a href=model_12.pdb>12</a>]&nbsp;[<a href=model_13.pdb>13</a>]&nbsp;[<a href=model_14.pdb>14</a>]&nbsp;[<a href=model_15.pdb>15</a>]&nbsp;[<a href=model_16.pdb>16</a>]&nbsp;[<a href=model_17.pdb>17</a>]&nbsp;[<a href=model_18.pdb>18</a>]&nbsp;[<a href=model_19.pdb>19</a>]&nbsp;[<a href=model_20.pdb>20</a>]&nbsp;&nbsp;<br><a href=top10_models.tar.gz>Top 10 Predictions</a>&nbsp;&nbsp;<a href=top100_models.tar.gz>Top 100 Predictions</a>&nbsp;&nbsp;<a href=all_results.tar.gz>All the results in a package</a>&nbsp;&nbsp;<br></div></td></tr></table><div style="line-height:150%">* NOTE: The model <b>#0</b> is predicted by temlate-based homology modeling.</div>
+<script src=/ngl/ngl.js "></script>
+<table id="ui" border="1">
+<tr>
+<td>
+<div id="viewport" style="width:780px; height:520px; overflow: hidden;"></div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+		var stage = new NGL.Stage("viewport", {backgroundColor: "white"});
+		var nChainRec;
+        	var scale= ['yellow', 'lime', 'red', 'magenta', 'cyan', 'dodgerblue', 'forestgreen', 'blueviolet','lightgreen', 'hotpink'];
+        	var nmodel;
+		var ismd0=true;
+        	var ismodel = [true,false,false,false,false,false,false,false,false,false];
+		var md0_cartoon;
+		var md0_base;
+		var md0_surface;
+		var md0_licorice;
+		var md0_backbone;
+        	var btn_cartoon = document.getElementById("btn_cartoon");
+        	var btn_surface = document.getElementById("btn_surface");
+        	var btn_licorice = document.getElementById("btn_licorice");
+        	var btn_backbone = document.getElementById("btn_backbone");
+        	var btn_spin = document.getElementById("btn_spin");
+        	var btn_reset = document.getElementById("btn_reset");
+        	var isspin = false;
+        	var iscartoon = true;
+        	var issurface = false;
+        	var islicorice = false;
+        	var isbackbone = false;
+		var israinbow=false;
+        	var btn_model = new Array();
+                var styles = ["cartoon","surface", "licorice", "backbone" ];
+                var recStyles = [true,false,false,false];
+		var ligStyles;
+                var sele_lig = document.getElementById("lig_style");
+                var sele_rec = document.getElementById("rec_style");
+		var rdo_color = document.getElementById("color_style");
+        	var     btn_model0 = document.getElementById("model_0");
+        	var     btn_model1 = document.getElementById("model_1");
+        	var     btn_model2 = document.getElementById("model_2");
+        	var     btn_model3 = document.getElementById("model_3");
+        	var     btn_model4 = document.getElementById("model_4");
+        	var     btn_model5 = document.getElementById("model_5");
+        	var     btn_model6 = document.getElementById("model_6");
+        	var     btn_model7 = document.getElementById("model_7");
+        	var     btn_model8 = document.getElementById("model_8");
+        	var     btn_model9 = document.getElementById("model_9");
+        	var     btn_model10 = document.getElementById("model_10");
+        	var model_cartoon = new Array(10);
+        	var model_base = new Array(10);
+        	var model_surface = new Array(10);
+        	var model_licorice = new Array(10);
+        	var model_backbone = new Array(10);
+      	stage.loadFile("rec.pdb").then(function(rec){
+			let res_number = 0;
+			let ligCount=0;
+			let isLigand=0;
+			rec.structure.eachResidue(function (o){
+				res_number++;
+				if(o.moleculeType != 3 && o.moleculeType != 4 && o.moleculeType != 5){
+			 		ligCount ++;
+				}
+                if (o.residueType.moleculeType === 4){
+                    o.residueType.moleculeType = 5;
+                    o.residueType.backboneType = 3;
+                    o.residueType.backboneEndType = 3;
+                    o.residueType.backboneStartType = 3;
+                }
+			});
+			if(ligCount*2 >= res_number||res_number <= 3){
+				isLigand = 1;
+			}
+			if(isLigand == 1 ){
+				sele_rec.options[2].selected=true;
+	                	recStyles = [false,false,true,false];
+        			rec_cartoon_cs = rec.addRepresentation("cartoon", {color: "#CD853F", visible: false, lazy: true});
+	        		rec_licorice_cs = rec.addRepresentation("licorice", {color: "#CD853F", visible: true, lazy: true});
+			}
+			else {
+        			rec_cartoon_cs = rec.addRepresentation("cartoon", {color: "#CD853F", visible: true, lazy: true});
+	        		rec_licorice_cs = rec.addRepresentation("licorice", {color: "#CD853F", visible: false, lazy: true});
+			}
+        		rec_cartoon_rb = rec.addRepresentation("cartoon", {colorScheme: "atomindex", visible: false, lazy: true});
+        		rec_licorice_rb = rec.addRepresentation("licorice", {colorScheme: "atomindex", colorScale: "RdYlBu", visible: false, lazy: true});
+        		rec_surface_rb = rec.addRepresentation("surface", {colorScheme: "atomindex", colorScale: "RdYlBu", visible: false, lazy: true});
+        		rec_backbone_rb = rec.addRepresentation("backbone", {colorScheme: "atomindex", colorScale: "RdYlBu", visible: false, lazy: true});
+        		rec_surface_cs = rec.addRepresentation("surface", {color: "#CD853F", visible: false, lazy: true});
+        		rec_backbone_cs = rec.addRepresentation("backbone", {color: "#CD853F", visible: false, lazy: true});
+			nChainRec = rec.structure.chainStore.count;
+	if (btn_model0!=null){
+	ismodel[0]=false;
+	      	stage.loadFile("model_00.pdb").then(function(md0){
+			let nChain = 0;
+			let chainLig = "";
+			md0.structure.eachChain(function (o){
+				chainLig += "or :"+o.chainname+" ";
+			})
+            
+            md0.structure.eachResidue(function (o){
+                if (o.residueType.moleculeType === 4){
+                    o.residueType.moleculeType = 5;
+                    o.residueType.backboneType = 3;
+                    o.residueType.backboneEndType = 3;
+                    o.residueType.backboneStartType = 3;
+                }
+            })
+			    md0_cartoon = md0.addRepresentation("cartoon", {color: "cornsilk", visible: false, sele: chainLig, lazy: true});
+        		md0_base = md0.addRepresentation("base", {color: "cornsilk", visible: false, sele: chainLig, lazy: true});
+        		md0_surface = md0.addRepresentation("surface", {color: "cornsilk", visible: false, sele: chainLig, lazy: true, surfaceType: "av"});
+        		md0_licorice = md0.addRepresentation("licorice", {color: "cornsilk", visible: false, sele: chainLig, lazy: true});
+        		md0_backbone = md0.addRepresentation("backbone", {color: "cornsilk", visible: false, sele: chainLig,lazy: true});
+     	        stage.loadFile("top10.pdb").then(function(model){
+         		    nmodel = model.structure.modelStore.count;
+                    model.structure.eachModel(function(md){
+                        md.structure.eachResidue(function (o){
+                            if (o.residueType.moleculeType === 4){
+                                o.residueType.moleculeType = 5;
+                                o.residueType.backboneType = 3;
+                                o.residueType.backboneEndType = 3;
+                                o.residueType.backboneStartType = 3;
+                            }
+                        })
+                    })
+
+         		    for(let i=0;i<model.structure.modelStore.count;i++){
+        		    	model_cartoon[i] = model.addRepresentation("cartoon", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+         			    model_base[i] = model.addRepresentation("base", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+         			    model_surface[i] = model.addRepresentation("surface", {color : scale[i], visible: false, sele: "/"+i, lazy: true, surfaceType: "av"});
+         			    model_licorice[i] = model.addRepresentation("licorice", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+         			    model_backbone[i] = model.addRepresentation("backbone", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+        		    };
+
+       stage.loadFile("lig.pdb").then(function(lig){
+			let res_number = 0;
+			let ligCount=0;
+			let isLigand=0;
+			lig.structure.eachResidue(function (o){
+				res_number++;
+				if(o.moleculeType != 3 && o.moleculeType != 4 && o.moleculeType != 5){
+			 	ligCount ++;
+			}
+			});
+			if(ligCount*2 >= res_number || res_number <= 3){
+				isLigand = 1;
+			}
+		if(isLigand == 1 ){
+			sele_lig.options[2].selected=true;
+			model_licorice[0].setVisibility(ismodel[0])
+				md0_licorice.setVisibility(true)
+	                ligStyles = [false,false,true,false];
+		}
+		else{
+			sele_lig.options[0].selected=true;
+			model_cartoon[0].setVisibility(ismodel[0])
+			model_base[0].setVisibility(ismodel[0])
+				md0_cartoon.setVisibility(true)
+				md0_base.setVisibility(true)
+			
+        	        ligStyles = [true,false,false,false];
+		}
+                sele_lig.addEventListener("change",function(){
+                        for (let i= 0; i < styles.length; i++){
+                                if(styles[i] === this.value ){
+                                        ligStyles[i] = true;
+                                }
+                                else{
+                                        ligStyles[i] = false;
+                                }
+                        };
+				md0_cartoon.setVisibility( ligStyles[0]&&ismd0)
+				md0_base.setVisibility( ligStyles[0]&&ismd0)
+				md0_surface.setVisibility( ligStyles[1]&&ismd0)
+				md0_licorice.setVisibility( ligStyles[2]&&ismd0)
+				md0_backbone.setVisibility( ligStyles[3]&&ismd0)
+                	for(let i=0;i<nmodel;i++){
+                        	model_cartoon[i].setVisibility( ligStyles[0]&&ismodel[i])
+                        	model_base[i].setVisibility( ligStyles[0]&&ismodel[i])
+                       		model_surface[i].setVisibility( ligStyles[1]&&ismodel[i])
+                       		model_licorice[i].setVisibility( ligStyles[2]&&ismodel[i])
+                    		model_backbone[i].setVisibility( ligStyles[3]&&ismodel[i])
+                    	}
+
+                });
+    if(document.all) {
+        document.getElementById("btn_reset").click();
+    }
+    else {
+        var e = document.createEvent("MouseEvents");
+        e.initEvent("click", true, true);
+        document.getElementById("btn_reset").dispatchEvent(e);
+    }
+        	});
+        	});
+        	});
+		}
+	else{
+     	stage.loadFile("top10.pdb").then(function(model){
+         		nmodel = model.structure.modelStore.count;
+         		for(let i=0;i<model.structure.modelStore.count;i++){
+        			model_cartoon[i] = model.addRepresentation("cartoon", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+         			model_base[i] = model.addRepresentation("base", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+         			model_surface[i] = model.addRepresentation("surface", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+         			model_licorice[i] = model.addRepresentation("licorice", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+         			model_backbone[i] = model.addRepresentation("backbone", {color : scale[i], visible: false, sele: "/"+i, lazy: true});
+        		};
+       stage.loadFile("lig.pdb").then(function(lig){
+			let res_number = 0;
+			let ligCount=0;
+			let isLigand=0;
+			lig.structure.eachResidue(function (o){
+				res_number++;
+				if(o.moleculeType != 3 && o.moleculeType != 4 && o.moleculeType != 5){
+			 	ligCount += 1;
+			}
+			});
+			if(ligCount*2 >= res_number||res_number <= 3){
+				isLigand = 1;
+			}
+		if(isLigand == 1 ){
+			sele_lig.options[2].selected=true;
+			model_licorice[0].setVisibility(ismodel[0])
+	                ligStyles = [false,false,true,false];
+		}
+		else{
+			sele_lig.options[0].selected=true;
+			model_cartoon[0].setVisibility(ismodel[0])
+			model_base[0].setVisibility(ismodel[0])
+        	        ligStyles = [true,false,false,false];
+		}
+                sele_lig.addEventListener("change",function(){
+                        for (let i= 0; i < styles.length; i++){
+                                if(styles[i] === this.value ){
+                                        ligStyles[i] = true;
+                                }
+                                else{
+                                        ligStyles[i] = false;
+                                }
+                        };
+                	for(let i=0;i<nmodel;i++){
+                        	model_cartoon[i].setVisibility( ligStyles[0]&&ismodel[i])
+                        	model_base[i].setVisibility( ligStyles[0]&&ismodel[i])
+                       		model_surface[i].setVisibility( ligStyles[1]&&ismodel[i])
+                       		model_licorice[i].setVisibility( ligStyles[2]&&ismodel[i])
+                    		model_backbone[i].setVisibility( ligStyles[3]&&ismodel[i])
+                    	}
+
+                });
+    if(document.all) {
+        document.getElementById("btn_reset").click();
+    }
+    else {
+        var e = document.createEvent("MouseEvents");
+        e.initEvent("click", true, true);
+        document.getElementById("btn_reset").dispatchEvent(e);
+    }
+        	});
+        	});
+        	};
+        	});
+
+                sele_rec.addEventListener("change",function(){
+                        for (let i= 0; i < styles.length; i++){
+                                if(styles[i] === this.value ){
+                                        recStyles[i] = true;
+                                }
+                                else{
+                                        recStyles[i] = false;
+                                }
+                        };
+		
+                        	rec_cartoon_rb.setVisibility( recStyles[0]&&israinbow);
+                        	rec_surface_rb.setVisibility( recStyles[1]&&israinbow);
+                        	rec_licorice_rb.setVisibility( recStyles[2]&&israinbow);
+                        	rec_backbone_rb.setVisibility( recStyles[3]&&israinbow);
+                        	rec_cartoon_cs.setVisibility( recStyles[0]&&!israinbow);
+                        	rec_surface_cs.setVisibility( recStyles[1]&&!israinbow);
+                        	rec_licorice_cs.setVisibility( recStyles[2]&&!israinbow);
+                        	rec_backbone_cs.setVisibility( recStyles[3]&&!israinbow);
+
+                });
+                if (btn_model0 != null){
+				btn_model0.addEventListener("click", function(){
+                        	ismd0=!ismd0;
+                        	this.style.backgroundColor = ismd0 ? "cornsilk" : "";
+                        	md0_cartoon.setVisibility( ligStyles[0]&&ismd0);
+                        	md0_base.setVisibility( ligStyles[0]&&ismd0);
+                        	md0_surface.setVisibility( ligStyles[1]&&ismd0);
+                        	md0_licorice.setVisibility( ligStyles[2]&&ismd0);
+                        	md0_backbone.setVisibility( ligStyles[3]&&ismd0);
+       	})};
+                btn_model1.addEventListener("click", function(){
+                        	ismodel[0]=!ismodel[0];
+				
+                        	this.style.backgroundColor = ismodel[0] ? "yellow" : "";
+                        	model_cartoon[0].setVisibility( ligStyles[0]&&ismodel[0]);
+                        	model_base[0].setVisibility( ligStyles[0]&&ismodel[0]);
+                        	model_surface[0].setVisibility( ligStyles[1]&&ismodel[0]);
+                        	model_licorice[0].setVisibility( ligStyles[2]&&ismodel[0]);
+                        	model_backbone[0].setVisibility( ligStyles[3]&&ismodel[0]);
+       	});
+                btn_model2.addEventListener("click", function(){
+                        	ismodel[1]=!ismodel[1];
+                        	this.style.backgroundColor = ismodel[1] ? "lime" : "";
+                        	model_cartoon[1].setVisibility( ligStyles[0]&&ismodel[1]);
+                        	model_base[1].setVisibility( ligStyles[0]&&ismodel[1]);
+                        	model_surface[1].setVisibility( ligStyles[1]&&ismodel[1]);
+                        	model_licorice[1].setVisibility( ligStyles[2]&&ismodel[1]);
+                        	model_backbone[1].setVisibility( ligStyles[3]&&ismodel[1]);
+        	});
+                btn_model3.addEventListener("click", function(){
+                        	ismodel[2]=!ismodel[2];
+                        	this.style.backgroundColor = ismodel[2] ? "red" : "";
+                        	model_cartoon[2].setVisibility( ligStyles[0]&&ismodel[2]);
+                        	model_base[2].setVisibility( ligStyles[0]&&ismodel[2]);
+                        	model_surface[2].setVisibility( ligStyles[1]&&ismodel[2]);
+                        	model_licorice[2].setVisibility( ligStyles[2]&&ismodel[2]);
+                        	model_backbone[2].setVisibility( ligStyles[3]&&ismodel[2]);
+        	});
+                btn_model4.addEventListener("click", function(){
+                        	ismodel[3]=!ismodel[3];
+                        	this.style.backgroundColor = ismodel[3] ? "magenta" : "";
+                        	model_cartoon[3].setVisibility( ligStyles[0]&&ismodel[3]);
+                        	model_base[3].setVisibility( ligStyles[0]&&ismodel[3]);
+                        	model_surface[3].setVisibility( ligStyles[1]&&ismodel[3]);
+                        	model_licorice[3].setVisibility( ligStyles[2]&&ismodel[3]);
+                        	model_backbone[3].setVisibility( ligStyles[3]&&ismodel[3]);
+        	});
+                btn_model5.addEventListener("click", function(){
+                        	ismodel[4]=!ismodel[4];
+                        	this.style.backgroundColor = ismodel[4] ? "cyan" : "";
+                        	model_cartoon[4].setVisibility( ligStyles[0]&&ismodel[4]);
+                        	model_base[4].setVisibility( ligStyles[0]&&ismodel[4]);
+                        	model_surface[4].setVisibility( ligStyles[1]&&ismodel[4]);
+                        	model_licorice[4].setVisibility( ligStyles[2]&&ismodel[4]);
+                        	model_backbone[4].setVisibility( ligStyles[3]&&ismodel[4]);
+        	});
+                btn_model6.addEventListener("click", function(){
+                        	ismodel[5]=!ismodel[5];
+                        	this.style.backgroundColor = ismodel[5] ? "dodgerblue" : "";
+                        	model_cartoon[5].setVisibility( ligStyles[0]&&ismodel[5]);
+                        	model_base[5].setVisibility( ligStyles[0]&&ismodel[5]);
+                        	model_surface[5].setVisibility( ligStyles[1]&&ismodel[5]);
+                        	model_licorice[5].setVisibility( ligStyles[2]&&ismodel[5]);
+                        	model_backbone[5].setVisibility( ligStyles[3]&&ismodel[5]);
+       	 });
+                btn_model7.addEventListener("click", function(){
+                        	ismodel[6]=!ismodel[6];
+                        	this.style.backgroundColor = ismodel[6] ? "forestgreen" : "";
+                        	model_cartoon[6].setVisibility( ligStyles[0]&&ismodel[6]);
+                        	model_base[6].setVisibility( ligStyles[0]&&ismodel[6]);
+                        	model_surface[6].setVisibility( ligStyles[1]&&ismodel[6]);
+                        	model_licorice[6].setVisibility( ligStyles[2]&&ismodel[6]);
+                        	model_backbone[6].setVisibility( ligStyles[3]&&ismodel[6]);
+        	});
+                btn_model8.addEventListener("click", function(){
+                        	ismodel[7]=!ismodel[7];
+                        	this.style.backgroundColor = ismodel[7] ? "blueviolet" : "";
+                        	model_cartoon[7].setVisibility( ligStyles[0]&&ismodel[7]);
+                        	model_base[7].setVisibility( ligStyles[0]&&ismodel[7]);
+                        	model_surface[7].setVisibility( ligStyles[1]&&ismodel[7]);
+                        	model_licorice[7].setVisibility( ligStyles[2]&&ismodel[7]);
+                        	model_backbone[7].setVisibility( ligStyles[3]&&ismodel[7]);
+        	});
+                btn_model9.addEventListener("click", function(){
+                        	ismodel[8]=!ismodel[8];
+                        	this.style.backgroundColor = ismodel[8] ? "lightgreen" : "";
+                        	model_cartoon[8].setVisibility( ligStyles[0]&&ismodel[8]);
+                        	model_base[8].setVisibility( ligStyles[0]&&ismodel[8]);
+                        	model_surface[8].setVisibility( ligStyles[1]&&ismodel[8]);
+                        	model_licorice[8].setVisibility( ligStyles[2]&&ismodel[8]);
+                        	model_backbone[8].setVisibility( ligStyles[3]&&ismodel[8]);
+        	});
+                btn_model10.addEventListener("click", function(){
+                        	ismodel[9]=!ismodel[9];
+                        	this.style.backgroundColor = ismodel[9] ? "hotpink" : "";
+                        	model_cartoon[9].setVisibility( ligStyles[0]&&ismodel[9]);
+                        	model_base[9].setVisibility( ligStyles[0]&&ismodel[9]);
+                        	model_surface[9].setVisibility( ligStyles[1]&&ismodel[9]);
+                        	model_licorice[9].setVisibility( ligStyles[2]&&ismodel[9]);
+                        	model_backbone[9].setVisibility( ligStyles[3]&&ismodel[9]);
+       	});
+	btn_spin.addEventListener( "click", function(){
+                	isspin=!isspin;
+		stage.toggleSpin();
+		btn_spin.style.backgroundColor = isspin ? "#7CAFC2" : "";
+ 	} );
+	rdo_color.addEventListener( "change", function(){
+                        israinbow=!israinbow;
+                        rec_cartoon_rb.setVisibility( recStyles[0]&&israinbow);
+                        rec_surface_rb.setVisibility( recStyles[1]&&israinbow);
+                        rec_licorice_rb.setVisibility( recStyles[2]&&israinbow);
+                        rec_backbone_rb.setVisibility( recStyles[3]&&israinbow);
+                        rec_cartoon_cs.setVisibility( recStyles[0]&&!israinbow);
+                        rec_surface_cs.setVisibility( recStyles[1]&&!israinbow);
+                        rec_licorice_cs.setVisibility( recStyles[2]&&!israinbow);
+                        rec_backbone_cs.setVisibility( recStyles[3]&&!israinbow);
+                } );
+	btn_reset.addEventListener( "click", function(){
+                   	stage.animationControls.zoomMove(stage.getCenter(),0.9*stage.getZoomForBox(stage.getBox()));
+ 	} );
+
+	stage.keyControls.clear();
+	stage.mouseControls.remove( "drag-middle" );
+	stage.mouseControls.add( "drag-middle",NGL.MouseActions.zoomDrag);
+});
+
+</script>
+
+</td>
+<td  style="width:10px;vertical-align:top;border-right:none"></td>
+<td  style="width:125px;vertical-align:top;border-left:none">
+<br>
+<div style="line-height:130%">Receptor style</div>
+        <select id = rec_style>
+
+        <option  value = "cartoon" selected >Cartoon</option>
+        <option  value = "surface">Surface</option>
+        <option  value = "licorice">Licorice</option>
+        <option  value = "backbone">Backbone</option>
+        </select>
+<div><br></div>
+<div style="line-height:130%">Receptor color</div>
+<div id="color_style">
+<input type="radio" name="color_stl" value="1" checked> Pure<br>
+<input type="radio" name="color_stl" value="2"> Rainbow
+</div>
+
+<div><br></div>
+<div style="line-height:130%">MODEL No.</div>
+
+<div>
+<button id="model_0" style="background-color: cornsilk">Model 0</button><br><button id="model_1">Model 1</button>        <button id="model_2">Model 2</button>
+        <button id="model_3">Model 3</button>
+        <button id="model_4">Model 4</button>
+        <button id="model_5">Model 5</button>
+        <button id="model_6">Model 6</button>
+        <button id="model_7">Model 7</button>
+        <button id="model_8">Model 8</button>
+        <button id="model_9">Model 9</button>
+        <button id="model_10">Model 10</button>
+</div>
+<div><br></div>
+<div style="line-height:130%">Ligand style</div>
+        <select id = lig_style>
+        <option  value = "cartoon" selected >Cartoon</option>
+        <option  value = "surface">Surface</option>
+        <option  value = "licorice">Licorice</option>
+        <option  value = "backbone">Backbone</option>
+        </select>
+<div><br></div>
+<div style="line-height:130%">Action</div>
+        <button id="btn_spin">Spin</button>
+        <button id="btn_reset">Reset</button>
+<div><br></div>
+</td>
+</tr>
+</table>
+
+
+     <strong style="line-height:2em">Complex Template Information</strong>
+     <a id="option0" href="javascript:formAction('show', 0)"><b>(Click to </b><b id="showtext0">Show)</b></a>
+     <br>
+
+     <div id="optionForm0" style="display:none">
+     <div style="height:auto;word-wrap:break-word;word-break:break-all;overflow:auto;">
+
+<table style="line-height:120%; width:94%; border:1px solid #ccc; cellpadding:10px"><tr style="background:#DCDCDC"><th style="border:1px solid #ccc" width=100 align=center>Molecule</th><th style="border:1px solid #ccc" width=100 align=center>PDB ID</th><th style="border:1px solid #ccc" width=90 align=center>Chain ID</th><th style="border:1px solid #ccc" width=110 align=center>Align_length</th><th style="border:1px solid #ccc" width=100 align=center>Coverage</th><th style="border:1px solid #ccc" width=100 align=center>Seq_ID (%)</th></tr><tr><td style="border:1px solid #ccc" align=center>Receptor</td><td style="border:1px solid #ccc" align=center><a href=http://www.rcsb.org/pdb/explore/explore.do?structureId=1CGI target=_blank>1CGI</a></td><td style="border:1px solid #ccc" align=center>E</td><td style="border:1px solid #ccc" align=center>245</td><td style="border:1px solid #ccc" align=center>1.000</td><td style="border:1px solid #ccc" align=center>100.0</td></tr><tr><td style="border:1px solid #ccc" align=center>Ligand</td><td style="border:1px solid #ccc" align=center><a href=http://www.rcsb.org/pdb/explore/explore.do?structureId=1CGI target=_blank>1CGI</a></td><td style="border:1px solid #ccc" align=center>I</td><td style="border:1px solid #ccc" align=center>56</td><td style="border:1px solid #ccc" align=center>1.000</td><td style="border:1px solid #ccc" align=center>100.0</td></tr> </table><table cellspacing="1" width=94% style="font-family:Arial;font-size:12px;background:#F2F2F2;"><tr><td valign="top"></td><td align="justify"><b>Note</b>: The built model of "Model 0" based on the above PDB complex template has a <b><i>high
+</i></b> confidence.</td></tr></table>
+</div>
+</div>
+
+<br/>
+
+<strong style="line-height:180%;">Summary of the Top 10 Models </strong><br><table style="line-height:120%; width:94%; border:1px solid #ccc; cellpadding:10px"><tr style="background:#DCDCDC"><th style="border:1px solid #ccc" align=center>Rank</th><th style="border:1px solid #ccc" align=center>1</th><th style="border:1px solid #ccc" align=center>2</th><th style="border:1px solid #ccc" align=center>3</th><th style="border:1px solid #ccc" align=center>4</th><th style="border:1px solid #ccc" align=center>5</th><th style="border:1px solid #ccc" align=center>6</th><th style="border:1px solid #ccc" align=center>7</th><th style="border:1px solid #ccc" align=center>8</th><th style="border:1px solid #ccc" align=center>9</th><th style="border:1px solid #ccc" align=center>10</th></tr><tr><th style="border:1px solid #ccc" align=center>Docking Score</th><td style="border:1px solid #ccc" align=center>-457.22
+</td><td style="border:1px solid #ccc" align=center>-231.26
+</td><td style="border:1px solid #ccc" align=center>-220.68
+</td><td style="border:1px solid #ccc" align=center>-215.78
+</td><td style="border:1px solid #ccc" align=center>-213.88
+</td><td style="border:1px solid #ccc" align=center>-210.07
+</td><td style="border:1px solid #ccc" align=center>-206.55
+</td><td style="border:1px solid #ccc" align=center>-202.15
+</td><td style="border:1px solid #ccc" align=center>-199.84
+</td><td style="border:1px solid #ccc" align=center>-198.15
+</td></tr><tr><th style="border:1px solid #ccc" align=center>Confidence Score</th><td style="border:1px solid #ccc" align=center>  0.9979</td><td style="border:1px solid #ccc" align=center>  0.8355</td><td style="border:1px solid #ccc" align=center>  0.8043</td><td style="border:1px solid #ccc" align=center>  0.7884</td><td style="border:1px solid #ccc" align=center>  0.7820</td><td style="border:1px solid #ccc" align=center>  0.7688</td><td style="border:1px solid #ccc" align=center>  0.7560</td><td style="border:1px solid #ccc" align=center>  0.7394</td><td style="border:1px solid #ccc" align=center>  0.7304</td><td style="border:1px solid #ccc" align=center>  0.7237</td></tr><tr><th style="border:1px solid #ccc" align=center>Ligand rmsd (&Aring;)</th><td style="border:1px solid #ccc" align=center>0.47
+</td><td style="border:1px solid #ccc" align=center>7.00
+</td><td style="border:1px solid #ccc" align=center>5.73
+</td><td style="border:1px solid #ccc" align=center>18.99
+</td><td style="border:1px solid #ccc" align=center>15.27
+</td><td style="border:1px solid #ccc" align=center>13.45
+</td><td style="border:1px solid #ccc" align=center>19.00
+</td><td style="border:1px solid #ccc" align=center>17.85
+</td><td style="border:1px solid #ccc" align=center>7.96
+</td><td style="border:1px solid #ccc" align=center>15.64
+</td></tr><tr><th style="border:1px solid #ccc" align=center> Interface residues</th><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_1.txt> model_1</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_2.txt> model_2</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_3.txt> model_3</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_4.txt> model_4</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_5.txt> model_5</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_6.txt> model_6</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_7.txt> model_7</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_8.txt> model_8</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_9.txt> model_9</td><td style="border:1px solid #ccc" align=center><a target=_blank href=interface_10.txt> model_10</td></tr></table><table cellspacing="1" width=94% style="font-family:Arial;font-size:12px;background:#F2F2F2;"><tr><td valign="top"></td><td align="justify"><b>Note</b>: The models are ranked according to the docking scores. Please click <a target=_blank href=/help.php#metric>help</a> for the explanations of evaluation metrics</td></tr></table>
+
+
+     <br>
+     <strong style="line-height:2em">Quality of Docking Structures/Input Data</strong>
+     <a id="option1" href="javascript:formAction('show', 1)"><b>(Click to </b><b id="showtext1">Show)</b></a>
+     <br>
+
+     <div id="optionForm1" style="display:none">
+     <div style="height:auto;word-wrap:break-word;word-break:break-all;overflow:auto;">
+
+<table cellspacing="1" width=94% style="font-family:Arial;font-size:12px;background:#ECECEC;"><tr><td valign="top"><div style='color:blue;background:#D1D1D1;line-height:1.8em'><b>Receptor: </b>The <b>protein</b> structure was submitted by users.</div><pre>====================================================<br>     Quality report of input model by ProQ v1.2 <br>====================================================<br>LGscore:             5.399
+MaxSub:              0.394
+<br><font style='color: green'><b>Different ranges of protein model quality by LGscore or MaxSub: </b><br>Correct			Good				Very good <br>1.5 < LGscore		3.0 &le; LGscore < 5.0		5.0 &le; LGscore <br>0.1 < MaxSub		0.5 &le; MaxSub  < 0.8		0.8 &le; MaxSub <br></font></pre><div style='color:blue;background:#D1D1D1;line-height:1.8em'><b>Ligand: </b>The <b>protein</b> structure was submitted by users.</div><pre>====================================================<br>     Quality report of input model by ProQ v1.2 <br>====================================================<br>LGscore:             1.083
+MaxSub:              0.131
+<br><font style='color: green'><b>Different ranges of protein model quality by LGscore or MaxSub: </b><br>Correct			Good				Very good <br>1.5 < LGscore		3.0 &le; LGscore < 5.0		5.0 &le; LGscore <br>0.1 < MaxSub		0.5 &le; MaxSub  < 0.8		0.8 &le; MaxSub <br></font></pre></td></tr></table>
+</div>
+</div>
+
+
+  </body>
+
+<br>
+
+
+<div style="width:%100;text-align:center;line-height:30px;font-size:90%;color:white; background-color:gray">
+&copy; Lab of Bioinformatics and Molecular Modeling, huanglab@hust.edu.cn
+</div>
+
+<script>
+#  window.location.href="/maintain.php"
+</script>
+
+
+</html>
+

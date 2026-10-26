@@ -518,10 +518,23 @@ def parse_result_page(html: str, job_name: str = "", url: str = "") -> DockingRe
         result.status = JobStatus.UNKNOWN
 
     # 下载链接：按 href 里的文件名识别（链接文本常常是 "Click to Show"）
-    for href, text in re.findall(
-        r'<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>', html, re.IGNORECASE | re.DOTALL
-    ):
-        clean = re.sub(r"\s+", " ", _TAG_RE.sub("", text)).strip()
+    #
+    # **注意 href 可能没有引号**。HDOCK 真实的结果页写的是
+    # ``<a target=_blank href=model_1.pdb>``，而不是 ``href="model_1.pdb"``。
+    # 只匹配带引号的形式会**一个模型都找不到**——而且不报错，只是
+    # downloads 是个空字典。
+    #
+    # 这里用命名分组 + 非捕获组，让 findall 始终返回 (href, text) 两元组。
+    link_re = re.compile(
+        r'<a[^>]*?href=(?:"(?P<dq>[^"]+)"|\'(?P<sq>[^\']+)\'|(?P<bare>[^\s>"\']+))'
+        r'[^>]*>(?P<text>.*?)</a>',
+        re.IGNORECASE | re.DOTALL,
+    )
+    for match in link_re.finditer(html):
+        href = match.group("dq") or match.group("sq") or match.group("bare") or ""
+        if not href:
+            continue
+        clean = re.sub(r"\s+", " ", _TAG_RE.sub("", match.group("text"))).strip()
         # href 里的文件名才是真正的资源名
         name = href.rstrip("/").split("/")[-1]
         if not name:

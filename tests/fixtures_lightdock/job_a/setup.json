@@ -1,0 +1,8 @@
+{
+    "swarms": 3,
+    "glowworms": 10,
+    "receptor_pdb": "receptor.pdb",
+    "ligand_pdb": "ligand.pdb",
+    "use_anm": false,
+    "scoring_function": "dfire"
+}

@@ -1,0 +1,23 @@
+# LightDock 本地对接技能依赖
+#
+# 本技能的**解析与评分部分零依赖**——只用标准库就能读 GSO 文件、
+# 汇总分数、挑选最优构象。所有第三方依赖都由 LightDock 本体需要。
+#
+# LightDock 本身（不是 pip 依赖清单，而是环境前置条件）：
+#
+#   conda create -n lightdock python=3.11
+#   conda activate lightdock
+#   pip install lightdock==0.9.4 numpy scipy cython biopython prody
+#
+# 说明：
+#  · LightDock **官方不支持 Windows**，请用 Linux / macOS / WSL2。
+#  · 它编译了 Cython 扩展，首次安装需要 C 编译器（Linux: build-essential）。
+#  · `freesasa` 是可选的，只有用 cpydock 评分函数才需要。
+#  · `mpi4py` 是可选的，只有用 `-mpi` 模式才需要。
+#
+# 老仓库的 environment.yml 锁的是 conda 精确版本号（含 hXXXXXXX 构建号），
+# 那些构建号会随时间失效，无法在别的机器上复现。这里只列包名。
+#
+# 不需要（老仓库用过，但本技能已移除）：
+#  · selenium / webdriver-manager —— LightDock 是本地程序，不是网页服务
+#  · pandas —— 汇总逻辑直接用标准库 csv 模块

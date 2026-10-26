@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from biopipe_core import ensure_dir, get_logger  # noqa: E402
 from pepmlm_client import (  # noqa: E402

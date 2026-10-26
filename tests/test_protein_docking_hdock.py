@@ -579,6 +579,125 @@ class TestFetchCli:
 
 
 # --------------------------------------------------------------------------
+# 真实完成页（2026-10-25 实测抓取）
+# --------------------------------------------------------------------------
+#
+# ``result_done.html`` 是真实 HDOCK 作业 6adf1c9e1eb6e 完成后抓到的结果页
+# （1CGI:E × 1CGI:I），它暴露了官方示例页里看不到的两个事实：
+#
+# 1. **Confidence Score 列真实存在**。官方示例页没有这一列，页面直接给出
+#    的是 "  0.9979"（带前导空格）。这验证了按官方闭式公式算出的
+#    Confidence Score 与服务端完全一致。
+# 2. **模型链接的 href 没有引号**。真实页面写的是
+#    ``<a target=_blank href=model_1.pdb>``，而不是 ``href="model_1.pdb"``。
+#    只匹配带引号的形式会一个模型都找不到，且不报错——downloads 只是个空
+#    字典，用户只会看到"没有模型可下载"。
+# --------------------------------------------------------------------------
+
+
+class TestRealCompletedPage:
+    """针对真实完成页的解析验证。"""
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def parsed(cls):
+        html = _fixture("result_done.html")
+        return hdock_client.parse_result_page(
+            html,
+            job_name="biopipe_http_test",
+            url="http://hdock.phys.hust.edu.cn/data/6adf1c9e1eb6e/",
+        )
+
+    def test_status_is_done(self, parsed):
+        assert parsed.status == hdock_client.JobStatus.DONE
+
+    def test_docking_score(self, parsed):
+        assert parsed.docking_score == "-457.22"
+
+    def test_real_page_has_confidence_score_column(self, parsed):
+        """真实页面确实给出 Confidence Score——不再是"只能自己算"。"""
+        assert parsed.confidence_score is not None
+        assert float(parsed.confidence_score) == pytest.approx(0.9979, abs=1e-4)
+
+    def test_computed_formula_matches_server_value(self, parsed):
+        """按官方公式算出的值必须与页面给出的值一致。"""
+        computed = hdock_client.compute_confidence_score(-457.22)
+        assert computed == pytest.approx(0.9979, abs=1e-4)
+
+    def test_rankings_include_all_metrics(self, parsed):
+        assert "Docking Score" in parsed.rankings
+        assert "Confidence Score" in parsed.rankings
+        assert "Ligand rmsd (&Aring;)" in parsed.rankings
+
+    def test_ranking_matrix_has_ten_ranks(self, parsed):
+        """真实页面是 1..10 的排名矩阵，不是单个值。"""
+        assert len(parsed.rankings["Docking Score"]) == 10
+        assert len(parsed.rankings["Confidence Score"]) == 10
+
+    def test_confidence_score_decreases_with_rank(self, parsed):
+        """排名靠后的模型置信度更低——矩阵内容要真的被用上。"""
+        values = [float(v) for v in parsed.rankings["Confidence Score"]]
+        assert values == sorted(values, reverse=True)
+
+    def test_downloads_found_despite_unquoted_href(self, parsed):
+        """核心回归：无引号的 href 也必须被解析出来。"""
+        assert len(parsed.downloads) > 0
+        assert "model_1.pdb" in parsed.downloads
+        assert "model_10.pdb" in parsed.downloads
+
+    def test_download_urls_are_absolute(self, parsed):
+        for link in parsed.downloads.values():
+            assert link.startswith("http://hdock.phys.hust.edu.cn/data/6adf1c9e1eb6e/")
+
+    def test_receptor_and_ligand_available(self, parsed):
+        names = set(parsed.downloads)
+        assert any(n.startswith("rec_") for n in names)
+        assert any(n.startswith("lig_") for n in names)
+
+    def test_downloaded_model_has_expected_markers(self):
+        """真实下载下来的模型文件带 REMARK Number 标记。"""
+        path = FIXTURES / "model_1_downloaded.pdb"
+        if not path.is_file():
+            pytest.skip("未提供已下载的模型样本")
+        content = path.read_text(encoding="utf-8", errors="replace")
+        assert "REMARK Number:" in content
+        assert "ATOM" in content
+
+
+class TestUnquotedHrefRegression:
+    """把下载链接正则退回到只认带引号的形式，测试必须失败。"""
+
+    def test_unquoted_href_is_matched(self):
+        html = '<a target=_blank href=model_1.pdb> model_1</a>'
+        result = hdock_client.parse_result_page(
+            html, job_name="x", url="http://hdock.phys.hust.edu.cn/data/x/"
+        )
+        assert "model_1.pdb" in result.downloads
+
+    def test_quoted_href_still_matched(self):
+        html = '<a href="model_2.pdb">model_2</a>'
+        result = hdock_client.parse_result_page(
+            html, job_name="x", url="http://hdock.phys.hust.edu.cn/data/x/"
+        )
+        assert "model_2.pdb" in result.downloads
+
+    def test_single_quoted_href_matched(self):
+        html = "<a href='model_3.pdb'>model_3</a>"
+        result = hdock_client.parse_result_page(
+            html, job_name="x", url="http://hdock.phys.hust.edu.cn/data/x/"
+        )
+        assert "model_3.pdb" in result.downloads
+
+    def test_javascript_href_is_ignored(self):
+        """javascript: 伪协议不是资源链接，不该进 downloads。"""
+        html = '<a id="option0" href="javascript:formAction(\'show\', 0)">Show</a>'
+        result = hdock_client.parse_result_page(
+            html, job_name="x", url="http://hdock.phys.hust.edu.cn/data/x/"
+        )
+        assert result.downloads == {}
+
+
+# --------------------------------------------------------------------------
 # 文档与元数据
 # --------------------------------------------------------------------------
 

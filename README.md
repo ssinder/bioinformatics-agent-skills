@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Skills](https://img.shields.io/badge/Skills-14-brightgreen.svg)](#-available-skills)
+[![Skills](https://img.shields.io/badge/Skills-15-brightgreen.svg)](#-available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
@@ -110,6 +110,7 @@ python skills/literature-search/scripts/search_literature.py \
 | [`molecular-dynamics`](skills/molecular-dynamics/) | 分子动力学模拟与轨迹分析 | RMSD/RMSF/PCA · 氢键 · Ramachandran · 轨迹聚类 · 内置 DCD 解析器 |
 | [`alphafold-db`](skills/alphafold-db/) | AlphaFold DB 结构下载 | API 解析下载链接 · 批量下载 · pLDDT 置信度筛选 · 元数据导出 |
 | [`protein-docking-hdock`](skills/protein-docking-hdock/) | HDOCK 蛋白质对接 | HTTP 提交作业 · Docking Score · 置信度公式 · 模型下载 · 队列状态区分 |
+| [`protein-docking-lightdock`](skills/protein-docking-lightdock/) | LightDock 本地蛋白质对接 | GSO 群体优化 · DFIRE 打分解析 · 最优复合物生成 · 批量可断点续跑 |
 
 ### 🧪 蛋白工程 / Protein Engineering
 
@@ -158,7 +159,7 @@ OpenMM 没装?照样能解析 DCD 轨迹并做 RMSD/PCA。依赖可选,能力不
 
 ```
 bioinformatics-agent-skills/
-├── skills/                    # 14 个独立可安装的技能
+├── skills/                    # 15 个独立可安装的技能
 │   ├── bulk-rnaseq/
 │   │   ├── SKILL.md           # 触发描述 + 工作流 + 验证方法
 │   │   ├── scripts/           # 可执行脚本

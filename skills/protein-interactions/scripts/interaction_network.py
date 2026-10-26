@@ -15,8 +15,18 @@ Usage:
 from __future__ import annotations
 
 import re
+import sys
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 from typing import Optional
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from biopipe_core import get_logger  # noqa: E402
+from plip_parser import parse_plip_xml  # noqa: E402
+
+logger = get_logger("biopipe.protein-interactions")
 
 __all__ = [
     "build_mermaid",
@@ -291,7 +301,6 @@ def residue_statistics(records: Sequence[dict]) -> dict:
 def _main(argv: Optional[list[str]] = None) -> int:
     """命令行入口：解析 PLIP 报告并输出网络图。"""
     import argparse
-    from pathlib import Path
 
     parser = argparse.ArgumentParser(
         prog="interaction_network", description="相互作用网络图生成（命令行自检工具）"
@@ -300,8 +309,6 @@ def _main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--mermaid", metavar="PATH", help="写出 Mermaid 图")
     parser.add_argument("--pymol", metavar="PATH", help="写出 PyMOL 脚本")
     args = parser.parse_args(argv)
-
-    from plip_parser import parse_plip_xml
 
     report = parse_plip_xml(args.input)
     records = report["interactions"]
@@ -323,11 +330,4 @@ def _main(argv: Optional[list[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    import sys
-    from pathlib import Path
-
-    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
-    from biopipe_core import get_logger
-
-    logger = get_logger("biopipe.protein-interactions")
     sys.exit(_main())

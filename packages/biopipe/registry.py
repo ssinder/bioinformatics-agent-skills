@@ -140,6 +140,13 @@ REGISTRY: dict[str, SkillSpec] = {
             entry="scripts/submit_docking.py",
             keywords=("docking", "hdock", "protein-protein", "complex", "score"),
         ),
+        SkillSpec(
+            name="protein-docking-lightdock",
+            category="结构生物学",
+            summary="LightDock 本地蛋白质对接：驱动 GSO 群体优化、解析 GSO 打分、生成最优复合物",
+            entry="scripts/run_docking.py",
+            keywords=("docking", "lightdock", "gso", "swarm", "dfire", "local"),
+        ),
     ]
 }
 
