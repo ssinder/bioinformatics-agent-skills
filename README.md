@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Skills](https://img.shields.io/badge/Skills-12-brightgreen.svg)](#-available-skills)
+[![Skills](https://img.shields.io/badge/Skills-13-brightgreen.svg)](#-available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
@@ -117,6 +117,12 @@ python skills/literature-search/scripts/search_literature.py \
 | [`peptide-design`](skills/peptide-design/) | 抗菌肽设计与筛选 | 理化性质计算 · 疏水性/pI · 稳定性 · MMseqs2 聚类去冗余 |
 | [`ml-peptide-generation`](skills/ml-peptide-generation/) | ML 肽链生成与筛选 | PepMLM 掩码语言模型 · 非法氨基酸剔除 · 伪困惑度排序 · 种子可复现 |
 
+### 🧬 化学信息学 / Cheminformatics
+
+| 技能 | 描述 | 关键能力 |
+|------|------|----------|
+| [`bio-database-fetch`](skills/bio-database-fetch/) | PubChem 化合物与物种分类检索 | PUG-REST 批量属性 · CAS 号格式提取 · Taxonomy 完整 lineage · 无浏览器依赖 |
+
 ### 📚 文献挖掘 / Literature Mining
 
 | 技能 | 描述 | 关键能力 |
@@ -151,7 +157,7 @@ OpenMM 没装?照样能解析 DCD 轨迹并做 RMSD/PCA。依赖可选,能力不
 
 ```
 bioinformatics-agent-skills/
-├── skills/                    # 12 个独立可安装的技能
+├── skills/                    # 13 个独立可安装的技能
 │   ├── bulk-rnaseq/
 │   │   ├── SKILL.md           # 触发描述 + 工作流 + 验证方法
 │   │   ├── scripts/           # 可执行脚本

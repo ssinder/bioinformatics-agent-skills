@@ -1,0 +1,12 @@
+# BioDatabase 检索技能依赖
+#
+# requests —— 访问 PubChem PUG REST 与 NCBI E-utilities（必需）
+#
+# 其余功能（CAS 格式筛选、lineage 解析、CSV/JSON 导出）只用标准库。
+#
+# 老仓库的 requirements.txt 里含 pubchempy 与 Biopython 两个包装库。
+# 这里改为直接调官方 REST 接口——少一层依赖，也少一层版本兼容问题：
+#   · PubChem 的 PUG REST 与 NCBI 的 E-utilities 都是稳定的 HTTP 接口
+#   · pubchempy 的字段名与官方接口有过不一致（CanonicalSMILES → SMILES）
+#   · Biopython 的 Entrez 接口在批量查询时行为依赖版本
+requests>=2.25.0

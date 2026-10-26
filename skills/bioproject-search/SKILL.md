@@ -138,28 +138,10 @@ python scripts/search_bioprojects.py --ids prj_ids.txt --output-dir results/ --a
   field exactly. To search descriptions by keyword across *all* projects
   rather than a known list, use NCBI Entrez directly with
   `bioproject[Filter]` and a keyword term.
-
-## Validation
-
-- **A description should be a paragraph, not a sentence fragment.** Empty or
-  one-word descriptions usually mean the project record genuinely lacks one —
-  some submitters provide only a title. Cross-check with the linked BioSample
-  or SRA records.
-- **The accession prefix indicates the archive** — `PRJNA` (NCBI), `PRJEB`
-  (EBI/ENA), `PRJDB` (DDBJ). A project submitted to ENA may be reachable
-  through ENA's own portal rather than NCBI's.
-- **Organism names come from the submitter** and are not normalised. A
-  project may list several organisms, in which case the field contains a
-  comma-separated list rather than a single taxon — do not treat it as a
-  single taxid.
-- **Release date may be in the future or absent** for embargoed projects.
-  An embargoed project returns its metadata to authorised submitters only;
-  the public record will be sparse.
 - **Search term semantics** — `[Project Accession]` matches the accession
   field exactly. To search descriptions by keyword across *all* projects
   rather than a known list, use NCBI Entrez directly with
   `bioproject[Filter]` and a keyword term.
-
 ## References
 
 - `references/methodology.md` — E-utilities protocol, field semantics, rate limits

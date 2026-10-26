@@ -126,6 +126,13 @@ REGISTRY: dict[str, SkillSpec] = {
             entry="scripts/generate_peptides.py",
             keywords=("peptide", "pepmlm", "binder", "masked-lm", "generation"),
         ),
+        SkillSpec(
+            name="bio-database-fetch",
+            category="化学信息学",
+            summary="PubChem 化合物与 NCBI Taxonomy 批量检索：属性、CAS 号、物种分类",
+            entry="scripts/fetch_compounds.py",
+            keywords=("pubchem", "taxonomy", "compound", "cas", "smiles", "ncbi"),
+        ),
     ]
 }
 
