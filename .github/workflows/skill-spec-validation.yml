@@ -50,3 +50,9 @@ jobs:
         # 这里在提交阶段就挑出可静态发现的问题：非白名单插件、
         # front matter 语法错误、站内断链。
         run: python scripts/ci_docs_check.py
+
+      - name: Verify repository consistency
+        # 跨文件的手工维护内容（README 徽章的技能数、技能清单、
+        # REGISTRY 与磁盘的对应关系）最容易悄悄过时。这个检查把它们
+        # 显式化，避免"文档说 8 个技能、实际有 9 个"这类漂移。
+        run: python scripts/ci_consistency_check.py

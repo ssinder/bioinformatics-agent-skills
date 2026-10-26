@@ -11,7 +11,11 @@
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
 [![Security](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/security-scan.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/security-scan.yml)
+[![Pages](https://img.shields.io/badge/Docs-GitHub_Pages-blue.svg)](https://ssinder.github.io/bioinformatics-agent-skills/)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo-blue.svg)](https://doi.org/10.5281/zenodo)
+
+📖 **[在线文档 / Documentation](https://ssinder.github.io/bioinformatics-agent-skills/)** ——
+快速上手、技能总览、方法学参考与故障排查
 
 [English](#english) | 简体中文
 

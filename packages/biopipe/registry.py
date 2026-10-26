@@ -77,9 +77,12 @@ REGISTRY: dict[str, SkillSpec] = {
         SkillSpec(
             name="peptide-design",
             category="蛋白工程",
-            summary="抗菌肽设计与筛选：PepMLM 生成、序列特征分析、MMseqs2 聚类去冗余",
+            # 注意：这里描述的是**实际实现的能力**——自研轻量 CNN 分类器，
+            # 而不是「PepMLM 生成」。老仓库的 design_pepmlm/ 依赖 404MB 的
+            # 预训练模型文件且需要 GPU，本技能并未内置该模型，因此不能宣称。
+            summary="抗菌肽分析与筛选：理化性质计算、CNN 活性判别、序列聚类去冗余",
             entry="scripts/analyze_peptides.py",
-            keywords=("peptide", "amp", "antimicrobial", "pepmlm", "clustering"),
+            keywords=("peptide", "amp", "antimicrobial", "cnn", "clustering"),
         ),
         SkillSpec(
             name="literature-search",
