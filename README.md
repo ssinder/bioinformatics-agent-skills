@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Skills](https://img.shields.io/badge/Skills-8-brightgreen.svg)](#-available-skills)
+[![Skills](https://img.shields.io/badge/Skills-9-brightgreen.svg)](#-available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
@@ -107,6 +107,7 @@ python skills/literature-search/scripts/search_literature.py \
 | [`protein-structure`](skills/protein-structure/) | PDB 结构解析与二级结构 | 自带 PDB 解析器 · DSSP 二级结构 · 几何计算 · UniProt 元数据 |
 | [`protein-interactions`](skills/protein-interactions/) | 蛋白质-配体相互作用 | PLIP XML 解析 · 残基级抽取 · 交互网络 · PyMOL 标注 |
 | [`molecular-dynamics`](skills/molecular-dynamics/) | 分子动力学模拟与轨迹分析 | RMSD/RMSF/PCA · 氢键 · Ramachandran · 轨迹聚类 · 内置 DCD 解析器 |
+| [`alphafold-db`](skills/alphafold-db/) | AlphaFold DB 结构下载 | API 解析下载链接 · 批量下载 · pLDDT 置信度筛选 · 元数据导出 |
 
 ### 🧪 蛋白工程 / Protein Engineering
 

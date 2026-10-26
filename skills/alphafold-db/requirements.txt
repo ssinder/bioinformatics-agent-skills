@@ -1,0 +1,5 @@
+# AlphaFold DB 技能依赖
+#
+# requests —— 访问 AlphaFold DB API 与下载结构文件（必需）
+# 其余功能（元数据解析、CSV 导出）不依赖任何第三方库。
+requests>=2.25.0

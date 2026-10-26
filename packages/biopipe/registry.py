@@ -98,6 +98,13 @@ REGISTRY: dict[str, SkillSpec] = {
             entry="scripts/make_figures.py",
             keywords=("figure", "plot", "roc", "heatmap", "publication"),
         ),
+        SkillSpec(
+            name="alphafold-db",
+            category="结构生物学",
+            summary="AlphaFold DB 结构下载：API 解析下载链接、批量获取预测结构与 pLDDT 置信度",
+            entry="scripts/download_structures.py",
+            keywords=("alphafold", "afdb", "structure", "plddt", "prediction"),
+        ),
     ]
 }
 
