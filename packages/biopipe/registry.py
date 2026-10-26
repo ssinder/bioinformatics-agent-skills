@@ -119,6 +119,13 @@ REGISTRY: dict[str, SkillSpec] = {
             entry="scripts/search_bioprojects.py",
             keywords=("bioproject", "ncbi", "e-utilities", "prjna", "metadata"),
         ),
+        SkillSpec(
+            name="ml-peptide-generation",
+            category="蛋白工程",
+            summary="ML 肽链生成：PepMLM 掩码语言模型采样候选肽，伪困惑度排序，可复现",
+            entry="scripts/generate_peptides.py",
+            keywords=("peptide", "pepmlm", "binder", "masked-lm", "generation"),
+        ),
     ]
 }
 

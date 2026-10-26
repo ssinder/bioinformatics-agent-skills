@@ -1,0 +1,13 @@
+# ML 肽链生成技能依赖
+#
+# torch —— 掩码语言模型推理（生成肽链必需）
+# transformers —— 加载 PepMLM-650M 模型与 tokenizer（生成肽链必需）
+#
+# 注意：这两个依赖**只在生成环节需要**。analyze_peptides.py（筛选与参数
+# 分析）只用标准库，没有 GPU 的机器也能跑完整的数据分析流程。
+#
+# 老仓库的 requirements.txt 里含一条本地路径依赖
+#   DeepLoc2 @ file:///Users/jung/Desktop/trae/tool/deeploc/deeploc2_package
+# 别人根本装不上，且与本技能无关，已移除。
+torch>=2.0.0
+transformers>=4.30.0
