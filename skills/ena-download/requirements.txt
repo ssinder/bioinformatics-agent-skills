@@ -1,0 +1,5 @@
+# ENA 下载技能依赖
+#
+# requests —— 访问 ENA Portal API 与下载 FASTQ 文件（必需）
+# 其余功能（TSV 解析、MD5 校验、CSV/JSON 导出）只用标准库。
+requests>=2.25.0

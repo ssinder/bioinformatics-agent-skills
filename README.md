@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Skills](https://img.shields.io/badge/Skills-9-brightgreen.svg)](#-available-skills)
+[![Skills](https://img.shields.io/badge/Skills-10-brightgreen.svg)](#-available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
@@ -98,6 +98,7 @@ python skills/literature-search/scripts/search_literature.py \
 | 技能 | 描述 | 关键能力 |
 |------|------|----------|
 | [`bulk-rnaseq`](skills/bulk-rnaseq/) | RNA-seq 定量与差异表达 | FastQC 质控 · Salmon 定量 · DESeq2 差异分析 · GO/KEGG 富集 |
+| [`ena-download`](skills/ena-download/) | ENA 原始数据下载 | Portal API 取 FASTQ · 断点续传 · MD5 校验 · 元数据导出 |
 | [`single-cell-rnaseq`](skills/single-cell-rnaseq/) | 单细胞 RNA-seq 标准流程 | 质控过滤 · CP10K 归一化 · HVG · PCA · Leiden 聚类 · UMAP · 细胞注释 |
 
 ### 🔬 结构生物学 / Structural Biology

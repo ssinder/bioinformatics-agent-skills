@@ -25,6 +25,9 @@ metadata:
 
 不适用：单细胞数据（用 `single-cell-rnaseq`）、仅做原始 reads 可视化、蛋白组与代谢组分析。
 
+> **上游衔接**：如果还没有 FASTQ 文件，可先用 [`ena-download`](../ena-download/) 技能按
+> SRA/ENA accession 下载原始测序数据（支持断点续传与 MD5 校验），再交给本技能做定量与差异分析。
+
 ## Quick Start
 
 ```bash

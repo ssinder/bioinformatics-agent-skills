@@ -99,6 +99,13 @@ REGISTRY: dict[str, SkillSpec] = {
             keywords=("figure", "plot", "roc", "heatmap", "publication"),
         ),
         SkillSpec(
+            name="ena-download",
+            category="转录组学",
+            summary="ENA 原始测序数据下载：Portal API 取 FASTQ 链接、断点续传、MD5 校验",
+            entry="scripts/download_runs.py",
+            keywords=("ena", "sra", "fastq", "sequencing", "rnaseq"),
+        ),
+        SkillSpec(
             name="alphafold-db",
             category="结构生物学",
             summary="AlphaFold DB 结构下载：API 解析下载链接、批量获取预测结构与 pLDDT 置信度",
