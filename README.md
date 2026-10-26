@@ -29,7 +29,7 @@
 让 Claude Code、Cursor、Codex 等任意支持 [Agent Skills 开放标准](https://agentskills.io/) 的
 AI 助手获得**领域专业知识、可复现流程和验证检查** —— 而不只是会调用 API 的通才。
 
-覆盖转录组学、单细胞、蛋白结构、分子动力学、抗菌肽设计、ML 肽链生成、文献挖掘、NCBI BioProject 元数据与出版级图表。
+覆盖转录组学、单细胞、蛋白结构、分子动力学、蛋白对接、链间接触分析与 PyMOL 可视化、抗菌肽设计、ML 肽链生成、文献挖掘、NCBI BioProject 元数据与出版级图表。
 
 > 转型自 [`ssinder/Bioinformatics_pipeline`](https://github.com/ssinder/Bioinformatics_pipeline)——
 > 217 个真实科研脚本,重构为符合开放标准的可发现、可触发、可复现技能库。
