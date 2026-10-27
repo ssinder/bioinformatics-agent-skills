@@ -53,6 +53,8 @@ nav:
     url: /skills/
   - title: 技能规范
     url: /SKILL_SPEC.html
+  - title: 迁移映射
+    url: /migration-map.html
   - title: 贡献指南
     url: https://github.com/ssinder/bioinformatics-agent-skills/blob/main/CONTRIBUTING.md
   - title: GitHub

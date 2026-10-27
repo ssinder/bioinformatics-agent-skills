@@ -33,6 +33,8 @@ AI 助手获得**领域专业知识、可复现流程和验证检查** —— �
 
 > 转型自 [`ssinder/Bioinformatics_pipeline`](https://github.com/ssinder/Bioinformatics_pipeline)——
 > 217 个真实科研脚本,重构为符合开放标准的可发现、可触发、可复现技能库。
+> 老仓库已**归档**(read-only),每个脚本的去向与处置理由见
+> **[迁移映射](docs/migration-map.md)**。
 
 ---
 
