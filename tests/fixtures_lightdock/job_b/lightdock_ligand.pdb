@@ -1,0 +1,4 @@
+HEADER    PROTEIN                           01-JAN-00   0DOCK
+ATOM      1  N   GLY B   1       0.000   0.000   0.000  1.00 20.00           N
+ATOM      2  CA  GLY B   1       1.000   0.000   0.000  1.00 20.00           C
+END
