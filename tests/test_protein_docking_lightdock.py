@@ -544,8 +544,7 @@ class TestSkillDocumentation:
     """SKILL.md 与参考文档必须把三个坑讲清楚。"""
 
     @pytest.fixture(scope="class")
-    @classmethod
-    def skill_md(cls) -> str:
+    def skill_md(self) -> str:
         return (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
 
     def test_has_workflow_section(self, skill_md: str) -> None:

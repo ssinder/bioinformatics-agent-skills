@@ -362,8 +362,7 @@ class TestParseFinishedPage:
     """已完成的结果页。"""
 
     @pytest.fixture(scope="class")
-    @classmethod
-    def result(cls):
+    def result(self):
         html = _fixture("result_example.html")
         return hdock_client.parse_result_page(
             html, job_name="example", url="http://hdock.phys.hust.edu.cn/data/example/"
@@ -411,8 +410,7 @@ class TestParseQueuedPage:
     """排队中的结果页——必须与"失败"区分开。"""
 
     @pytest.fixture(scope="class")
-    @classmethod
-    def result(cls):
+    def result(self):
         html = _fixture("result_queued.html")
         return hdock_client.parse_result_page(
             html, job_name="queued", url="http://hdock.phys.hust.edu.cn/data/6adf1c9e1eb6e/"
@@ -599,8 +597,7 @@ class TestRealCompletedPage:
     """针对真实完成页的解析验证。"""
 
     @pytest.fixture(scope="class")
-    @classmethod
-    def parsed(cls):
+    def parsed(self):
         html = _fixture("result_done.html")
         return hdock_client.parse_result_page(
             html,

@@ -537,8 +537,7 @@ class TestCorpusIndex:
     """语料索引与检索。"""
 
     @pytest.fixture(scope="class")
-    @classmethod
-    def corpus(cls):
+    def corpus(self):
         return CorpusIndex().build(FIXTURES)
 
     def test_indexes_valid_files(self, corpus) -> None:

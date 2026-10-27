@@ -474,8 +474,7 @@ class TestSelectBestModelDiscovery:
     """结构文件与置信度文件的发现与配对。"""
 
     @pytest.fixture(scope="class")
-    @classmethod
-    def standard(cls):
+    def standard(self):
         return select_best_model.collect_models(
             FIXTURES_SELECT / "standard", "ranking_score"
         )

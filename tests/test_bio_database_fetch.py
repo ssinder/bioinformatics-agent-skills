@@ -516,8 +516,7 @@ class TestTaxonomyParsing:
     """Taxonomy XML 解析。"""
 
     @pytest.fixture(scope="class")
-    @classmethod
-    def records(cls):
+    def records(self):
         return database_client.parse_taxonomy_xml(_fixture("taxonomy_response.xml"))
 
     def test_only_requested_taxa_returned(self, records):
