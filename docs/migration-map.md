@@ -1,122 +1,133 @@
 ---
-title: 迁移映射 · 老仓库目录到新技能
-description: ssinder/Bioinformatics_pipeline 的 217 个脚本重构为 17 个 Agent Skills 的完整对照表
+title: Migration map · From the legacy archive to Agent Skills
+description: Complete mapping of 217 scripts from a private legacy archive into 17 Agent Skills
 ---
 
-# 迁移映射 · 从老仓库到 Agent Skills
+# Migration map · From the legacy archive to Agent Skills
 
-> 老仓库 [`ssinder/Bioinformatics_pipeline`](https://github.com/ssinder/Bioinformatics_pipeline)
-> 已被**归档**（read-only）。本表记录它的 217 个脚本、去向与处置理由，
-> 供追溯与审计。
+> The source repository this project was refactored from is now **private and archived**
+> (read-only), so its scripts cannot be browsed publicly. This table records all 217 of
+> those scripts, their destinations, and the reasoning behind every decision — for
+> auditing and traceability.
 
-## 一句话概览
+## At a glance
 
-| | 老仓库 | 新仓库 |
+| | Legacy archive | This repository |
 |---|---|---|
-| 形态 | 22 个扁平目录，按工具名组织 | 17 个标准 `SKILL.md` 技能包 |
-| 脚本 | 217 个 `.py` | 58 个 `.py`（**每个技能都是可独立触发的完整工作流**） |
-| 入口 | 人工翻目录找脚本 | `SKILL.md` frontmatter + `biopipe --list` |
-| 依赖 | 隐式（`pip install` 后自己摸） | 每个技能独立 `requirements.txt`，核心零第三方依赖 |
-| 测试 | 无 | 829 个用例（含反向验证 canary） |
+| Shape | 22 flat directories, organized by tool name | 17 standard `SKILL.md` skill packages |
+| Scripts | 217 `.py` files | 58 `.py` files (**each skill is a complete, independently triggerable workflow**) |
+| Entry point | Browse directories to find a script | `SKILL.md` frontmatter + `biopipe --list` |
+| Dependencies | Implicit (install and explore on your own) | Per-skill `requirements.txt`; core has zero third-party dependencies |
+| Tests | None | 900 test cases (including reverse-verification canaries) |
 
-**脚本数从 217 降到 58 不是缩水** —— 减少的是重复与脚手架：
-每个技能都补齐了「方法学说明 + 故障排查 + 验证清单 + 测试 + 夹具」，
-这些在老仓库里完全不存在。
+**Dropping from 217 scripts to 58 is not a reduction in capability** — what was removed
+is duplication and scaffolding. Every skill gained what the legacy archive never had:
+a methodology write-up, a troubleshooting guide, a validation checklist, tests, and
+fixtures.
+
 
 ---
 
-## 完整对照表
+## Complete mapping
 
-### 已改造为技能（18 个老目录 → 17 个技能）
+### Converted into skills (18 legacy directories → 17 skills)
 
-| 老目录 | 脚本 | 行数 | → 新技能 | 关键改造 |
+| Legacy directory | Scripts | Lines | → New skill | Key changes |
 |---|---|---|---|---|
-| `rnaseq_python` | 16 | 4026 | `bulk-rnaseq` | DESeq2/edgeR 差异分析；修掉 `padj` 全 NA 的设计矩阵问题 |
-| `scrna_python` | 6 | 748 | `single-cell-rnaseq` | 单细胞质控；线粒体比例阈值的合理区间 |
-| `rnaseq_download` | 1 | 285 | `ena-download` | ENA 元数据检索与 FASTQ 下载 |
-| `crawl_bioproject` | 1 | 338 | `bioproject-search` | NCBI BioProject 元数据抓取 |
-| `crawl_database` | 13 | 1974 | `bio-database-fetch` | 通用数据库抓取 |
-| `afdb_download` | 2 | 364 | `alphafold-db` | AlphaFold 模型下载；**并入最佳模型提取** |
-| `search_pubmed` | 20 | 4519 | `literature-search` | 文献检索 |
-| `search_openalex` | 8 | 2063 | `literature-search` | （同上，合并） |
-| `paper_extract` | 13 | 2753 | `paper-fulltext-extract` | 全文抽取；补齐 11 个失败测试 |
-| `pdb_analyze` | 14 | 2863 | `protein-structure` | 结构解析与分析 |
-| `plip_interact` | 10 | 1197 | `protein-interactions` | 相互作用检测 |
-| `pymol_show` | 22 | 1486 | `pymol-structure-visualization` | 链间残基接触分析；**几何计算与渲染彻底分离** |
-| `dock_lightdock` | 5 | 1413 | `protein-docking-lightdock` | LightDock 对接 |
-| `dock_hdock` | 10 | 790 | `protein-docking-hdock` | HADDOCK 对接 |
-| `MD_openmm` | 19 | 6881 | `molecular-dynamics` | OpenMM 模拟；平衡协议 + 链分离监测 |
-| `peptide_analyze` | 18 | 2595 | `peptide-design` | 肽段性质分析 |
-| `design_pepmlm` | 4 | 899 | `ml-peptide-generation` | ML 肽链生成 |
-| `data_visualization` | 16 | 3036 | `scientific-figures` | 出版级图表 |
+| `rnaseq_python` | 16 | 4026 | `bulk-rnaseq` | DESeq2/edgeR differential analysis; fixed the design-matrix bug that made every `padj` come back `NA` |
+| `scrna_python` | 6 | 748 | `single-cell-rnaseq` | Single-cell QC; sensible ranges for the mitochondrial percentage threshold |
+| `rnaseq_download` | 1 | 285 | `ena-download` | ENA metadata retrieval and FASTQ download |
+| `crawl_bioproject` | 1 | 338 | `bioproject-search` | NCBI BioProject metadata scraping |
+| `crawl_database` | 13 | 1974 | `bio-database-fetch` | Generic database scraping |
+| `afdb_download` | 2 | 364 | `alphafold-db` | AlphaFold model download; **best-model extraction merged in** |
+| `search_pubmed` | 20 | 4519 | `literature-search` | Literature search |
+| `search_openalex` | 8 | 2063 | `literature-search` | (same skill, merged) |
+| `paper_extract` | 13 | 2753 | `paper-fulltext-extract` | Full-text extraction; filled in 11 failing tests |
+| `pdb_analyze` | 14 | 2863 | `protein-structure` | Structure parsing and analysis |
+| `plip_interact` | 10 | 1197 | `protein-interactions` | Interaction detection |
+| `pymol_show` | 22 | 1486 | `pymol-structure-visualization` | Inter-chain residue contacts; **geometry computation fully separated from rendering** |
+| `dock_lightdock` | 5 | 1413 | `protein-docking-lightdock` | LightDock docking |
+| `dock_hdock` | 10 | 790 | `protein-docking-hdock` | HADDOCK docking |
+| `MD_openmm` | 19 | 6881 | `molecular-dynamics` | OpenMM simulation; equilibration protocol + chain-separation monitoring |
+| `peptide_analyze` | 18 | 2595 | `peptide-design` | Peptide property analysis |
+| `design_pepmlm` | 4 | 899 | `ml-peptide-generation` | ML peptide generation |
+| `data_visualization` | 16 | 3036 | `scientific-figures` | Publication-grade figures |
 
-### 未改造（4 个老目录）
+### Not converted (4 legacy directories)
 
-| 老目录 | 脚本 | 行数 | 处置 | 理由 |
+| Legacy directory | Scripts | Lines | Disposition | Rationale |
 |---|---|---|---|---|
-| `pptx_create` | 9 | 1748 | **归档并导流** | 通用办公工具，不属科研定位；且内容深度绑定单一演示主题，非通用实现。导流至 `workbuddy-pptx` 技能 |
-| `feishu_bot` | 10 | 1575 | **安全清理** | 非科研工具。已移除全部明文凭据改用环境变量；README 加安全警告；新增 `.gitignore` |
-| `omics_analyze` | 0 | 0 | 空目录 | 无内容 |
-| `rnaseq_r` | 0 | 0 | 空目录 | 无内容（Rust/R 版本从未落地） |
+| `pptx_create` | 9 | 1748 | **Archived and redirected** | General-purpose office tooling, outside the research scope; also deeply tied to a single presentation topic rather than a general implementation. Redirected to the `workbuddy-pptx` skill |
+| `feishu_bot` | 10 | 1575 | **Security cleanup** | Not a research tool. All plaintext credentials replaced with environment variables; README gained a security warning; a `.gitignore` was added |
+| `omics_analyze` | 0 | 0 | Empty directory | No content |
+| `rnaseq_r` | 0 | 0 | Empty directory | No content (the Rust/R rewrite never landed) |
 
 ---
 
-## 三个"没有一对一迁移"的地方
+## Three places with no one-to-one mapping
 
-### 1. `search_pubmed` + `search_openalex` → 一个 `literature-search`
+### 1. `search_pubmed` + `search_openalex` → a single `literature-search`
 
-两个目录 28 个脚本做的是同一件事的不同检索后端。拆成两个技能会让
-AI 助手在选技能时反复摇摆 —— 它不知道该问「PubMed 检索器」还是
-「文献检索器」。
+The 28 scripts across these two directories did the same thing against different search
+backends. Splitting them into two skills makes an AI assistant hesitate at selection
+time — it cannot tell whether to reach for a "PubMed searcher" or a "literature searcher".
 
-现在 `literature-search` 内部按后端分模块，触发词覆盖两者。
+`literature-search` now organizes by backend internally, and its trigger keywords cover
+both.
 
-### 2. `afdb_download` 的模型提取被并入 `alphafold-db`
+### 2. `afdb_download`'s model extraction was merged into `alphafold-db`
 
-原目录里「下载」和「提取最佳模型」是分开的两步脚本。拆开意味着
-用户得记住顺序 —— 而这是个只有一种合理顺序的流程。
+In the original directory, "download" and "extract the best model" were separate scripts.
+Keeping them apart means the user has to remember the order — for a workflow that has
+exactly one sensible order.
 
-### 3. `plip_interact` 的相互作用检测被独立成 `protein-interactions`
+### 3. `plip_interact`'s interaction detection became its own `protein-interactions` skill
 
-它与 `pdb_analyze` 都处理结构，但**触发场景完全不同**：
-前者回答「这两个残基之间是什么作用力」，后者回答「这个结构长什么样、
-有哪些二级结构」。合在一起会让技能描述失焦。
+It also handles structures, like `pdb_analyze`, but the **trigger scenarios are entirely
+different**: the former answers "what force acts between these two residues", the latter
+answers "what does this structure look like, and what secondary structures does it
+contain". Merging them would blur the skill descriptions.
 
 ---
 
-## 改造中修掉的真实缺陷
+## Real defects fixed during the refactor
 
-不是「搬过来」，是**读懂之后重写**。以下是各技能在改造过程中发现并修复的
-实质性缺陷（不是风格问题，是会产出错误科学结论的问题）：
+This was not "copying files over" — it was **reading and then rewriting**. Below are the
+substantive defects found and fixed in each skill during the refactor (not stylistic
+issues — these produced scientifically wrong conclusions):
 
-| 技能 | 老实现的缺陷 | 后果 |
+| Skill | Defect in the original implementation | Consequence |
 |---|---|---|
-| `pymol-structure-visualization` | `cmd.select(f"{a} within {cutoff} of {b}")` 选出的是**各自靠近**的残基再做笛卡尔积 | 两个关键原子相距 15 Å 也会被报成"接触" |
-| `pymol-structure-visualization` | ASP/GLU 被列入氢键供体表 | 羧基在生理 pH 下无氢，系统性虚增氢键数 |
-| `pymol-structure-visualization` | 全部 HIS 按正电计 | 咪唑基质子化比例仅约 4%，虚增约 25 倍 HIS 盐桥 |
-| `pymol-structure-visualization` | 配体（LIG/HEM）硬套残基分类表 | 苯环配体被报成"疏水残基"、带电配体被报成"负电残基" |
-| `bulk-rnaseq` | `design` 设错导致 `padj` 全 NA | 静默产出无意义的差异分析结果 |
-| `molecular-dynamics` | 平衡协议不完整 | 未做能量最小化即进入生产模拟 |
+| `pymol-structure-visualization` | `cmd.select(f"{a} within {cutoff} of {b}")` selected residues that were *near* each other, then took the Cartesian product | Two key atoms 15 Å apart would still be reported as a "contact" |
+| `pymol-structure-visualization` | ASP/GLU were listed as hydrogen-bond donors | Carboxylates carry no hydrogen at physiological pH, systematically inflating hydrogen-bond counts |
+| `pymol-structure-visualization` | All HIS residues were counted as positively charged | Imidazole is only ~4% protonated, inflating HIS salt bridges by roughly 25× |
+| `pymol-structure-visualization` | Ligands (LIG/HEM) were forced through the residue classification table | A benzene ligand was reported as a "hydrophobic residue", a charged ligand as a "negative residue" |
+| `bulk-rnaseq` | A mis-specified `design` produced all-`NA` `padj` values | Silently yielded meaningless differential-expression results |
+| `molecular-dynamics` | Incomplete equilibration protocol | Entered production simulation without energy minimization |
 
-每个技能都有 `references/methodology.md` 记录完整的方法学取舍，
-`references/troubleshooting.md` 记录常见症状与排查路径。
+Every skill has a `references/methodology.md` recording the full methodological
+trade-offs, and a `references/troubleshooting.md` recording common symptoms and
+diagnostic paths.
 
 ---
 
-## 老仓库的安全处置
+## Security handling of the legacy repository
 
-⚠️ **飞书 App Secret 已泄露且无法通过代码修复。**
+⚠️ **A Feishu App Secret was leaked in the legacy repository's history.**
 
-- 泄露位置：老仓库 `feishu_bot/` 的 10 个文件，提交 `a3e456c`
-- 该仓库是**公开仓库**，历史中的凭据**依然可被检出**
-- 老仓库现已归档（read-only），代码侧清除**无法推送**
-- **唯一有效的补救：在飞书开放平台重置 App Secret**（重置后旧值立即失效）
+- Location: 10 files under the legacy `feishu_bot/` directory, introduced in commit `a3e456c`
+- The legacy repository was **public**, so the credential was **extractable from its history**
+- The repository has since been made **private and archived** (read-only), so the historical
+  credential is no longer publicly reachable
+- **The effective remedy was to reset the App Secret in the Feishu developer console** — done,
+  which immediately invalidated the old value
+- The code-side cleanup was completed and preserved on a `security/credential-cleanup` branch:
+  all 10 files now read from environment variables, create their clients lazily, fail with a
+  clear message when configuration is missing, and a `.gitignore` excludes `.env` / `*.secret`
 
-代码侧的清理已完成并保留在本地分支 `security/credential-cleanup`：
-10 个文件全部改为环境变量读取、客户端延迟创建、缺失时明确报错、
-新增 `.gitignore` 忽略 `.env` / `*.secret`。
+This repository's `scripts/ci_security_scan.py` is a direct product of that incident — it
+originally matched on `\b(secret)\b`, and because underscores and letters are **both word
+characters**, `APP_SECRET` slipped through the scan entirely. The matcher is now fixed, and
+32 regression tests lock the behaviour in — including a **reverse-verification canary**:
+revert the regex to the old form and the test fails immediately.
 
-新仓库的 `scripts/ci_security_scan.py` 是这次事故催生的产物 ——
-它原先用 `\b(secret)\b` 匹配，而下划线与字母**同属单词字符**，
-导致 `APP_SECRET` 完全逃过扫描。现已修复并有 32 个回归测试锁定，
-其中包含**反向验证 canary**：把正则改回旧写法，用例立刻失败。

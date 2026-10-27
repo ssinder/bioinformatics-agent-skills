@@ -1,25 +1,24 @@
-# 贡献指南 / Contributing Guide
+# Contributing Guide
 
-感谢你考虑为 BioinfoAgent Skills 贡献技能。本项目遵循 [Agent Skills 开放标准](https://agentskills.io/)，
-欢迎任何领域的科研工作者提交技能。
-
-English version available at the bottom of this document.
+Thank you for considering contributing a skill to BioinfoAgent Skills. This project follows the
+[Agent Skills open standard](https://agentskills.io/), and we welcome skill submissions from
+researchers in any field.
 
 ---
 
-## 贡献什么
+## What to Contribute
 
-我们欢迎三类贡献：
+We welcome three kinds of contributions:
 
-| 类型 | 说明 | 适合谁 |
+| Type | Description | Who it suits |
 |------|------|--------|
-| **新技能 (New Skill)** | 提交一个全新的领域技能 | 有特定分析流程的科研工作者 |
-| **改进技能 (Improve Skill)** | 修复 bug、补充参数、改进文档 | 所有用户 |
-| **基础设施 (Infrastructure)** | 改进共享工具层、CI、文档 | 想参与工程建设的开发者 |
+| **New Skill** | Submit a brand-new domain skill | Researchers who have a concrete analysis pipeline |
+| **Improve Skill** | Fix bugs, add parameters, improve the documentation | All users |
+| **Infrastructure** | Improve the shared tooling layer, CI, and documentation | Developers who want to help with the engineering |
 
-## 快速开始贡献一个新技能
+## Quick Start: Contributing a New Skill
 
-### 1. Fork 并创建分支
+### 1. Fork the repository and create a branch
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
@@ -27,43 +26,44 @@ cd bioinformatics-agent-skills
 git checkout -b feature/my-new-skill
 ```
 
-### 2. 生成技能骨架
+### 2. Generate the skill skeleton
 
 ```bash
 python scripts/init_skill.py my-new-skill
 ```
 
-这会创建 `skills/my-new-skill/` 目录，含 `SKILL.md` 模板、`scripts/`、`references/`、`assets/`。
+This creates the `skills/my-new-skill/` directory containing the `SKILL.md` template, `scripts/`, `references/`, and `assets/`.
 
-### 3. 编写 SKILL.md
+### 3. Write the SKILL.md
 
-**这是最重要的一步。** SKILL.md 决定 AI 何时触发你的技能。
+**This is the most important step.** The SKILL.md decides when the AI triggers your skill.
 
 ```yaml
 ---
 name: my-new-skill
-description: This skill should be used when a user needs to perform X analysis on Y data, including A and B steps. 用于对 Y 数据进行 X 分析的场景。
+description: This skill should be used when a user needs to perform X analysis on Y data, including A and B steps.
 license: MIT
 compatibility: Requires Python 3.9+ with numpy and pandas.
 metadata:
   version: "1.0"
   last-reviewed: "2026-10-25"
-  skill-author: 你的名字
+  skill-author: your-name
 ---
 ```
 
-description 的三条铁律：
-1. **第三人称** —— 写 "This skill should be used when..."，不要写 "You should use this..."
-2. **说清何时触发** —— 包含用户可能说的关键词（中英文都要有，用户可能用英文提问）
-3. **具体** —— 列出数据格式、工具名、分析步骤，不要写空话
+The three iron rules for `description`:
 
-### 4. 编写脚本
+1. **Third person** -- write "This skill should be used when...", never "You should use this..."
+2. **State clearly when to trigger** -- include the keywords users would actually type (include both English and Chinese, since users may ask in either language)
+3. **Be specific** -- name the data formats, tools, and analysis steps; never write empty filler
 
-所有脚本必须遵守项目约定：
+### 4. Write the scripts
+
+All scripts must follow the project conventions:
 
 ```python
 #!/usr/bin/env python3
-"""技能说明与用法示例。"""
+"""Skill description and usage example."""
 
 import sys
 from pathlib import Path
@@ -76,31 +76,33 @@ from biopipe_core import get_logger, get_config, bootstrap_cli
 def main(args) -> int:
     logger = get_logger("biopipe.my-new-skill")
     config = get_config(args.config)
-    logger.info("处理输入: %s", args.input)
+    logger.info("Processing input: %s", args.input)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(bootstrap_cli("描述", "my-new-skill", main))
+    sys.exit(bootstrap_cli("description", "my-new-skill", main))
 ```
 
-**硬性规则**：
-- ❌ 禁止硬编码绝对路径（`/Users/xxx/...`、`C:/Users/xxx/...`）
-- ❌ 禁止裸 `print()`，一律用 `logger`
-- ✅ 必须用 `argparse` 提供命令行接口
-- ✅ 必须有 `if __name__ == "__main__":` 入口
-- ✅ 重量级依赖（scanpy、OpenMM 等）要优雅降级，给出清晰报错
+**Hard rules**:
 
-### 5. 本地校验
+- ❌ Never hardcode absolute paths (`/Users/xxx/...`, `C:/Users/xxx/...`)
+- ❌ Never use bare `print()`; always use `logger`
+- ✅ Always provide a command-line interface with `argparse`
+- ✅ Always include an `if __name__ == "__main__":` entry point
+- ✅ Heavy dependencies (scanpy, OpenMM, ...) must degrade gracefully with a clear error message
+- ✅ Import the shared helpers from `biopipe_core`
+
+### 5. Validate locally
 
 ```bash
 python scripts/validate_skills.py --skill my-new-skill
-python scripts/validate_skills.py --skill my-new-skill --strict   # 警告也算失败
+python scripts/validate_skills.py --skill my-new-skill --strict   # warnings count as failures
 ```
 
-必须零错误零警告才能合并。
+Zero errors and zero warnings are required before a skill can be merged.
 
-### 6. 提交 PR
+### 6. Open a Pull Request
 
 ```bash
 git add .
@@ -108,62 +110,22 @@ git commit -m "feat: add my-new-skill for X analysis"
 git push origin feature/my-new-skill
 ```
 
-打开 Pull Request。CI 会自动运行规范校验、语法检查、依赖审计与冒烟测试。
+Then open the Pull Request. CI automatically runs the specification validation, syntax checks, dependency audit, and smoke tests.
 
-## 质量要求
+## Quality Bar
 
-| 要求 | 说明 |
+| Requirement | Description |
 |------|------|
-| **科学正确性** | 算法必须真实可用，不能是伪代码占位 |
-| **可复现** | 固定随机种子，记录参数与版本 |
-| **有降级路径** | 核心算法应内置纯 Python 实现，避免强依赖重库 |
-| **文档完整** | 必须提供 `references/methodology.md`（方法学原理）与 `references/troubleshooting.md`（排错） |
-| **有验证环节** | SKILL.md 的 Validation 章节说明如何验证结果正确 |
+| **Scientific correctness** | The algorithms must be genuinely usable, not pseudocode placeholders |
+| **Reproducibility** | Pin the random seeds and record the parameters and versions |
+| **A fallback path** | The core algorithm should embed a pure-Python implementation, so it does not hard-depend on a heavy library |
+| **Complete documentation** | You MUST provide `references/methodology.md` (the methodological rationale) and `references/troubleshooting.md` (debugging) |
+| **A validation stage** | The Validation section of SKILL.md explains how to check that the results are correct |
 
-## 需要帮助？
-
-- 技能规范疑问 → 提 Issue，标签 `question`
-- 不知道怎么写 description → 提 Issue 附上你的分析场景，我帮你写
-- 想要更多示例 → 见 `docs/skill-guides/`
-
----
-
-# English
-
-## Contributing a New Skill
-
-We welcome contributions from researchers and developers. Three kinds:
-
-- **New skills** — a skill for a domain you work in
-- **Improvements** — bug fixes, extra parameters, better docs
-- **Infrastructure** — shared tooling, CI, documentation
-
-### Quick start
-
-```bash
-git checkout -b feature/my-new-skill
-python scripts/init_skill.py my-new-skill
-# edit skills/my-new-skill/SKILL.md and scripts/
-python scripts/validate_skills.py --skill my-new-skill --strict
-git commit -m "feat: add my-new-skill"
-git push origin feature/my-new-skill
-```
-
-### SKILL.md rules
-
-1. Third person: "This skill should be used when..." — never "You should..."
-2. State clearly **when** to trigger, with keywords users would actually type (include both English and Chinese)
-3. Be specific: name the data formats, tools, and steps
-
-### Script rules
-
-- No hardcoded absolute paths
-- Use `logger` instead of bare `print()`
-- Use `argparse` and provide a `__main__` entry point
-- Heavy dependencies (scanpy, OpenMM, ...) must degrade gracefully
-- Import shared helpers from `biopipe_core`
-
-### Quality bar
-
-Zero errors and zero warnings from `scripts/validate_skills.py --strict` before merge.
 Scientific code must be genuinely runnable, not a stub.
+
+## Need Help?
+
+- Questions about the skill specification -- open an Issue and label it `question`
+- Not sure how to write the `description` -- open an Issue describing your analysis scenario and we will help you write it
+- Want more examples -- see `docs/skill-guides/`

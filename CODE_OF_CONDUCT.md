@@ -1,45 +1,51 @@
-# 行为准则 / Code of Conduct
+# Code of Conduct
 
-## 我们的承诺 / Our Pledge
+## Our Pledge
 
-我们作为成员、贡献者和维护者承诺:参与本项目的人无论年龄、体型、残疾、种族、性别认同与表达、
-经验水平、国籍、个人外貌、种族、宗教或性取向,都不受骚扰。
+We as members, contributors, and maintainers pledge that participation in this project will be
+free from harassment for everyone, regardless of age, body size, disability, ethnicity, gender
+identity and expression, level of experience, nationality, personal appearance, race, religion, or
+sexual orientation.
 
 We pledge to make participation in this project a harassment-free experience for everyone,
 regardless of age, body size, disability, ethnicity, sex characteristics, gender identity and
 expression, level of experience, education, socio-economic status, nationality, personal appearance,
 race, religion, or sexual identity and orientation.
 
-## 我们的标准 / Our Standards
+## Our Standards
 
-有助于创造积极环境的行为:
+Examples of behavior that contributes to a positive environment:
 
-- 使用友善和包容的语言
-- 尊重不同的观点与经验
-- 优雅地接受建设性批评
-- 以社区最佳利益为重
-- 展现同理心与善意
+- Using friendly and inclusive language
+- Respecting differing viewpoints and experiences
+- Gracefully accepting constructive criticism
+- Focusing on what is best for the community
+- Showing empathy and kindness toward others
 
-不可接受的行为:
+Examples of unacceptable behavior:
 
--  sexualized 语言或图像,以及不受欢迎的关注或调戏
-- 挑衅、侮辱/贬损的评论,人身攻击或政治攻击
-- 公开或私下的骚扰
-- 未经明确许可,发布他人的私人信息
-- 在专业场合被认定为不恰当的其他行为
+- Sexualized language or imagery, and unwelcome attention or advances
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information without their explicit permission
+- Other conduct which could reasonably be considered inappropriate in a professional setting
 
-## 适用范围 / Scope
+## Scope
 
-本准则适用于项目所有空间:issue、PR、讨论、提交,以及代表本项目的其他公开场合。
+This Code of Conduct applies within all project spaces: issues, pull requests, discussions,
+commits, and any other public venue where an individual is representing the project.
 
-## 执行 / Enforcement
+## Enforcement
 
-滥用、骚扰或其他不可接受行为可通过 GitHub Issue 私下报告给维护者 `ssinder`。
-所有投诉都将被审查和调查,违规者将受到适当的纠正措施。
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported privately to the
+maintainer `ssinder` via a GitHub Issue. All complaints will be reviewed and investigated, and
+violators will face appropriate corrective action.
 
-维护者有权利也有责任采取合理且必要的措施来回应任何不恰当行为,并有权删除、修改或拒绝
-不符合本准则的评论、提交、代码、issue 与其他贡献。
+Maintainers have the right and responsibility to take reasonable and necessary measures to respond
+to any inappropriate behavior, and the right to remove, modify, or reject comments, commits, code,
+issues, and other contributions that do not align with this Code of Conduct.
 
-## 归属 / Attribution
+## Attribution
 
-本准则改编自 [Contributor Covenant](https://www.contributor-covenant.org/) v2.1。
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/),
+version 2.1.

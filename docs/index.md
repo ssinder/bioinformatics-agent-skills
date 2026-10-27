@@ -7,34 +7,42 @@ title: BioinfoAgent Skills
 
 <img src="{{ '/assets/logo.svg' | relative_url }}" alt="BioinfoAgent Skills" width="348" style="max-width:100%;">
 
-面向计算生物学的**标准 Agent Skills 工具库** —— 遵循 [Agent Skills 开放标准](https://agentskills.io/)，
-把 RNA-seq、单细胞、结构生物学、分子动力学、多肽设计与文献挖掘等分析流程，
-封装成任何 AI Agent 都能即插即用的技能。
+A **standard library of Agent Skills for computational biology** — built on the open
+[Agent Skills standard](https://agentskills.io/). It packages RNA-seq, single-cell, structural
+biology, molecular dynamics, peptide design, and literature-mining workflows into drop-in
+skills that any AI agent can pick up and run.
 
 <div class="hero">
-  <p class="tagline">把可复现的科研分析流程，变成 Agent 可以直接调用的技能</p>
+  <p class="tagline">Turn reproducible research workflows into skills your agent can call directly</p>
 </div>
 
-## 快速开始
+> Refactored from a private archive of **217 real research scripts** into a discoverable,
+> triggerable, reproducible skill library that follows an open standard. Each skill carries the
+> scientific reasoning behind its parameter choices, the root causes of its common failures,
+> and an explicit validation step — so an agent does not just run the code, it runs it correctly.
+
+## Quick start
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
 ```
 
-重启宿主后技能即被自动发现。完整说明见 [快速上手]({{ '/getting-started.html' | relative_url }})。
+Restart your host and the skills are discovered automatically. See
+[Getting Started]({{ '/getting-started.html' | relative_url }}) for the full walkthrough.
 
-## 为什么是 Agent Skills
+## Why Agent Skills
 
-| 特性 | 说明 |
+| Capability | Details |
 |---|---|
-| **开放标准** | `SKILL.md` + `scripts/` + `references/`，遵循 [agentskills.io](https://agentskills.io/) 规范，兼容 Claude Code、Cursor、Codex 等宿主 |
-| **优雅降级** | `--help` 属于元信息查询，不会因缺少 numpy / pandas 等科学计算栈而崩溃；真正用到该功能时才提示安装 |
-| **零重型依赖** | 核心安装仅需 `requests` + `pyyaml`，其余按需通过 extras 安装 |
-| **跨版本兼容** | CI 覆盖 Python 3.9 / 3.11 / 3.13 |
-| **质量保障** | 6 条流水线：规范校验、语法与 lint、单测、依赖与凭据安全扫描、PR 技能扫描、发布 |
+| **Open standard** | `SKILL.md` + `scripts/` + `references/`, following the [agentskills.io](https://agentskills.io/) spec — works with Claude Code, Cursor, Codex, and other hosts |
+| **Graceful degradation** | `--help` is a metadata query: it never crashes because numpy / pandas are missing. You are prompted to install a dependency only when a feature actually needs it |
+| **Zero heavy dependencies** | The core install needs only `requests` + `pyyaml`; everything else comes in through optional extras |
+| **Cross-version compatible** | CI covers Python 3.9 / 3.11 / 3.13 |
+| **Tested** | 900 unit tests covering skill CLIs, validators, and scientific algorithms |
+| **Quality guaranteed** | 7 CI pipelines: spec validation, syntax & lint, unit tests, dependency & credential security scans, PR skill scans, docs site deployment, and release |
 
-## 技能总览
+## Skills overview
 
 <!-- SKILLS_TABLE_START -->
 | [`alphafold-db`](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/skills/alphafold-db/SKILL.md) | Downloads predicted protein structures from the EBI AlphaFold Database API and exports per-protein prediction metadata. Resolves the current PDB/CIF download URL from the API instead of hard-coding a model version, supports batch accession lists, resumable downloads, pLDDT-based quality filtering before spending bandwidth, and validates response content types so HTML error pages are never mistaken for structure files. This skill should be used when fetching AlphaFold models, retrieving predicted structures by UniProt accession, or collecting AlphaFold confidence metrics (pLDDT) is requested. |
@@ -56,11 +64,14 @@ cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
 | [`single-cell-rnaseq`](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/skills/single-cell-rnaseq/SKILL.md) | This skill should be used when running single-cell RNA-seq analysis: reading 10x/AnnData matrices, QC filtering, normalization, HVG selection, PCA, clustering, UMAP/t-SNE and cell type annotation. 用于单细胞转录组（scRNA-seq）质控、降维、聚类与细胞注释全流程。 |
 <!-- SKILLS_TABLE_END -->
 
-## 与普通脚本仓库的区别
+## How this differs from a script dump
 
-普通脚本仓库要求使用者自己读文档、拼命令、判断参数。
-Agent Skills 把这些知识**写进了技能描述里** —— Agent 读一眼 `SKILL.md`
-就知道该用哪个技能、怎么调、要注意什么。```yaml
+A plain script repo makes you read the docs, assemble the right commands, and judge the
+parameters yourself. Agent Skills writes that knowledge **into the skill description** — an agent
+reads one line of `SKILL.md` and knows which skill to use, how to invoke it, and what to watch
+out for.
+
+```yaml
 ---
 name: bulk-rnaseq
 description: >
@@ -71,18 +82,52 @@ description: >
 ---
 ```
 
-这段描述就是 Agent 的路由依据。
+That description is the routing signal the agent dispatches on.
 
-## 文档
+## Coverage
 
-- [快速上手]({{ '/getting-started.html' | relative_url }}) —— 安装、配置、首次使用
-- [技能总览]({{ '/skills/' | relative_url }}) —— 全部技能及其适用场景
-- [技能规范]({{ '/SKILL_SPEC.html' | relative_url }}) —— 如何编写一个新技能
-- [贡献指南](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/CONTRIBUTING.md)
+### 🧬 Transcriptomics
 
-## 引用
+- `bulk-rnaseq` — RNA-seq quantification and differential expression (FastQC, Salmon, DESeq2, GO/KEGG enrichment)
+- `ena-download` — ENA raw read download with resumable transfers and MD5 verification
+- `single-cell-rnaseq` — the standard scRNA-seq workflow: QC, normalization, clustering, UMAP, annotation
 
-如果你在研究中使用了本项目，请引用：
+### 🔬 Structural biology
+
+- `protein-structure` — PDB parsing, secondary structure assignment, shape analysis
+- `protein-interactions` — PLIP report parsing, residue-level interactions, PyMOL annotations
+- `molecular-dynamics` — RMSD/RMSF/PCA, hydrogen bonds, Ramachandran, trajectory clustering
+- `alphafold-db` — AlphaFold DB structure retrieval with pLDDT confidence filtering
+- `protein-docking-hdock` — HDOCK server docking jobs, scores, and model download
+- `protein-docking-lightdock` — local LightDock swarms with DFIRE-based ranking
+- `pymol-structure-visualization` — inter-chain contact geometry and ready-to-run PyMOL scripts
+
+### 🧪 Protein engineering
+
+- `peptide-design` — antimicrobial peptide properties, classification, and library deduplication
+- `ml-peptide-generation` — PepMLM masked language model generation with reproducible seeds
+
+### 📚 Literature mining
+
+- `literature-search` — multi-source search across PubMed, OpenAlex, and Semantic Scholar
+- `bioproject-search` — NCBI BioProject metadata via the official E-utilities API
+- `paper-fulltext-extract` — structured full text from scientific PDFs via GROBID/TEI
+- `bio-database-fetch` — PubChem compound properties and NCBI Taxonomy lineages
+
+### 📊 Scientific visualization
+
+- `scientific-figures` — publication-grade ROC curves, confusion matrices, heatmaps, and SHAP summaries
+
+## Documentation
+
+- [Getting Started]({{ '/getting-started.html' | relative_url }}) — install, configure, and run your first skill
+- [Skills Overview]({{ '/skills/' | relative_url }}) — every skill and the scenarios it fits
+- [Skill Spec]({{ '/SKILL_SPEC.html' | relative_url }}) — how to write a new skill
+- [Contributing](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/CONTRIBUTING.md)
+
+## Citation
+
+If you use this project in your research, please cite:
 
 ```bibtex
 @misc{bioinfoagentskills2026,
@@ -94,6 +139,6 @@ description: >
 }
 ```
 
-## 许可证
+## License
 
-MIT，见 [LICENSE](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/LICENSE)。
+MIT — see [LICENSE](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/LICENSE).

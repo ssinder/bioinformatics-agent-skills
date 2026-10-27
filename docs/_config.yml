@@ -4,8 +4,8 @@
 # 保持项目的「少依赖」理念：文档站只是把仓库里的 Markdown 渲染出来。
 
 title: BioinfoAgent Skills
-description: 面向计算生物学的标准 Agent Skills 工具库 — 遵循 Agent Skills 开放标准
-lang: zh-CN
+description: A standard Agent Skills library for computational biology — built on the open Agent Skills standard
+lang: en
 
 # 仓库信息
 repository: ssinder/bioinformatics-agent-skills
@@ -62,17 +62,17 @@ defaults:
 
 # 导航
 nav:
-  - title: 首页
+  - title: Home
     url: /
-  - title: 快速上手
+  - title: Getting started
     url: /getting-started.html
-  - title: 技能总览
+  - title: Skills
     url: /skills/
-  - title: 技能规范
+  - title: Skill spec
     url: /SKILL_SPEC.html
-  - title: 迁移映射
+  - title: Migration map
     url: /migration-map.html
-  - title: 贡献指南
+  - title: Contributing
     url: https://github.com/ssinder/bioinformatics-agent-skills/blob/main/CONTRIBUTING.md
   - title: GitHub
     url: https://github.com/ssinder/bioinformatics-agent-skills

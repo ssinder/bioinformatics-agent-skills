@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "如果你在研究中使用了本项目，请引用以下信息。"
+message: "If you use this project in your research, please cite it using the information below."
 title: "BioinfoAgent Skills: Agent Skills for Computational Biology"
 abstract: "A collection of Agent Skills for computational biology covering RNA-seq, single-cell analysis, protein structure analysis, molecular dynamics, peptide design, literature mining, and publication-quality figures."
 version: 1.0.0

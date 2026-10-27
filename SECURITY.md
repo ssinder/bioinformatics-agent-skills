@@ -1,67 +1,74 @@
-# 安全策略 / Security Policy
+# Security Policy
 
-## 支持的版本 / Supported Versions
+## Supported Versions
 
-| 版本 | 状态 |
-|------|------|
-| latest | ✅ 支持 |
-| < latest | ⚠️ 仅安全修复 |
+| Version | Status |
+|---------|--------|
+| latest | ✅ Supported |
+| < latest | ⚠️ Security fixes only |
 
-## 报告漏洞 / Reporting a Vulnerability
+## Reporting a Vulnerability
 
-**请不要通过公开 Issue 报告安全漏洞。**
+**Please do not report security vulnerabilities through public Issues.**
 
-请通过 GitHub 的 [Private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories)
-功能私下提交,或联系维护者 `ssinder`。
+Use GitHub's [Private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories)
+feature to submit a report privately, or contact the maintainer `ssinder`.
 
-请在报告中说明:
+Please include the following in your report:
 
-- 受影响的技能与版本
-- 漏洞类型与影响范围
-- 复现步骤或最小复现样例
-- 你认为的修复建议
+- The affected skill(s) and version(s)
+- The type of the vulnerability and its scope of impact
+- Steps to reproduce, or a minimal reproduction case
+- Your suggested remediation, if you have one
 
-我们会在收到报告后 72 小时内确认,并在 7 天内给出修复计划或缓解方案。
+We will acknowledge the report within 72 hours, and provide a fix plan or mitigation within
+7 days.
 
-## 安全设计原则 / Security Design Principles
+## Security Design Principles
 
-本项目遵循以下安全设计原则:
+This project follows the following security design principles:
 
-### 1. 技能不执行未声明的网络行为
+### 1. Skills perform no undeclared network activity
 
-所有联网脚本必须显式传入参数才发起请求。技能在默认状态下不产生外部网络流量。
+Every networked script requires its arguments to be passed explicitly before any request is made.
+In their default state, skills generate no outbound network traffic.
 
-### 2. 不收集用户数据
+### 2. No user data is collected
 
-技能仅在用户指定的本地目录读写文件,不向任何远程服务上传数据,除非用户明确配置了相应 API 端点。
+Skills read and write files only in the local directory you specify, and never upload data to any
+remote service unless you have explicitly configured the corresponding API endpoint.
 
-### 3. 凭据仅从环境变量读取
+### 3. Credentials are read from environment variables only
 
-所有 API 密钥、令牌通过环境变量传入,绝不硬编码在代码中。CI 会扫描硬编码凭据。
+All API keys and tokens are passed in through environment variables, and are never hardcoded in the
+source. CI scans for hardcoded credentials.
 
 ```bash
 export NCBI_API_KEY="your-key"
 export OPENALEX_MAILTO="you@example.com"
 ```
 
-### 4. 路径隔离
+### 4. Path isolation
 
-技能只写入用户指定的工作目录,路径通过参数传递,不越界写入系统目录。
+Skills write only to the working directory you specify. Paths are passed in as arguments, and the
+skills never write outside that boundary into system directories.
 
-### 5. 依赖审计
+### 5. Dependency auditing
 
-每次 PR 都运行 `pip-audit` 依赖漏洞扫描,发现高危漏洞将阻止合并。
+Every PR runs a `pip-audit` dependency vulnerability scan, and a high-severity finding blocks the
+merge.
 
-## 适用范围 / Scope
+## Scope
 
-以下内容在安全审查范围内:
+The following are in scope for security review:
 
-- `skills/` 下所有技能脚本
-- `packages/` 共享工具层
-- `scripts/` 校验与构建脚本
-- CI 工作流配置
+- All skill scripts under `skills/`
+- The shared utility layer under `packages/`
+- Validation and build scripts under `scripts/`
+- CI workflow configuration
 
-## 免责声明 / Disclaimer
+## Disclaimer
 
-本项目提供的是分析与计算工具,其输出结果需要研究者自行验证。工具的设计不构成任何医学、
-临床或监管建议。
+This project provides analysis and computation tools. The results they produce must be verified
+independently by the researcher. The tools are not designed to provide medical, clinical, or
+regulatory advice.

@@ -2,214 +2,224 @@
 
 <img src="docs/assets/logo.svg" alt="BioinfoAgent Skills" width="348">
 
-**把任意 AI 编程助手变成计算生物学家的科研搭档**
+**Turn any AI coding assistant into a computational biologist's research partner**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Skills](https://img.shields.io/badge/Skills-17-brightgreen.svg)](#-available-skills)
+[![Skills](https://img.shields.io/badge/Skills-17-brightgreen.svg)](#available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
 [![Security](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/security-scan.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/security-scan.yml)
 [![Pages](https://img.shields.io/badge/Docs-GitHub_Pages-blue.svg)](https://ssinder.github.io/bioinformatics-agent-skills/)
 
-📖 **[在线文档 / Documentation](https://ssinder.github.io/bioinformatics-agent-skills/)** ——
-快速上手、技能总览、方法学参考与故障排查
-
-[English](#english) | 简体中文
+📖 **[Full documentation](https://ssinder.github.io/bioinformatics-agent-skills/)** ——
+quick start, skill catalogue, methodology references, and troubleshooting
 
 </div>
 
 ---
 
-## 这是什么 / What is this
+## What is this
 
-一套面向计算生物学的 **Agent Skills 技能库**。每个技能都是一个标准化的 `SKILL.md` 包,
-让 Claude Code、Cursor、Codex 等任意支持 [Agent Skills 开放标准](https://agentskills.io/) 的
-AI 助手获得**领域专业知识、可复现流程和验证检查** —— 而不只是会调用 API 的通才。
+A curated collection of **Agent Skills for computational biology**. Every skill is a standardized
+`SKILL.md` package that gives Claude Code, Cursor, Codex, and any other host supporting the
+open [Agent Skills standard](https://agentskills.io/) **domain expertise, reproducible workflows, and
+validation checks** — instead of another generalist that merely knows how to call an API.
 
-覆盖转录组学、单细胞、蛋白结构、分子动力学、蛋白对接、链间接触分析与 PyMOL 可视化、抗菌肽设计、ML 肽链生成、文献挖掘、NCBI BioProject 元数据与出版级图表。
+Coverage spans transcriptomics, single-cell analysis, protein structure, molecular dynamics, protein
+docking, inter-chain contact analysis with PyMOL visualization, antimicrobial peptide design, ML
+peptide generation, literature mining, NCBI BioProject metadata, and publication-grade figures.
 
-> 转型自 [`ssinder/Bioinformatics_pipeline`](https://github.com/ssinder/Bioinformatics_pipeline)——
-> 217 个真实科研脚本,重构为符合开放标准的可发现、可触发、可复现技能库。
-> 老仓库已**归档**(read-only),每个脚本的去向与处置理由见
-> **[迁移映射](docs/migration-map.md)**。
-
----
-
-## 为什么需要它 / Why
-
-大多数 AI 助手能写 `scanpy` 代码,但不知道:
-
-- 你的单细胞数据里有多少线粒体基因比例该剔除才合理
-- DESeq2 的 `padj` 为什么突然全为 NA —— 通常是 `design` 设错了
-- RMSF 曲线的第一个尖峰对应哪个柔性 Loop,该拿它去做什么实验
-- 检索到的 3000 篇文献里,哪些真正是「靶点发现」而非「功能验证」
-- 审稿人要求的 ROC 曲线,坐标轴范围该截到多少才不被质疑
-
-**这些是本项目承载的东西。** 每个技能的 `references/methodology.md` 记录参数选择的科学依据,
-`references/troubleshooting.md` 记录常见故障的根因,`SKILL.md` 的 Validation 章节给出结果的自检方法。
+> Refactored from a private archive of **217 real research scripts** into a discoverable,
+> triggerable, reproducible skill library that follows an open standard. The per-script mapping —
+> what was ported, what was rewritten, and why — is documented in the
+> **[migration map](docs/migration-map.md)**.
 
 ---
 
-## 快速开始 / Quick Start
+## Why
 
-### 方式一:作为 Claude Code 技能安装
+Most AI assistants can write `scanpy` code. They do not know:
+
+- how much mitochondrial gene percentage to drop from your single-cell data before the filter starts
+  eating real cells
+- why DESeq2's `padj` suddenly came back all `NA` — almost always a mis-specified `design`
+- which flexible loop the first spike in an RMSF curve corresponds to, and what experiment to run on it
+- which of 3,000 retrieved papers are genuinely *target discovery* rather than *functional validation*
+- where to truncate the axes of a reviewer-requested ROC curve so it does not invite criticism
+
+**Those are the things this project carries.** Each skill ships a `references/methodology.md`
+recording the scientific reasoning behind parameter choices, a `references/troubleshooting.md`
+recording root causes for common failures, and a Validation section in `SKILL.md` describing how to
+check whether your results are right.
+
+---
+
+## Quick start
+
+### Option 1 — install as Claude Code skills
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
 ```
 
-重启 Claude Code 后,技能会被自动发现。当你说「帮我做一次 RNA-seq 差异表达分析」,
-它会自行加载 `bulk-rnaseq` 技能。
+Restart Claude Code and the skills are discovered automatically. Ask it to *"run a bulk RNA-seq
+differential expression analysis"* and it will load the `bulk-rnaseq` skill on its own.
 
-### 方式二:作为 Python 包使用
+### Option 2 — use as a Python package
 
 ```bash
 pip install -e .
-biopipe --list                      # 列出全部技能
-biopipe bulk-rnaseq --help         # 查看某个技能用法
+biopipe --list                      # list every skill
+biopipe bulk-rnaseq --help         # usage for one skill
 ```
 
-### 方式三:直接调用脚本
+### Option 3 — call the scripts directly
 
 ```bash
 export PYTHONPATH="$PWD/packages"
 
-# 蛋白质理化性质计算
+# peptide physicochemical properties
 python skills/peptide-design/scripts/analyze_peptides.py \
     --input peptides.fasta --output results/peptide_stats.csv
 
-# 绘制 ROC 曲线
+# ROC curve
 python skills/scientific-figures/scripts/make_figures.py roc \
     --input metrics.csv --output figures/roc.png
 
-# 文献检索
+# literature search
 python skills/literature-search/scripts/search_literature.py \
     --topic "antimicrobial peptide delivery" --source pubmed --max-results 50
 ```
 
 ---
 
-## 可用技能 / Available Skills
+## Available skills
 
-### 🧬 转录组学 / Transcriptomics
+### 🧬 Transcriptomics
 
-| 技能 | 描述 | 关键能力 |
+| Skill | Description | Key capabilities |
 |------|------|----------|
-| [`bulk-rnaseq`](skills/bulk-rnaseq/) | RNA-seq 定量与差异表达 | FastQC 质控 · Salmon 定量 · DESeq2 差异分析 · GO/KEGG 富集 |
-| [`ena-download`](skills/ena-download/) | ENA 原始数据下载 | Portal API 取 FASTQ · 断点续传 · MD5 校验 · 元数据导出 |
-| [`single-cell-rnaseq`](skills/single-cell-rnaseq/) | 单细胞 RNA-seq 标准流程 | 质控过滤 · CP10K 归一化 · HVG · PCA · Leiden 聚类 · UMAP · 细胞注释 |
+| [`bulk-rnaseq`](skills/bulk-rnaseq/) | RNA-seq quantification and differential expression | FastQC QC · Salmon quantification · DESeq2 differential analysis · GO/KEGG enrichment |
+| [`ena-download`](skills/ena-download/) | ENA raw data download | Portal API FASTQ retrieval · resumable transfers · MD5 verification · metadata export |
+| [`single-cell-rnaseq`](skills/single-cell-rnaseq/) | Standard single-cell RNA-seq workflow | QC filtering · CP10K normalization · HVG · PCA · Leiden clustering · UMAP · cell annotation |
 
-### 🔬 结构生物学 / Structural Biology
+### 🔬 Structural biology
 
-| 技能 | 描述 | 关键能力 |
+| Skill | Description | Key capabilities |
 |------|------|----------|
-| [`protein-structure`](skills/protein-structure/) | PDB 结构解析与二级结构 | 自带 PDB 解析器 · DSSP 二级结构 · 几何计算 · UniProt 元数据 |
-| [`protein-interactions`](skills/protein-interactions/) | 蛋白质-配体相互作用 | PLIP XML 解析 · 残基级抽取 · 交互网络 · PyMOL 标注 |
-| [`molecular-dynamics`](skills/molecular-dynamics/) | 分子动力学模拟与轨迹分析 | RMSD/RMSF/PCA · 氢键 · Ramachandran · 轨迹聚类 · 内置 DCD 解析器 |
-| [`alphafold-db`](skills/alphafold-db/) | AlphaFold DB 结构下载 | API 解析下载链接 · 批量下载 · pLDDT 置信度筛选 · 元数据导出 |
-| [`protein-docking-hdock`](skills/protein-docking-hdock/) | HDOCK 蛋白质对接 | HTTP 提交作业 · Docking Score · 置信度公式 · 模型下载 · 队列状态区分 |
-| [`protein-docking-lightdock`](skills/protein-docking-lightdock/) | LightDock 本地蛋白质对接 | GSO 群体优化 · DFIRE 打分解析 · 最优复合物生成 · 批量可断点续跑 |
-| [`pymol-structure-visualization`](skills/pymol-structure-visualization/) | 链间残基接触分析与 PyMOL 可视化 | 网格空间划分 · 氢键/盐桥/疏水/π-π/阳离子-π 分类 · 热点残基 · Mermaid 网络图 · PyMOL 脚本生成 |
+| [`protein-structure`](skills/protein-structure/) | PDB structure parsing and secondary structure | Built-in PDB parser · DSSP secondary structure · geometry computation · UniProt metadata |
+| [`protein-interactions`](skills/protein-interactions/) | Protein-ligand interactions | PLIP XML parsing · residue-level extraction · interaction networks · PyMOL annotations |
+| [`molecular-dynamics`](skills/molecular-dynamics/) | Molecular dynamics simulation and trajectory analysis | RMSD/RMSF/PCA · hydrogen bonds · Ramachandran · trajectory clustering · built-in DCD parser |
+| [`alphafold-db`](skills/alphafold-db/) | AlphaFold DB structure download | API link resolution · batch download · pLDDT confidence filtering · metadata export |
+| [`protein-docking-hdock`](skills/protein-docking-hdock/) | HDOCK protein docking | HTTP job submission · Docking Score · confidence formula · model download · queue-status distinction |
+| [`protein-docking-lightdock`](skills/protein-docking-lightdock/) | LightDock local protein docking | GSO swarm optimization · DFIRE scoring parsing · best-complex assembly · resumable batch runs |
+| [`pymol-structure-visualization`](skills/pymol-structure-visualization/) | Inter-chain residue contacts and PyMOL visualization | Grid spatial partitioning · hydrogen bond/salt bridge/hydrophobic/π-π/cation-π classification · hotspot residues · Mermaid network diagrams · PyMOL script generation |
 
-### 🧪 蛋白工程 / Protein Engineering
+### 🧪 Protein engineering
 
-| 技能 | 描述 | 关键能力 |
+| Skill | Description | Key capabilities |
 |------|------|----------|
-| [`peptide-design`](skills/peptide-design/) | 抗菌肽设计与筛选 | 理化性质计算 · 疏水性/pI · 稳定性 · MMseqs2 聚类去冗余 |
-| [`ml-peptide-generation`](skills/ml-peptide-generation/) | ML 肽链生成与筛选 | PepMLM 掩码语言模型 · 非法氨基酸剔除 · 伪困惑度排序 · 种子可复现 |
+| [`peptide-design`](skills/peptide-design/) | Antimicrobial peptide design and screening | Physicochemical properties · hydrophobicity/pI · stability · MMseqs2 clustering for redundancy removal |
+| [`ml-peptide-generation`](skills/ml-peptide-generation/) | ML peptide generation and screening | PepMLM masked language model · illegal residue filtering · pseudo-perplexity ranking · reproducible seeds |
 
-### 🧬 化学信息学 / Cheminformatics
+### 🧬 Cheminformatics
 
-| 技能 | 描述 | 关键能力 |
+| Skill | Description | Key capabilities |
 |------|------|----------|
-| [`bio-database-fetch`](skills/bio-database-fetch/) | PubChem 化合物与物种分类检索 | PUG-REST 批量属性 · CAS 号格式提取 · Taxonomy 完整 lineage · 无浏览器依赖 |
+| [`bio-database-fetch`](skills/bio-database-fetch/) | PubChem compound and taxonomy lookup | PUG-REST batch properties · CAS number extraction · full taxonomy lineage · no browser dependency |
 
-### 📚 文献挖掘 / Literature Mining
+### 📚 Literature mining
 
-| 技能 | 描述 | 关键能力 |
+| Skill | Description | Key capabilities |
 |------|------|----------|
-| [`literature-search`](skills/literature-search/) | 多源学术文献检索 | PubMed · OpenAlex · Semantic Scholar · DOI 去重 · RIS/BibTeX 导出 |
-| [`bioproject-search`](skills/bioproject-search/) | NCBI BioProject 元数据检索 | E-utilities API · 标题/描述/物种 · 关键词筛选 · CSV/JSON 导出 |
-| [`paper-fulltext-extract`](skills/paper-fulltext-extract/) | PDF 文献全文结构化抽取 | GROBID 转 TEI · 章节树/图表/参考文献解析 · JSON/MD/HTML 输出 · 语料检索 · 引言首句 |
+| [`literature-search`](skills/literature-search/) | Multi-source scholarly literature search | PubMed · OpenAlex · Semantic Scholar · DOI deduplication · RIS/BibTeX export |
+| [`bioproject-search`](skills/bioproject-search/) | NCBI BioProject metadata retrieval | E-utilities API · title/description/species · keyword filtering · CSV/JSON export |
+| [`paper-fulltext-extract`](skills/paper-fulltext-extract/) | Structured full-text extraction from PDFs | GROBID to TEI · section tree/figure/reference parsing · JSON/MD/HTML output · corpus search · lead sentences |
 
-### 📊 数据可视化 / Scientific Visualization
+### 📊 Scientific visualization
 
-| 技能 | 描述 | 关键能力 |
+| Skill | Description | Key capabilities |
 |------|------|----------|
-| [`scientific-figures`](skills/scientific-figures/) | 顶刊级图表生成 | ROC · 混淆矩阵 · 热图 · 火山图 · SHAP 摘要 · 统一出版样式 |
+| [`scientific-figures`](skills/scientific-figures/) | Publication-grade figure generation | ROC · confusion matrices · heatmaps · volcano plots · SHAP summaries · unified publication styling |
 
 ---
 
-## 设计原则 / Design Principles
+## Design principles
 
-**自包含** —— 核心算法内置纯 Python 实现。scanpy 没装?照样能跑完单细胞流程。
-OpenMM 没装?照样能解析 DCD 轨迹并做 RMSD/PCA。依赖可选,能力不打折。
+**Self-contained** — core algorithms ship as pure Python implementations. No scanpy installed? The
+single-cell workflow still runs. No OpenMM? DCD trajectories still parse, and RMSD/PCA still compute.
+Dependencies are optional; capability is not.
 
-**可复现** —— 固定随机种子、记录参数、锁定版本、输出运行元数据。
+**Reproducible** — fixed random seeds, recorded parameters, pinned versions, and run metadata written
+alongside the results.
 
-**可验证** —— 每个技能都定义了自己的质控环节,结果对不对有明确的检查方法。
+**Verifiable** — every skill defines its own quality-control stage, so there is an explicit way to
+check whether the output is correct.
 
-**无硬编码** —— 所有路径参数化,所有输出走标准目录约定,没有一条 `/Users/xxx/...` 写死在代码里。
+**No hardcoded paths** — all paths are parameterized and all output follows a standard directory
+convention. Not a single `/Users/xxx/...` is baked into the code.
 
-**零门槛** —— `pip install -e .` 即可使用,无需配置云服务、API Key 或数据库。
+**Zero setup** — `pip install -e .` is enough. No cloud services, API keys, or databases to configure.
 
 ---
 
-## 项目结构 / Layout
+## Layout
 
 ```
 bioinformatics-agent-skills/
-├── skills/                    # 17 个独立可安装的技能
+├── skills/                    # 17 independently installable skills
 │   ├── bulk-rnaseq/
-│   │   ├── SKILL.md           # 触发描述 + 工作流 + 验证方法
-│   │   ├── scripts/           # 可执行脚本
-│   │   └── references/         # 方法学原理 + 排错手册
+│   │   ├── SKILL.md           # trigger description + workflow + validation
+│   │   ├── scripts/           # executable scripts
+│   │   └── references/        # methodology + troubleshooting guide
 │   └── ...
 ├── packages/
-│   ├── biopipe_core/          # 共享工具层：配置/日志/HTTP重试/CLI/IO
-│   └── biopipe/               # 统一命令行入口与技能注册表
+│   ├── biopipe_core/          # shared layer: config/logging/HTTP retry/CLI/IO
+│   └── biopipe/               # unified CLI entry point and skill registry
 ├── scripts/
-│   ├── validate_skills.py     # 技能规范校验器（CI 核心）
-│   └── init_skill.py          # 技能骨架生成器
-├── tests/                     # 单元测试与校验器自测
-├── docs/                      # 使用指南与技能目录
-└── .github/workflows/         # 5 条 CI 流水线
+│   ├── validate_skills.py     # skill spec validator (CI core)
+│   └── init_skill.py          # skill scaffolding generator
+├── tests/                     # unit tests and validator self-tests
+├── docs/                      # usage guides and skill catalogue
+└── .github/workflows/         # 7 CI pipelines
 ```
 
 ---
 
-## 开发 / Development
+## Development
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cd bioinformatics-agent-skills
 pip install -e ".[dev]"
 
-python -m pytest tests -v              # 跑测试
-python scripts/validate_skills.py      # 校验所有技能
-python scripts/validate_skills.py --strict   # 警告也算失败
+python -m pytest tests -v              # run the test suite
+python scripts/validate_skills.py      # validate every skill
+python scripts/validate_skills.py --strict   # treat warnings as failures
 ```
 
-新增技能请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+See [CONTRIBUTING.md](CONTRIBUTING.md) before adding a new skill.
 
-### CI 流水线
+### CI pipelines
 
-| 工作流 | 作用 |
+| Workflow | Purpose |
 |--------|------|
-| `skill-spec-validation` | 校验所有技能符合 Agent Skills 规范 |
-| `script-syntax` | 多 Python 版本语法检查 + Ruff 静态检查 |
-| `tests` | 单元测试 + 全部技能 `--help` 冒烟测试 |
-| `security-scan` | 依赖漏洞审计 + 硬编码凭据扫描 |
-| `pr-skill-scan` | PR 中变更技能的定向校验与报告 |
+| `skill-spec-validation` | Validates that every skill conforms to the Agent Skills spec |
+| `script-syntax` | Multi-version Python syntax check + Ruff linting |
+| `tests` | Unit tests + `--help` smoke test for every skill |
+| `security-scan` | Dependency vulnerability audit + hardcoded credential scan |
+| `pr-skill-scan` | Targeted validation and reporting for skills changed in a PR |
+| `pages` | Builds and deploys the documentation site |
+| `release` | Automated release packaging |
 
 ---
 
-## 引用 / Citation
+## Citation
 
-如果你在研究中使用了本项目,请引用:
+If you use this project in your research, please cite:
 
 ```bibtex
 @software{bioinfoagent2026,
@@ -220,55 +230,32 @@ python scripts/validate_skills.py --strict   # 警告也算失败
 }
 ```
 
-详见 [CITATION.cff](CITATION.cff)。
+See [CITATION.cff](CITATION.cff) for details.
 
 ---
 
-## 贡献 / Contributing
+## Contributing
 
-欢迎提交新技能、修复 bug 或改进文档。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-提交新技能请先读 [docs/SKILL_SPEC.md](docs/SKILL_SPEC.md)。
+Contributions of new skills, bug fixes, and documentation improvements are welcome. See
+[CONTRIBUTING.md](CONTRIBUTING.md). Read [docs/SKILL_SPEC.md](docs/SKILL_SPEC.md) before submitting a
+new skill.
 
-参与本项目即表示同意 [行为准则](CODE_OF_CONDUCT.md)。
+Participation in this project implies agreement with the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## 许可证 / License
+## License
 
-MIT © sinder。详见 [LICENSE](LICENSE)。
+MIT © sinder. See [LICENSE](LICENSE).
 
-## 免责声明 / Disclaimer
+## Disclaimer
 
-本项目提供分析与计算工具,其输出需研究者自行验证,不构成医学、临床或监管建议。
+This project provides analysis and computation tooling. Its outputs require independent verification
+by the researcher and do not constitute medical, clinical, or regulatory advice.
 
 ---
 
 <div align="center">
 
-**[给这个项目点个 star ★](https://github.com/ssinder/bioinformatics-agent-skills)** —— 让更多研究者发现这套可复现的科研技能。
+**[Star this project ★](https://github.com/ssinder/bioinformatics-agent-skills)** — help more
+researchers discover these reproducible research skills.
 
 </div>
-
----
-
-# English
-
-**BioinfoAgent Skills** — a collection of Agent Skills for computational biology, built on the
-open [Agent Skills standard](https://agentskills.io/). Compatible with Claude Code, Cursor, Codex,
-and any host that supports the standard.
-
-Each skill packages a `SKILL.md` trigger description, runnable scripts, and two reference docs:
-`methodology.md` (why each parameter is set the way it is) and `troubleshooting.md` (what breaks
-and why). Heavy dependencies degrade gracefully — the core algorithms are implemented in pure
-Python so the skills work even in minimal environments.
-
-**Domains covered:** bulk RNA-seq, single-cell RNA-seq, protein structure analysis, protein-ligand
-interactions, molecular dynamics, antimicrobial peptide design, ML peptide generation, literature
-mining, NCBI BioProject metadata retrieval, and publication-quality figures.
-
-```bash
-pip install -e .
-biopipe --list
-```
-
-Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-MIT licensed.

@@ -1,28 +1,28 @@
-# 技能改造规范契约
+# Skill Refactoring Specification Contract
 
-所有技能子 agent 必须严格遵守本文件。改造后的技能目录结构固定为：
+All skill sub-agents MUST strictly comply with this document. The refactored skill directory structure is fixed as follows:
 
 ```
 skills/<skill-name>/
-├── SKILL.md              # 必需，Agent Skills 标准格式
-├── scripts/              # 可执行脚本，路径参数化 + logging 化
+├── SKILL.md              # Required, Agent Skills standard format
+├── scripts/              # Executable scripts, path-parameterized + logging-based
 │   └── <entry>.py
-├── references/           # 参考文档（可选但推荐）
+├── references/           # Reference documents (optional but recommended)
 │   └── *.md
-├── requirements.txt      # 依赖（可选）
-└── README.md             # 简短人读说明（可选）
+├── requirements.txt      # Dependencies (optional)
+└── README.md             # Short human-readable description (optional)
 ```
 
-## SKILL.md 格式（严格遵守）
+## SKILL.md Format (Strictly Enforced)
 
-YAML frontmatter 必须包含：
+The YAML frontmatter MUST contain:
 
 ```yaml
 ---
-name: <skill-name>          # 小写连字符，与目录名一致
-description: <第三人称描述，必须包含 "This skill should be used when..." 句式，说明何时触发>
+name: <skill-name>          # Lowercase with hyphens, matching the directory name
+description: <third-person description; must contain the sentence "This skill should be used when..." explaining when to trigger>
 license: MIT
-compatibility: <运行环境要求，如 Python 3.9+ 及关键依赖>
+compatibility: <runtime requirements, e.g. Python 3.9+ plus the key dependencies>
 metadata:
   version: "1.0"
   last-reviewed: "2026-10-25"
@@ -30,70 +30,69 @@ metadata:
 ---
 ```
 
-description 要求：
-- 第三人称，写成 "This skill should be used when..." / "用于...的场景"
-- 必须同时包含 **做什么** 和 **何时触发**（含触发关键词，英文关键词必须出现，因为用户可能用英文提问）
-- 长度控制在 100–400 字符
-- 禁止出现 "Use this skill when" 这类第二人称表述
+Requirements for `description`:
 
-正文必须包含以下章节（用 `##` 二级标题）：
+- Write it in the third person, as "This skill should be used when..."
+- It MUST state both **what the skill does** and **when to trigger** (including trigger keywords; English keywords must appear, because users may ask in English)
+- Keep the length within 100-400 characters
+- Never use second-person phrasing such as "Use this skill when"
 
-1. `## Overview` —— 这个技能解决什么问题，2–4 句
-2. `## When to Use This Skill` —— 具体使用场景列表（用 `-`）
-3. `## Quick Start` —— 可直接复制运行的命令示例
-4. `## Workflow` —— 分步骤说明（编号列表或 mermaid 流程图）
-5. `## Parameters` —— 关键参数说明表
-6. `## Outputs` —— 产出文件说明表
-7. `## Validation` —— 如何验证结果正确性（质控要点）
-8. `## References` —— 指向 references/ 下的文档
+The body MUST contain the following sections (as `##` level-2 headings):
 
-## 脚本规范（严格遵守）
+1. `## Overview` -- what problem this skill solves, 2-4 sentences
+2. `## When to Use This Skill` -- a list of concrete usage scenarios (use `-`)
+3. `## Quick Start` -- command examples that can be copied and run directly
+4. `## Workflow` -- step-by-step instructions (numbered list or mermaid flowchart)
+5. `## Parameters` -- a table of the key parameters
+6. `## Outputs` -- a table of the produced files
+7. `## Validation` -- how to verify that the results are correct (quality-control checkpoints)
+8. `## References` -- pointers to the documents under references/
 
-1. **导入共享层**：脚本开头加入
+## Script Rules (Strictly Enforced)
+
+1. **Import the shared layer**: add this at the top of the script
    ```python
    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
    from biopipe_core import get_logger, get_config, SkillError
    ```
-   （`parents[3]` 是因为脚本在 `skills/<name>/scripts/x.py`，往上 3 层到仓库根）
+   (`parents[3]` is used because the script lives at `skills/<name>/scripts/x.py`, three levels up reaches the repository root)
 
-2. **禁止硬编码绝对路径**：所有输入输出路径来自命令行参数，默认值基于 `get_config()`
+2. **Never hardcode absolute paths**: every input and output path comes from a command-line argument; defaults are derived from `get_config()`
 
-3. **禁止裸 print**：用 `logger = get_logger("biopipe.<skill-name>")`，输出用 `logger.info(...)`
+3. **Never use bare `print()`**: use `logger = get_logger("biopipe.<skill-name>")` and emit output with `logger.info(...)`
 
-4. **统一 CLI**：用 `biopipe_core.cli.bootstrap_cli(description, skill_name, main)` 作为入口，
-   `main(args)` 返回退出码。必须有 `--input`、`--output` 等业务参数。
+4. **Unified CLI**: use `biopipe_core.cli.bootstrap_cli(description, skill_name, main)` as the entry point; `main(args)` returns the exit code. It MUST expose business parameters such as `--input` and `--output`.
 
-5. **文件头**：每个脚本加 shebang + 编码声明 + 模块 docstring（含用法示例）
+5. **File header**: every script MUST carry a shebang + encoding declaration + module docstring (including a usage example)
 
-6. **必须有 `if __name__ == "__main__":` 入口**
+6. **MUST have an `if __name__ == "__main__":` entry point**
 
-7. **脚本必须能在没有输入文件时 `--help` 正常退出**（不依赖真实数据）
+7. **The script MUST exit cleanly with `--help` when no input file is present** (it must not depend on real data)
 
-8. **不依赖重量级第三方库的模块要在导入时优雅降级**：
-   例如 scanpy/matplotlib 缺失时给出清晰报错而不是 ImportError 堆栈
+8. **Modules that do not rely on heavy third-party libraries MUST degrade gracefully at import time**: for example, when scanpy/matplotlib are missing, report a clear error instead of an ImportError stack trace
 
-## 内容迁移来源
+## Content Migration Sources
 
-原仓库 `Bioinformatics_pipeline/<对应目录>/scripts/*.py` 是改造来源。
-**保留原脚本的科学计算逻辑**，但要：
-- 去掉硬编码路径，改为参数
-- 去掉裸 print，改为 logger
-- 补上 argparse
-- 保留原有核心算法与注释
+The original repository `Bioinformatics_pipeline/<corresponding directory>/scripts/*.py` is the migration source.
+**Preserve the original scripts' scientific computation logic**, but:
+- Remove the hardcoded paths and turn them into parameters
+- Remove the bare `print()` calls and switch them to the logger
+- Add argparse
+- Keep the original core algorithms and comments
 
-原目录位置：`C:/Users/DELL/WorkBuddy/2026-10-25-20-38-30/Bioinformatics_pipeline/`
+Original directory location: `C:/Users/DELL/WorkBuddy/2026-10-25-20-38-30/Bioinformatics_pipeline/`
 
-## 禁止事项
+## Prohibited Practices
 
-- 不要修改原仓库 `Bioinformatics_pipeline/`（只读参考）
-- 不要创建 `README.md` 以外的临时文件
-- 不要在 SKILL.md 中写具体的人名路径、QQ、邮箱等隐私信息
-- 不要使用 emoji（除 README 顶层外，SKILL.md 内不用）
-- 不要在脚本里执行网络请求的默认行为（必须显式传参才联网）
+- Do not modify the original repository `Bioinformatics_pipeline/` (read-only reference)
+- Do not create temporary files other than `README.md`
+- Do not write real names, local paths, QQ numbers, email addresses, or other private information in SKILL.md
+- Do not use emoji (none inside SKILL.md; the README top level excepted)
+- Do not make network requests the default behavior of a script (networking requires an explicit parameter)
 
-## 交付自检
+## Pre-delivery Self-check
 
-完成前必须自检并在返回中说明：
+Before finishing, you MUST run the following self-check and report the results:
 ```bash
 cd <repo>
 python -c "import yaml,sys; d=yaml.safe_load(open('skills/<name>/SKILL.md').read().split('---')[1]); print(d['name'], '|', d['description'][:80])"

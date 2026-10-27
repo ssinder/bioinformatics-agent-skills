@@ -1,60 +1,60 @@
-# 快速上手 / Getting Started
+# Getting Started
 
-本指南介绍如何安装、配置并首次使用 BioinfoAgent Skills。
+This guide walks you through installing, configuring, and using BioinfoAgent Skills for the first time.
 
-## 安装
+## Installation
 
-### 作为 Claude Code 技能
+### As Claude Code skills
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
 ```
 
-重启 Claude Code 后技能即可被自动发现。
+Restart Claude Code and the skills are discovered automatically.
 
-> 也支持其他遵循 [Agent Skills 标准](https://agentskills.io/) 的宿主:
-> Cursor、Codex、Google Antigravity 等。把 `skills/` 目录放到对应宿主读取技能的位置即可。
+> Other hosts that follow the [Agent Skills standard](https://agentskills.io/) are supported as well:
+> Cursor, Codex, Google Antigravity, and others. Simply place the `skills/` directory wherever your host reads skills from.
 
-### 作为 Python 包
+### As a Python package
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cd bioinformatics-agent-skills
-pip install -e ".[all]"     # 安装全部科学计算依赖
-# 或按需安装
+pip install -e ".[all]"     # install all scientific computing dependencies
+# or install only what you need
 pip install -e ".[rna-seq]"
 pip install -e ".[single-cell]"
 pip install -e ".[structure]"
 pip install -e ".[visualization]"
 ```
 
-验证安装:
+Verify the installation:
 
 ```bash
 biopipe --list
 ```
 
-## 配置
+## Configuration
 
-### 项目目录约定
+### Project layout
 
-所有技能遵循统一的目录约定:
+All skills follow the same directory convention:
 
 ```
 my_project/
-├── data/         # 原始输入
-├── work/         # 中间产物
-├── results/      # 最终结果
-├── figures/      # 图表
-└── logs/         # 运行日志
+├── data/         # raw inputs
+├── work/         # intermediate artifacts
+├── results/      # final results
+├── figures/      # plots and charts
+└── logs/         # run logs
 ```
 
-在项目根目录运行脚本,目录会被自动创建。
+Run your scripts from the project root — the directories are created automatically.
 
-### 配置文件
+### Configuration file
 
-在项目根目录放 `biopipe.yaml`,可自定义目录:
+Place a `biopipe.yaml` in the project root to customise the directory layout:
 
 ```yaml
 root: /path/to/project
@@ -63,85 +63,87 @@ output_dir: final_results
 figures_dir: plots
 ```
 
-也支持 JSON 格式,或通过命令行 `--config` 指定其他路径。
+JSON is supported as well, and you can point at a different file with the `--config` command-line option.
 
-### 环境变量
+### Environment variables
 
-| 变量 | 用途 |
+| Variable | Purpose |
 |------|------|
-| `BIOPIPE_PROJECT_ROOT` | 覆盖项目根目录 |
-| `NCBI_API_KEY` | NCBI E-utilities API Key(可选,提升速率限制) |
-| `OPENALEX_MAILTO` | OpenAlex polite pool 邮箱(可选) |
+| `BIOPIPE_PROJECT_ROOT` | Override the project root directory |
+| `NCBI_API_KEY` | NCBI E-utilities API key (optional, raises the rate limit) |
+| `OPENALEX_MAILTO` | Contact email for the OpenAlex polite pool (optional) |
 
-## 首次运行
+## First run
 
 ```bash
 export PYTHONPATH="$PWD/packages"
 
-# 1. 查看技能清单
+# 1. List the available skills
 biopipe --list
 
-# 2. 查看某个技能的完整用法
+# 2. Show the full usage of a specific skill
 biopipe bulk-rnaseq --help
 
-# 3. 小步试跑,先看参数说明
+# 3. Try a small step first to review the parameters
 python skills/peptide-design/scripts/analyze_peptides.py --help
 ```
 
-## 日志与可复现
+## Logging and reproducibility
 
-所有脚本支持统一日志参数:
+Every script accepts the same logging options:
 
 ```bash
-# 详细日志 + 写入文件
+# verbose logging + write to a file
 python skills/<name>/scripts/<entry>.py --input ... --log-file logs/run.log -v
 
-# 静默模式(适合自动化流水线)
+# quiet mode (suitable for automated pipelines)
 python skills/<name>/scripts/<entry>.py --input ... -q
 ```
 
-日志同时写到 stderr 与指定文件,格式为:
+Logs are written to stderr and to the given file at the same time, using this format:
 
 ```
-2026-10-25 20:46:22 | INFO    | biopipe.bulk-rnaseq | 开始质控
+2026-10-25 20:46:22 | INFO    | biopipe.bulk-rnaseq | starting QC
 ```
 
-## 常见安装问题
+## Common installation issues
 
-### Q: 提示缺少 scanpy / OpenMM / MDAnalysis
+### Q: A warning about missing scanpy / OpenMM / MDAnalysis
 
-**A**: 这是设计如此。核心算法都有内置的纯 Python 实现,会打印一条提示后自动降级:
+**A**: This is by design. Every core algorithm ships with a built-in pure-Python implementation, so the skill prints a notice and falls back automatically:
 
 ```
-WARNING | biopipe.single-cell-rnaseq | 未检测到 scanpy，使用内置降级后端
+WARNING | biopipe.single-cell-rnaseq | scanpy is not available, switching to the numpy fallback backend
 ```
 
-想要完整功能,安装对应可选依赖即可。
+Install the matching optional dependency whenever you need the full functionality.
 
-### Q: matplotlib 中文显示为方块
+### Q: matplotlib renders CJK characters as boxes
 
-**A**: matplotlib 默认字体不含中文字形。设置环境变量或修改 `figure_style.py`:
+**A**: The default matplotlib fonts contain no CJK glyphs, so Chinese, Japanese, and Korean text is drawn as empty boxes. Install a CJK font on your system (for example Noto Sans CJK), then list it first in the sans-serif family. The quickest way is to edit the `font.sans-serif` entry of `figure_style.py`:
 
 ```python
 import matplotlib
-matplotlib.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
+matplotlib.rcParams["font.sans-serif"] = ["Noto Sans CJK JP", "Microsoft YaHei", "SimHei", "DejaVu Sans"]
 matplotlib.rcParams["axes.unicode_minus"] = False
 ```
 
-### Q: 网络请求失败
+Note that matplotlib only picks up fonts it can find on the system, so install the font first and restart your session before rebuilding the font cache.
 
-**A**: 共享层已内置指数退避重试与限速。若仍失败:
+### Q: Network requests fail
 
-1. 检查是否需要代理:`export https_proxy=http://127.0.0.1:7897`
-2. NCBI 等服务建议设置 `NCBI_API_KEY`
-3. 用 `-v` 查看具体的 HTTP 状态码
+**A**: The shared layer already implements exponential-backoff retries and rate limiting. If failures persist:
 
-### Q: 端口或服务名找不到（HDOCK 等外部服务）
+1. Check whether a proxy is required: `export https_proxy=http://127.0.0.1:7897`
+2. For services such as NCBI, set `NCBI_API_KEY`
+3. Run with `-v` to see the exact HTTP status codes
 
-**A**: 部分对接服务需要本地运行。这类脚本默认不会联网,必须显式指定服务端点。
+### Q: Port or service name not found (external services such as HDOCK)
 
-## 下一步
+**A**: Some docking services have to run locally. These scripts never reach the network by default — you must specify the server endpoint explicitly.
 
-- 了解各技能能做什么 → [技能目录]({{ '/skills.html' | relative_url }})
-- 了解技能规范并贡献新技能 → [SKILL_SPEC.md]({{ '/SKILL_SPEC.html' | relative_url }})
-- 了解共享工具层 API → [AGENTS.md](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/AGENTS.md)
+## Next steps
+
+- See what each skill can do → [Skills catalog]({{ '/skills/' | relative_url }})
+- Read the skill specification and contribute a new skill → [SKILL_SPEC.md]({{ '/SKILL_SPEC.html' | relative_url }})
+- Explore the shared utility layer API → [AGENTS.md](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/AGENTS.md)
