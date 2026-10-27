@@ -1,7 +1,8 @@
-"""技能注册表。
+"""Skill registry.
 
-集中登记所有可用技能及其入口脚本，CLI 与校验脚本都从这里取数据，
-避免注册信息分散在多处导致遗漏。
+Central registry of every available skill and its entry script. The CLI and the
+validation scripts both read from here, so the registration data lives in one
+place instead of being scattered across several files.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ __all__ = ["SkillSpec", "REGISTRY", "get_skill", "list_skills", "skill_names"]
 
 @dataclass(frozen=True)
 class SkillSpec:
-    """一个技能的注册信息。"""
+    """Registration record for a single skill."""
 
     name: str
     category: str
@@ -25,13 +26,13 @@ class SkillSpec:
 
     @property
     def entry_path(self) -> Path:
-        """入口脚本的绝对路径。"""
+        """Absolute path of the entry script."""
         root = Path(__file__).resolve().parents[2]
         return root / "skills" / self.name / self.entry
 
     @property
     def skill_md(self) -> Path:
-        """SKILL.md 的绝对路径。"""
+        """Absolute path of SKILL.md."""
         root = Path(__file__).resolve().parents[2]
         return root / "skills" / self.name / "SKILL.md"
 
@@ -41,124 +42,126 @@ REGISTRY: dict[str, SkillSpec] = {
     for spec in [
         SkillSpec(
             name="bulk-rnaseq",
-            category="转录组学",
-            summary="RNA-seq 定量与差异表达分析：FastQC 质控、Salmon 定量、DESeq2 富集",
+            category="Transcriptomics",
+            summary="RNA-seq quantification and differential expression: FastQC QC, Salmon quantification, DESeq2 enrichment",
             entry="scripts/run_pipeline.py",
             keywords=("rna-seq", "salmon", "deseq2", "diffexp", "transcriptome"),
         ),
         SkillSpec(
             name="single-cell-rnaseq",
-            category="转录组学",
-            summary="单细胞 RNA-seq 标准流程：QC、归一化、PCA、聚类、细胞注释",
+            category="Transcriptomics",
+            summary="Standard single-cell RNA-seq workflow: QC, normalization, PCA, clustering, cell annotation",
             entry="scripts/run_pipeline.py",
             keywords=("single-cell", "scrna", "scanpy", "anndata", "clustering"),
         ),
         SkillSpec(
             name="protein-structure",
-            category="结构生物学",
-            summary="PDB 结构解析与二级结构分析：DSSP 注释、结构统计、UniProt 元数据",
+            category="Structural Biology",
+            summary="PDB structure parsing and secondary structure analysis: DSSP annotation, structure statistics, UniProt metadata",
             entry="scripts/analyze_structure.py",
             keywords=("pdb", "dssp", "structure", "secondary-structure", "uniprot"),
         ),
         SkillSpec(
             name="protein-interactions",
-            category="结构生物学",
-            summary="蛋白质-配体相互作用分析：PLIP 解析、残基抽取、交互网络可视化",
+            category="Structural Biology",
+            summary="Protein-ligand interaction analysis: PLIP parsing, residue extraction, interaction network visualization",
             entry="scripts/analyze_interactions.py",
             keywords=("plip", "interaction", "hydrogen-bond", "ligand", "docking"),
         ),
         SkillSpec(
             name="molecular-dynamics",
-            category="结构生物学",
-            summary="分子动力学模拟与轨迹分析：OpenMM 模拟、RMSD/RMSF/PCA/氢键分析",
+            category="Structural Biology",
+            summary="Molecular dynamics simulation and trajectory analysis: OpenMM simulation, RMSD/RMSF/PCA/hydrogen bond analysis",
             entry="scripts/run_analysis.py",
             keywords=("md", "openmm", "trajectory", "rmsd", "simulation"),
         ),
         SkillSpec(
             name="pymol-structure-visualization",
-            category="结构生物学",
-            summary="链间残基接触分析：网格空间划分 + 残基化学分类，输出热点残基与 PyMOL 脚本",
+            category="Structural Biology",
+            summary="Inter-chain residue contact analysis: grid spatial partitioning + residue chemistry classification, output hotspot residues and PyMOL scripts",
             entry="scripts/analyze_contacts.py",
             keywords=("pymol", "contact", "interface", "hydrogen-bond",
                      "salt-bridge", "hotspot", "visualization"),
         ),
         SkillSpec(
             name="peptide-design",
-            category="蛋白工程",
-            # 注意：这里描述的是**实际实现的能力**——自研轻量 CNN 分类器，
-            # 而不是「PepMLM 生成」。老仓库的 design_pepmlm/ 依赖 404MB 的
-            # 预训练模型文件且需要 GPU，本技能并未内置该模型，因此不能宣称。
-            summary="抗菌肽分析与筛选：理化性质计算、CNN 活性判别、序列聚类去冗余",
+            category="Protein Engineering",
+            # Note: this describes the **actually implemented** capability — a
+            # self-built lightweight CNN classifier — not "PepMLM generation".
+            # The old repo's design_pepmlm/ depends on a 404MB pretrained model
+            # file and requires a GPU; this skill does not bundle that model,
+            # so it cannot claim it.
+            summary="Antimicrobial peptide analysis and screening: physicochemical properties, CNN activity prediction, sequence clustering for redundancy removal",
             entry="scripts/analyze_peptides.py",
             keywords=("peptide", "amp", "antimicrobial", "cnn", "clustering"),
         ),
         SkillSpec(
             name="literature-search",
-            category="文献挖掘",
-            summary="学术文献检索与筛选：PubMed / OpenAlex / Semantic Scholar 多源检索与去重",
+            category="Literature Mining",
+            summary="Academic literature search and screening: multi-source retrieval and deduplication across PubMed / OpenAlex / Semantic Scholar",
             entry="scripts/search_literature.py",
             keywords=("pubmed", "openalex", "literature", "citation", "papers"),
         ),
         SkillSpec(
             name="scientific-figures",
-            category="数据可视化",
-            summary="顶刊级图表生成：ROC 曲线、混淆矩阵、热图、火山图、SHAP 摘要",
+            category="Scientific Visualization",
+            summary="Publication-grade figure generation: ROC curves, confusion matrices, heatmaps, volcano plots, SHAP summaries",
             entry="scripts/make_figures.py",
             keywords=("figure", "plot", "roc", "heatmap", "publication"),
         ),
         SkillSpec(
             name="ena-download",
-            category="转录组学",
-            summary="ENA 原始测序数据下载：Portal API 取 FASTQ 链接、断点续传、MD5 校验",
+            category="Transcriptomics",
+            summary="ENA raw sequencing data download: Portal API FASTQ links, resumable transfers, MD5 verification",
             entry="scripts/download_runs.py",
             keywords=("ena", "sra", "fastq", "sequencing", "rnaseq"),
         ),
         SkillSpec(
             name="alphafold-db",
-            category="结构生物学",
-            summary="AlphaFold DB 结构下载：API 解析下载链接、批量获取预测结构与 pLDDT 置信度",
+            category="Structural Biology",
+            summary="AlphaFold DB structure download: API link resolution, batch retrieval of predicted structures and pLDDT confidence",
             entry="scripts/download_structures.py",
             keywords=("alphafold", "afdb", "structure", "plddt", "prediction"),
         ),
         SkillSpec(
             name="bioproject-search",
-            category="文献挖掘",
-            summary="NCBI BioProject 元数据检索：E-utilities 取标题/描述/物种，支持关键词筛选",
+            category="Literature Mining",
+            summary="NCBI BioProject metadata search: E-utilities title/description/species retrieval, keyword filtering",
             entry="scripts/search_bioprojects.py",
             keywords=("bioproject", "ncbi", "e-utilities", "prjna", "metadata"),
         ),
         SkillSpec(
             name="ml-peptide-generation",
-            category="蛋白工程",
-            summary="ML 肽链生成：PepMLM 掩码语言模型采样候选肽，伪困惑度排序，可复现",
+            category="Protein Engineering",
+            summary="ML peptide generation: PepMLM masked language model candidate sampling, pseudo-perplexity ranking, reproducible",
             entry="scripts/generate_peptides.py",
             keywords=("peptide", "pepmlm", "binder", "masked-lm", "generation"),
         ),
         SkillSpec(
             name="bio-database-fetch",
-            category="化学信息学",
-            summary="PubChem 化合物与 NCBI Taxonomy 批量检索：属性、CAS 号、物种分类",
+            category="Cheminformatics",
+            summary="PubChem compound and NCBI Taxonomy batch lookup: properties, CAS numbers, species taxonomy",
             entry="scripts/fetch_compounds.py",
             keywords=("pubchem", "taxonomy", "compound", "cas", "smiles", "ncbi"),
         ),
         SkillSpec(
             name="protein-docking-hdock",
-            category="结构生物学",
-            summary="HDOCK 蛋白质对接：HTTP 提交作业、轮询取 Docking Score 与置信度、下载模型",
+            category="Structural Biology",
+            summary="HDOCK protein docking: HTTP job submission, polling for Docking Score and confidence, model download",
             entry="scripts/submit_docking.py",
             keywords=("docking", "hdock", "protein-protein", "complex", "score"),
         ),
         SkillSpec(
             name="protein-docking-lightdock",
-            category="结构生物学",
-            summary="LightDock 本地蛋白质对接：驱动 GSO 群体优化、解析 GSO 打分、生成最优复合物",
+            category="Structural Biology",
+            summary="LightDock local protein docking: driving GSO swarm optimization, parsing GSO scores, building the best complex",
             entry="scripts/run_docking.py",
             keywords=("docking", "lightdock", "gso", "swarm", "dfire", "local"),
         ),
         SkillSpec(
             name="paper-fulltext-extract",
-            category="文献挖掘",
-            summary="PDF 文献全文结构化抽取：GROBID 转 TEI、章节树/图表/参考文献解析、语料检索、引言首句",
+            category="Literature Mining",
+            summary="Structured full-text extraction from PDF: GROBID to TEI, section tree/figure/reference parsing, corpus search, lead sentences",
             entry="scripts/extract_fulltext.py",
             keywords=(
                 "pdf", "tei", "grobid", "fulltext", "pdf-parsing",
@@ -170,15 +173,15 @@ REGISTRY: dict[str, SkillSpec] = {
 
 
 def get_skill(name: str) -> Optional[SkillSpec]:
-    """按名称查找技能。"""
+    """Look up a skill by name."""
     return REGISTRY.get(name)
 
 
 def list_skills() -> list[SkillSpec]:
-    """返回全部已注册技能。"""
+    """Return every registered skill."""
     return list(REGISTRY.values())
 
 
 def skill_names() -> list[str]:
-    """返回全部技能名。"""
+    """Return every registered skill name."""
     return list(REGISTRY.keys())
