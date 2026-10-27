@@ -14,7 +14,8 @@ plugin.json 的 keywords 等。随着技能增减，这些数字会悄悄过时�
 3. ``packages/biopipe/registry.py`` 的 REGISTRY 必须与 ``skills/``
    目录一一对应（不多不少）；
 4. 每个技能都必须有 SKILL.md、scripts/、references/；
-5. plugin.json 的 name 与 pyproject 的项目名一致。
+5. plugin.json 的 name 与 pyproject 的项目名一致；
+6. 文档中声明的技能总数必须与实际一致（防止旧生成物残留）。
 
 用法：
     python scripts/ci_consistency_check.py
@@ -29,6 +30,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = REPO_ROOT / "skills"
+DOCS_DIR = REPO_ROOT / "docs"
 README = REPO_ROOT / "README.md"
 PLUGIN_JSON = REPO_ROOT / "plugin.json"
 PYPROJECT = REPO_ROOT / "pyproject.toml"
@@ -174,6 +176,81 @@ def _check_plugin_json(problems: list[str]) -> None:
             problems.append(f"plugin.json 的 homepage 指向了非本项目地址: {homepage}")
 
 
+def _check_doc_skill_counts(
+    problems: list[str],
+    count: int,
+    paths: list[Path] | None = None,
+) -> None:
+    """文档里声明的技能数必须与实际一致。
+
+    背景：``docs/skills.md`` 曾长期写着「共 8 个技能」而实际已有 17 个 ——
+    它是早期 ``scripts/build_catalog.py`` 的产物，被后来的
+    ``docs/skills/index.md`` 取代后忘了删。没有任何检查会报错，
+    因为「文档里的数字」本来就不在自动生成链路上。
+
+    这里做一次兜底扫描：凡是文档里出现「N 个技能」「N skills」这类
+    明确计数，且 N 与实际不符，就报出来。
+
+    ``paths`` 允许测试注入临时文件；默认扫描 ``docs/`` 下全部 Markdown
+    加上 README。
+    """
+    doc_patterns = (
+        re.compile(r"共\s*\*\*(?P<n>\d+)\*\*\s*个技能"),
+        re.compile(r"共\s*(?P<n>\d+)\s*个技能"),
+        re.compile(r"\b(?P<n>\d+)\s+skills\b"),
+        re.compile(r"\b(?P<n>\d+)\s+个技能\b"),
+    )
+
+    if paths is None:
+        targets = sorted(DOCS_DIR.rglob("*.md")) + [README]
+    else:
+        targets = list(paths)
+
+    for path in targets:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for pattern in doc_patterns:
+            for m in pattern.finditer(text):
+                stated = int(m.group("n"))
+                if stated == count:
+                    continue
+                if _is_skill_count_context(text, m.start("n")):
+                    try:
+                        rel = path.relative_to(REPO_ROOT)
+                    except ValueError:
+                        rel = path
+                    problems.append(
+                        f"{rel} 声明技能数为 {stated}，实际为 {count}"
+                    )
+
+
+def _is_skill_count_context(text: str, number_pos: int) -> bool:
+    """判断该数字是否处在"技能总数"的语境里。
+
+    判据：以**数字本身**为基准，向前 30 字符内出现「共 / 包含 / 提供 /
+    覆盖 / 收录 / 总共」这类总数量措辞，向后 20 字符内出现「个技能 /
+    skills」。
+
+    注意必须以数字位置为基准而不是整个匹配的位置 —— 像「共 **8** 个技能」
+    这种写法，匹配的起点在「共」上，若以起点为基准则前向窗口里找不到
+    「共」，判断会永远为假。
+
+    这样「3 个技能应先做质控」这种举例不会误判：它前面没有总数量措辞。
+    """
+    before = text[max(0, number_pos - 30):number_pos]
+    after = text[number_pos:number_pos + 20]
+    if not re.search(r"(个技能|skills)", after, re.IGNORECASE):
+        return False
+    return bool(
+        re.search(
+            r"(共|包含|提供|覆盖|收录|总共|offer\w*|provide\w*|contain\w*|cover\w*|includ\w*)",
+            before,
+            re.IGNORECASE,
+        )
+    )
+
+
 def main() -> int:
     problems: list[str] = []
 
@@ -188,6 +265,7 @@ def main() -> int:
         _check_readme_listing(problems, skill_names)
         _check_registry(problems, skill_names)
         _check_skill_structure(problems)
+        _check_doc_skill_counts(problems, count)
 
     _check_plugin_json(problems)
 
