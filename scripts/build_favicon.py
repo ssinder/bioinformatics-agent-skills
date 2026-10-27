@@ -28,7 +28,6 @@ ICO 容器格式::
 
 from __future__ import annotations
 
-import io
 import struct
 import sys
 from pathlib import Path
