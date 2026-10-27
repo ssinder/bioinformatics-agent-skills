@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="BioinfoAgent Skills — Agent Skills for computational biology">
+  <title>BioinfoAgent Skills</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B1220"/>
+      <stop offset="55%" stop-color="#111C33"/>
+      <stop offset="100%" stop-color="#0A1A24"/>
+    </linearGradient>
+    <radialGradient id="glowTeal" cx="0.18" cy="0.22" r="0.62">
+      <stop offset="0%" stop-color="#2DD4BF" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#2DD4BF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowViolet" cx="0.86" cy="0.80" r="0.58">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="helixA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5EEAD4"/>
+      <stop offset="100%" stop-color="#0D9488"/>
+    </linearGradient>
+    <linearGradient id="helixB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C4B5FD"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="wordmark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5EEAD4"/>
+      <stop offset="50%" stop-color="#C4B5FD"/>
+      <stop offset="100%" stop-color="#5EEAD4"/>
+    </linearGradient>
+    <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse">
+      <path d="M46 0 L0 0 0 46" fill="none" stroke="#1E293B" stroke-width="1" opacity="0.5"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <rect width="1280" height="640" fill="url(#glowTeal)"/>
+  <rect width="1280" height="640" fill="url(#glowViolet)"/>
+
+  <!-- ===== 左侧 DNA 螺旋图形 ===== -->
+  <g transform="translate(112, 150)">
+    <g stroke-linecap="round" stroke-width="4" opacity="0.30">
+      <line x1="34" y1="40" x2="126" y2="40" stroke="#64748B"/>
+      <line x1="26" y1="80" x2="134" y2="80" stroke="#64748B"/>
+      <line x1="26" y1="120" x2="134" y2="120" stroke="#64748B"/>
+      <line x1="34" y1="160" x2="126" y2="160" stroke="#64748B"/>
+      <line x1="46" y1="200" x2="114" y2="200" stroke="#64748B"/>
+    </g>
+
+    <path d="M26 20 C 134 60, 134 100, 80 120 C 26 140, 26 180, 134 220"
+          fill="none" stroke="url(#helixA)" stroke-width="11" stroke-linecap="round"/>
+    <path d="M134 20 C 26 60, 26 100, 80 120 C 134 140, 134 180, 26 220"
+          fill="none" stroke="url(#helixB)" stroke-width="11" stroke-linecap="round"/>
+
+    <circle cx="80" cy="60" r="11" fill="#0D9488" stroke="#0B1220" stroke-width="4"/>
+    <circle cx="80" cy="120" r="11" fill="#7C3AED" stroke="#0B1220" stroke-width="4"/>
+    <circle cx="80" cy="180" r="11" fill="#0D9488" stroke="#0B1220" stroke-width="4"/>
+  </g>
+
+  <!-- ===== 右侧文字 ===== -->
+  <g font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif">
+    <text x="356" y="250" font-size="82" font-weight="700" fill="#F1F5F9" letter-spacing="-1.6">BioinfoAgent</text>
+    <text x="356" y="330" font-size="82" font-weight="300" fill="url(#wordmark)" letter-spacing="11">SKILLS</text>
+
+    <rect x="356" y="366" width="150" height="4" rx="2" fill="#2DD4BF" opacity="0.85"/>
+
+    <text x="356" y="424" font-size="27" font-weight="400" fill="#CBD5E1" letter-spacing="0.3">
+      Agent Skills for Computational Biology
+    </text>
+    <text x="356" y="466" font-size="22" font-weight="400" fill="#94A3B8" letter-spacing="0.2">
+      17 skills · RNA-seq · single-cell · protein structure · MD · peptides
+    </text>
+
+    <!-- 底部标签行 -->
+    <g font-size="17" font-weight="600" letter-spacing="0.6">
+      <g transform="translate(356, 512)">
+        <rect x="0" y="0" width="240" height="40" rx="20" fill="#0D9488" fill-opacity="0.16" stroke="#2DD4BF" stroke-opacity="0.5"/>
+        <text x="120" y="26" fill="#5EEAD4" text-anchor="middle">Agent Skills Standard</text>
+      </g>
+      <g transform="translate(612, 512)">
+        <rect x="0" y="0" width="150" height="40" rx="20" fill="#7C3AED" fill-opacity="0.16" stroke="#A78BFA" stroke-opacity="0.5"/>
+        <text x="75" y="26" fill="#C4B5FD" text-anchor="middle">Python 3.9+</text>
+      </g>
+      <g transform="translate(778, 512)">
+        <rect x="0" y="0" width="150" height="40" rx="20" fill="#334155" fill-opacity="0.5" stroke="#64748B" stroke-opacity="0.6"/>
+        <text x="75" y="26" fill="#CBD5E1" text-anchor="middle">MIT License</text>
+      </g>
+      <g transform="translate(944, 512)">
+        <rect x="0" y="0" width="196" height="40" rx="20" fill="#334155" fill-opacity="0.5" stroke="#64748B" stroke-opacity="0.6"/>
+        <text x="98" y="26" fill="#CBD5E1" text-anchor="middle">829 tests · 0 deps</text>
+      </g>
+    </g>
+  </g>
+</svg>

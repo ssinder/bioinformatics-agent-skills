@@ -5,6 +5,8 @@ title: BioinfoAgent Skills
 
 # BioinfoAgent Skills
 
+<img src="{{ '/assets/logo.svg' | relative_url }}" alt="BioinfoAgent Skills" width="348" style="max-width:100%;">
+
 面向计算生物学的**标准 Agent Skills 工具库** —— 遵循 [Agent Skills 开放标准](https://agentskills.io/)，
 把 RNA-seq、单细胞、结构生物学、分子动力学、多肽设计与文献挖掘等分析流程，
 封装成任何 AI Agent 都能即插即用的技能。
