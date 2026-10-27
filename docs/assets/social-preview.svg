@@ -87,7 +87,7 @@
       </g>
       <g transform="translate(944, 512)">
         <rect x="0" y="0" width="196" height="40" rx="20" fill="#334155" fill-opacity="0.5" stroke="#64748B" stroke-opacity="0.6"/>
-        <text x="98" y="26" fill="#CBD5E1" text-anchor="middle">829 tests · 0 deps</text>
+        <text x="98" y="26" fill="#CBD5E1" text-anchor="middle">900 tests · 17 skills</text>
       </g>
     </g>
   </g>
