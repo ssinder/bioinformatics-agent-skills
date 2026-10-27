@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="BioinfoAgent Skills">
+  <title>BioinfoAgent Skills</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F7"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="64" height="64" rx="15" fill="url(#bg)" stroke="#CBD5E1" stroke-width="2"/>
+
+  <!--
+    这是 16px 专用版本（通过 .github/ 下的独立文件切换，见 build_favicon.py）。
+
+    16px 画布上，前一版的「双曲线 + 中央节点」会糊成一团：
+    曲线只剩 2px 宽，节点圆填满了中间空隙，最终看不出任何形状。
+
+    这里换成最不可能糊的方案 —— **一个 DNA 碱基对的抽象符号**：
+    两条粗横杠（碱基对）+ 中间一根竖线（糖-磷酸骨架的暗示），
+    再加一个实心圆点。全部是直线与大色块，没有曲线，
+    在 16px 下仍有明确轮廓。
+  -->
+  <rect x="16" y="17" width="32" height="9" rx="4.5" fill="#0D9488"/>
+  <rect x="16" y="38" width="32" height="9" rx="4.5" fill="#7C3AED"/>
+  <rect x="28" y="24" width="8" height="16" fill="#64748B"/>
+  <circle cx="32" cy="32" r="6.5" fill="#0F766E" stroke="#FFFFFF" stroke-width="3"/>
+</svg>

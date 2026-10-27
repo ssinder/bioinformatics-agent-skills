@@ -1,0 +1,22 @@
+{%- comment -%}
+自定义 <head> 扩展
+=================
+Jekyll 的默认主题（cayman 等）会在 <head> 里 include 这个文件，
+所以在这里加的内容会出现在站点每一页。
+
+职责划分（避免标签重复）：
+- **favicon** 系列 → 这里声明（主题不会输出）
+- **Open Graph** → 交给 jekyll-seo-tag（_config.yml 的 seo 键），
+  它能算准绝对路径，且已随插件启用
+- **Twitter Card** → 这里补上（seo 插件的 twitter 键只在
+  特定条件下输出，显式声明更可控）
+{%- endcomment -%}
+
+<link rel="icon" href="{{ '/favicon.ico' | relative_url }}" sizes="any">
+<link rel="icon" href="{{ '/favicon.svg' | relative_url }}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{{ '/assets/favicon-64.png' | relative_url }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ page.title | default: site.title }}">
+<meta name="twitter:description" content="{{ page.description | default: site.description }}">
+<meta name="twitter:image" content="{{ '/assets/social-preview.png' | absolute_url }}">

@@ -10,6 +10,23 @@ lang: zh-CN
 # 仓库信息
 repository: ssinder/bioinformatics-agent-skills
 
+# 站点图标（favicon.ico 与 favicon.svg 都在 docs/ 根目录，
+# Jekyll 会原样复制到 _site 根，浏览器自动请求 /favicon.ico）
+logo: /favicon.svg
+
+# jekyll-seo-tag 的配置：社交分享卡片（Open Graph / Twitter Card）
+#
+# 注意：seo 插件与 _includes/head-custom.html 都会输出 og 标签。
+# 这里把 og:image 交给 seo 插件统一处理（它能算准绝对路径），
+# head-custom.html 只负责 favicon 与 Twitter Card，
+# 避免同一个 og:image 出现两次。
+seo:
+  type: website
+  image: /assets/social-preview.png
+  twitter:
+    card: summary_large_image
+    image: /assets/social-preview.png
+
 # 站点源：docs 目录
 markdown: kramdown
 kramdown:
