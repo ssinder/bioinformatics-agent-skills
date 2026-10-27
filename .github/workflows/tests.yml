@@ -26,6 +26,12 @@ jobs:
         run: |
           pip install -e ".[dev]"
 
+      - name: Check test fixtures are committed
+        # 关键回归：夹具被 .gitignore 排除时，本地 pytest 全绿
+        # （文件在工作区里）但 CI 全挂（clone 后没有）——
+        # 这个检查能在跑 pytest 之前就报出准确原因。
+        run: python scripts/ci_check_fixtures.py
+
       - name: Run pytest
         run: pytest tests -v --tb=short
 
