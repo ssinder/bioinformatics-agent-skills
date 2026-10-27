@@ -107,6 +107,48 @@ class TestTypeHintResolution:
 
         assert not offenders, "以下文件不兼容 Python 3.9：\n" + "\n".join(offenders)
 
+    def test_no_classmethod_pytest_fixtures(self) -> None:
+        """禁止把 ``@classmethod`` 和 ``@pytest.fixture`` 叠在一起。
+
+        背景：``@pytest.fixture(scope="class")`` 叠加 ``@classmethod`` 时，
+        pytest 取 ``fixture_function_marker.name or function.__name__``，
+        而叠加后的 ``function`` 是一个 ``classmethod`` **对象**而非函数，
+        在 Python 3.9 + pytest 8.x 下直接抛：
+
+            AttributeError: 'classmethod' object has no attribute '__name__'
+
+        该错误发生在**收集阶段**，会让整个测试文件的所有用例一起消失，
+        且只在 3.9 上出现（3.11+ 的 pytest 换了取名逻辑）。
+        本项目 CI 矩阵含 3.9，因此必须禁止这种写法。
+
+        ``scope="class"`` 本身就提供类作用域语义，不需要 ``classmethod``。
+        """
+        import ast
+
+        offenders: list[str] = []
+        for base in ("packages", "skills", "tests"):
+            for path in sorted((REPO_ROOT / base).rglob("*.py")):
+                try:
+                    tree = ast.parse(path.read_text(encoding="utf-8"))
+                except SyntaxError:
+                    continue
+                for node in ast.walk(tree):
+                    if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        continue
+                    decorators = [ast.unparse(d) for d in node.decorator_list]
+                    has_classmethod = any("classmethod" in d for d in decorators)
+                    has_fixture = any("fixture" in d for d in decorators)
+                    if has_classmethod and has_fixture:
+                        rel = path.relative_to(REPO_ROOT)
+                        offenders.append(f"{rel}:{node.lineno} {node.name}")
+
+        assert not offenders, (
+            "以下 fixture 同时使用了 @classmethod 与 @pytest.fixture，"
+            "在 Python 3.9 + pytest 8.x 下会在收集阶段抛 "
+            "AttributeError: 'classmethod' object has no attribute '__name__'：\n"
+            + "\n".join(offenders)
+        )
+
     def test_io_utils_write_csv_hints_resolve(self) -> None:
         from biopipe_core import io_utils
 

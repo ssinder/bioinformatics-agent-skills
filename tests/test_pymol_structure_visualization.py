@@ -39,6 +39,7 @@ import ast
 import csv
 import json
 import math
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -114,12 +115,23 @@ def _load_fixture_atoms(path: Path) -> list[contact_geometry.AtomRef]:
 
 
 def _run_cli(args: list[str], cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
-    """以子进程方式运行技能入口脚本。"""
-    env = {
-        "PATH": "/usr/bin:/bin:/usr/local/bin",
-        "PYTHONPATH": str(REPO_ROOT / "packages"),
-        "PYTHONIOENCODING": "utf-8",
-    }
+    """以子进程方式运行技能入口脚本。
+
+    注意这里必须**继承**当前进程的环境变量，只覆盖需要控制的那几项。
+    早期版本构造了一个只含 3 个键的全新 env dict，在 Windows 上会丢掉
+    ``SystemRoot``，子进程 Python 因此无法加载 ``bcryptprim``，直接崩在
+    ``Fatal Python error: _Py_HashRandomization_Init: failed to get random
+    numbers to initialize Python`` —— 17 个 CLI 端到端用例集体红。
+    Ubuntu CI 上不会暴露这个问题（没有 ``SystemRoot`` 依赖），
+    但 Windows 开发者完全跑不了这批测试。
+
+    ``PATH`` 保留隔离意图（避免脚本意外找到系统里的 PyMOL），
+    但要按平台用正确的分隔符，否则 Windows 上 ``PATH`` 形同虚设。
+    """
+    env = dict(os.environ)
+    env["PATH"] = os.pathsep.join(("/usr/bin", "/bin", "/usr/local/bin"))
+    env["PYTHONPATH"] = str(REPO_ROOT / "packages")
+    env["PYTHONIOENCODING"] = "utf-8"
     return subprocess.run(
         [sys.executable, str(SCRIPTS_DIR / "analyze_contacts.py")] + args,
         capture_output=True,
