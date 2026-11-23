@@ -19,6 +19,27 @@
 这是本仓库最重要的正确性保证。43,507 行自研实现若与参考实现有偏离，
 所有下游结论都不可信；因此这项对照**在 CI 里强制执行**，不是可选的。
 
+### 实测结果
+
+在仓库夹具（100 基因 × 6 样本，3+3 重复）上实测：
+
+| 测量项 | 阈值 | **实测值** |
+|---|---|---|
+| log2FC 排序 Spearman ρ | > 0.95 | **1.0000** |
+| baseMean Spearman ρ | > 0.99 | **1.0000** |
+| 显著基因集合 Jaccard | > 0.80 | **1.0000**（Python 17 个 / R 17 个） |
+| 显著基因调控方向一致 | 全部一致 | **17/17** |
+| 单细胞簇数差异 | ≤ 1 个簇 | **0** |
+| 单细胞聚类结构 ARI | > 0.80 | **通过** |
+| 单细胞对真值聚类 ARI | > 0.60 | **通过**（600 个细胞的人工真值标签） |
+
+即两后端在这份数据上给出**完全相同**的差异表达结论。
+
+> 这些数字由 `tests/test_backend_agreement.py` 与
+> `tests/test_scrna_backend_agreement.py` 自动产出，可随时复现。
+> 阈值留有余量，因此换一份数据重跑时若略有下降也不算失败——
+> 但**掉到阈值以下就意味着内置实现出了问题**，必须查。
+
 ### 方法
 
 - **数据**：仓库内的固定夹具 `tests/fixtures_bulk/`（3 个处理组 + 3 个对照
@@ -45,15 +66,39 @@
 
 ```bash
 # 需要 Rscript + Bioconductor DESeq2
-pytest tests/test_backend_agreement.py -v
+python scripts/ci_verify_backend.py --reference deseq2 \
+  --test tests/test_backend_agreement.py
 
 # 需要 scanpy + anndata
-pytest tests/test_scrna_backend_agreement.py -v
+python scripts/ci_verify_backend.py --reference scanpy \
+  --test tests/test_scrna_backend_agreement.py
 ```
 
-R 或 scanpy 缺失时相关用例会**跳过**而非失败；但 CI 的
-`backend-agreement` 与 `scrna-backend-agreement` 两个 job 在依赖缺失时
-会**直接失败**——避免出现"永远绿灯却什么都没验证"的假徽章。
+`ci_verify_backend.py` 会先探测参考实现是否可用——**不可用直接失败**，
+而不是让 pytest 跳过。因为一个永远显示绿色却什么都没验证的 CI，
+比没有 CI 更危险。
+
+### 这项对照抓到过什么
+
+值得记录：两个后端此前都从未真正跑通过，因此藏着一批真实缺陷。
+对照测试一接上，它们全部暴露了出来：
+
+| 缺陷 | 后果 |
+|---|---|
+| `bulk-rnaseq` 的 R 后端把 counts 矩阵转置反了（DESeq2 要基因×样本，代码给的是样本×基因） | **任何**用 `--backend r` 的人都会立刻失败 |
+| `sc.pp.filter_cells` 的 `max_pct_counts_mt` 在 scanpy 1.10 被移除 | 装了 scanpy ≥1.10 就崩 |
+| `sc.pp.filter_cells` 在 1.13 起要求每次只传一个可选参数 | 装了 scanpy ≥1.13 就崩 |
+| `sc.pp.neighbors` 的 `prune` 参数在 1.10 被移除 | 装了 scanpy ≥1.10 就崩 |
+| `random_state` 在 scanpy 1.11 改名 `rng` | 装了 scanpy ≥1.11 就崩 |
+| `uns["rank_genes_groups"]` 的访问方式变了 | 装了 scanpy ≥1.11 就崩 |
+| igraph 1.0 移除 `Weighted_AdjacencyMatrix` | 聚类步骤直接失败 |
+
+这些都不是"边缘情况"，而是**只要装了当前版本的依赖就必然遇到**的问题。
+它们之所以能潜伏这么久，是因为双后端路径从来没被真正执行过——
+CI 里参考实现一直没装成功，本地也没装。
+
+**教训**：对于会快速演进的上游依赖（scanpy、igraph、R/Bioconductor），
+"声明支持"不等于"能用"。必须有真跑一遍的对照测试。
 
 ---
 
