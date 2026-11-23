@@ -1,7 +1,7 @@
 # molecular-dynamics 技能依赖
 #
 # 核心功能需要 numpy（内置 DCD / PDB / XYZ 解析器 + 全部核心算法）：
-numpy>=1.21
+numpy>=2.5.5
 
 # 以下均为可选增强项：
 
