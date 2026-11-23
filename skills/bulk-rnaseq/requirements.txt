@@ -1,7 +1,7 @@
 # bulk-rnaseq 技能依赖
 #
 # 必需（差异表达统计与 counts 矩阵构建）
-numpy>=1.21
+numpy>=2.5.5
 scipy>=1.7
 pandas>=1.3
 
