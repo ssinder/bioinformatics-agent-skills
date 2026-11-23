@@ -4,7 +4,7 @@
 numpy>=1.21
 scipy>=1.7
 pandas>=1.3
-scikit-learn>=1.0
+scikit-learn>=1.9.1
 
 # 可选：生成 PDF/PNG 图表（缺失时流程会跳过可视化并给出警告）
 matplotlib>=3.5
