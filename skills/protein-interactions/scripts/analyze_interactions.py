@@ -45,8 +45,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from typing import Optional
 
 from alphafold_models import select_best_model, summarize_confidence  # noqa: E402
-from biopipe_core import SkillError, cli_parser, get_logger, write_csv  # noqa: E402
-from biopipe_core.cli import run_cli  # noqa: E402
+from bioagent_core import SkillError, cli_parser, get_logger, write_csv  # noqa: E402
+from bioagent_core.cli import run_cli  # noqa: E402
 from interaction_network import (  # noqa: E402
     build_mermaid,
     build_pymol_script,
@@ -54,7 +54,7 @@ from interaction_network import (  # noqa: E402
 )
 from plip_parser import INTERACTION_LABELS, parse_plip_xml  # noqa: E402
 
-LOGGER = get_logger("biopipe.protein-interactions")
+LOGGER = get_logger("bioagent.protein-interactions")
 SKILL_NAME = "protein-interactions"
 
 
@@ -96,7 +96,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _resolve_output_dir(output: Optional[str]) -> Path:
     """解析输出目录。"""
-    from biopipe_core import get_config
+    from bioagent_core import get_config
 
     config = get_config()
     if output:

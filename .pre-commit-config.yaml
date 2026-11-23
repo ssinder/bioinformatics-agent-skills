@@ -1,0 +1,46 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(tests/fixtures|docs/assets)/
+      - id: end-of-file-fixer
+        exclude: ^(tests/fixtures|docs/assets)/
+      - id: check-merge-conflict
+      - id: check-yaml
+        exclude: ^(tests/fixtures)/
+      - id: check-toml
+      - id: check-json
+        exclude: ^(tests/fixtures|docs/assets)/
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(skills|packages|scripts|tests)/.*\.py$
+
+  - repo: local
+    hooks:
+      - id: skill-spec
+        name: Agent Skills 规范校验
+        entry: python scripts/validate_skills.py --strict
+        language: system
+        pass_filenames: false
+        files: ^skills/.*/SKILL\.md$
+
+      - id: version-sync
+        name: 版本号一致性
+        entry: python scripts/ci_version_sync.py
+        language: system
+        pass_filenames: false
+        files: ^(pyproject\.toml|plugin\.json|CITATION\.cff)$
+
+      - id: repo-consistency
+        name: 仓库一致性
+        entry: python scripts/ci_consistency_check.py
+        language: system
+        pass_filenames: false
+        files: ^(README\.md|plugin\.json|packages/.*|skills/.*)$

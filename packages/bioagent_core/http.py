@@ -18,11 +18,11 @@ from typing import Any, Optional
 
 __all__ = ["http_session", "HttpError", "get_json", "post_json"]
 
-_LOG = logging.getLogger("biopipe.http")
+_LOG = logging.getLogger("bioagent.http")
 
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/122.0 Safari/537.36 biopipe/1.0"
+    "(KHTML, like Gecko) Chrome/122.0 Safari/537.36 bioagent/1.0"
 )
 
 _RETRY_STATUS = {408, 425, 429, 500, 502, 503, 504}

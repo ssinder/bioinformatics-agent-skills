@@ -45,7 +45,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional
 
-from biopipe_core import (  # noqa: E402
+from bioagent_core import (  # noqa: E402
     SkillError,
     cli_parser,
     get_config,
@@ -65,7 +65,7 @@ from figure_style import (  # noqa: E402
     save_figure,
 )
 
-LOGGER = get_logger("biopipe.scientific-figures")
+LOGGER = get_logger("bioagent.scientific-figures")
 
 try:
     import numpy as np
@@ -78,7 +78,7 @@ except ImportError:  # pragma: no cover
 
 def read_table(path: Path) -> list[dict[str, str]]:
     """读取 CSV 为字典列表（自动处理 BOM 与分隔符嗅探）。"""
-    from biopipe_core import read_csv_safe
+    from bioagent_core import read_csv_safe
 
     if not path.exists():
         raise SkillError(f"输入文件不存在: {path}")
@@ -856,7 +856,7 @@ def _is_number(value: Optional[str]) -> bool:
 
 def _write_csv_rows(rows: list[dict], path: str) -> None:
     """写出 CSV（UTF-8 BOM）。"""
-    from biopipe_core import write_csv
+    from bioagent_core import write_csv
 
     if not rows:
         return

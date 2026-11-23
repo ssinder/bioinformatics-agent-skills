@@ -37,6 +37,9 @@ try:
 except ImportError:  # pragma: no cover
     yaml = None
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from skill_frontmatter import FrontmatterError, split_frontmatter  # noqa: E402
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = REPO_ROOT / "skills"
 
@@ -52,10 +55,17 @@ REQUIRED_SECTIONS = [
     "References",
 ]
 
-# 触发语句：第三人称 + when 语义
+# 触发语句：第三人称 + when 语义。
+#
+# 两种等价写法都接受：
+#   * "This skill should be used when ..."（仓库早期的写法）
+#   * "Use when ..."（Agent Skills 官方 optimizing-descriptions 指南推荐的
+#     祈使句式——描述被当作给代理的指令，且官方明确要求把关键用例放在最前面）
 TRIGGER_PATTERNS = [
     r"This skill should be used when",
-    r"should be used when",
+    r"\bshould be used when\b",
+    r"\bUse when\b",
+    r"\bUse this skill when\b",
     r"用于.{0,40}的场景",
     r"当用户.{0,30}时",
     r"适用于",
@@ -74,6 +84,22 @@ NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 MAX_DESC = 1024
 MIN_DESC = 80
+
+# 技能列表的共享字符预算。Claude Code 在启动时把所有技能的
+# name + description 装进上下文；超出预算后会**从最少被调用的技能开始
+# 丢弃 description**，那些技能只剩一个裸名字，代理便无从匹配用户请求，
+# 也就永远不会触发它们。这是最隐蔽的一类失败——没有任何报错。
+#
+# 官方默认值是「上下文窗口的 1%，fallback 到 8,000 字符」。
+# 这里用一个保守上限做门禁：留出余量给用户自己安装的其他技能。
+DESC_BUDGET = 8000
+# 安全余量：目标上限，比硬预算低，留给下游宿主的额外开销与用户
+# 自己安装的其他技能。设为 7,000（硬预算的 87.5%）——全量 17 个技能
+# 装齐时占 84.7%，仍有 1,000 字符余量；而按 skill-guides 推荐只装
+# 2–3 个时仅占约 15%。
+#
+# 不再往下压：描述的触发准确率比省下的字符更值钱。
+DESC_BUDGET_SOFT = 7000
 
 
 @dataclass
@@ -112,18 +138,19 @@ class Result:
 def _read_frontmatter(text: str) -> tuple[dict | None, str, str | None]:
     """拆分 SKILL.md 的 frontmatter 与正文。
 
+    刻意**不**用 ``text.split("---", 2)``：Markdown 表格的分隔行
+    （``|---|---|``）里含有连续的 ``-``，会被误判为 frontmatter 的结束
+    标记，把大半个正文当成 YAML 解析。统一走
+    ``skill_frontmatter.split_frontmatter``，它只认独占一行的 ``---``。
+
     Returns:
         ``(frontmatter_dict, body, error_message)``；解析失败时 dict 为 None。
     """
-    if not text.startswith("---"):
-        return None, text, "SKILL.md 未以 '---' 开头，缺少 YAML frontmatter"
+    try:
+        raw, body = split_frontmatter(text)
+    except FrontmatterError as exc:
+        return None, text, str(exc)
 
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return None, text, "frontmatter 未正确闭合（缺少结束的 '---'）"
-
-    raw = parts[1]
-    body = parts[2]
     if yaml is None:
         return None, body, "缺少 PyYAML，无法解析 frontmatter"
     try:
@@ -349,6 +376,98 @@ def _check_scripts(skill_dir: Path, skill: str, issues: list[Issue]) -> None:
                 )
 
 
+def _check_edam(skill: str, metadata: dict) -> list[Issue]:
+    """校验 metadata 里的 EDAM 本体标注。
+
+    EDAM（https://edamontology.org）是生信工具元数据的标准本体。
+    标注本身不强制，但**一旦写了就必须合法**——错误的 ID 比没有 ID
+    更糟：它会让工具在基于本体的检索里"存在但查不到"，或者被挂到
+    错误的语义分支下。
+
+    **键的形态**：Agent Skills 规范规定 ``metadata`` 是
+    "a map from string keys to string values"（字符串键 → 字符串值），
+    因此不能嵌套映射或列表。所以 EDAM 标注用扁平的
+    ``edam-<axis>`` 键，值是逗号分隔的 ID 字符串。
+
+    允许的轴与 ID 前缀：
+      topic / operation / input-data / output-data → 对应 EDAM 四个子本体
+      input-format / output-format → format_ 前缀
+    """
+    issues: list[Issue] = []
+
+    axis_prefix = {
+        "edam-topic": "topic_",
+        "edam-operation": "operation_",
+        "edam-input-data": "data_",
+        "edam-output-data": "data_",
+        "edam-input-format": "format_",
+        "edam-output-format": "format_",
+    }
+
+    found_axes: list[str] = []
+    for key, value in metadata.items():
+        if not key.startswith("edam-"):
+            continue
+
+        if key not in axis_prefix:
+            issues.append(
+                Issue(
+                    skill,
+                    "error",
+                    "edam-unknown-axis",
+                    f"metadata.{key} 不是已知的 EDAM 轴，允许的键为 {sorted(axis_prefix)}",
+                )
+            )
+            continue
+
+        found_axes.append(key)
+
+        if not isinstance(value, str):
+            issues.append(
+                Issue(
+                    skill,
+                    "error",
+                    "edam-value-not-string",
+                    f"metadata.{key} 的值必须是字符串"
+                    f"（规范要求 metadata 是字符串到字符串的映射）",
+                )
+            )
+            continue
+
+        ids = [item.strip() for item in value.split(",") if item.strip()]
+        if not ids:
+            issues.append(
+                Issue(skill, "warning", "edam-axis-empty", f"metadata.{key} 没有列出任何 ID")
+            )
+            continue
+
+        prefix = axis_prefix[key]
+        for edam_id in ids:
+            if not edam_id.startswith(prefix):
+                issues.append(
+                    Issue(
+                        skill,
+                        "error",
+                        "edam-id-prefix",
+                        f"metadata.{key} 的 '{edam_id}' 前缀应为 '{prefix}'",
+                    )
+                )
+
+    if found_axes and not (
+        "edam-topic" in found_axes or "edam-operation" in found_axes
+    ):
+        issues.append(
+            Issue(
+                skill,
+                "warning",
+                "edam-missing-function",
+                "EDAM 标注至少应包含 edam-topic 或 edam-operation，否则无法表达工具的功能",
+            )
+        )
+
+    return issues
+
+
 def validate_skill(skill_dir: Path) -> Result:
     """校验单个技能目录。"""
     skill = skill_dir.name
@@ -393,6 +512,7 @@ def validate_skill(skill_dir: Path) -> Result:
         for key in ("version", "last-reviewed", "skill-author"):
             if key not in metadata:
                 issues.append(Issue(skill, "warning", f"missing-metadata-{key}", f"metadata 缺少 '{key}'"))
+        issues.extend(_check_edam(skill, metadata))
 
     _check_description(skill, str(data.get("description", "")), issues)
 
@@ -422,6 +542,73 @@ def validate_skill(skill_dir: Path) -> Result:
     return result
 
 
+def _collect_listing_cost(results: list[Result]) -> tuple[int, list[tuple[str, int]]]:
+    """统计所有技能的 name + description 总字符数。
+
+    这是技能列表在每次会话启动时的常驻成本。超出宿主的共享预算后，
+    描述会被丢弃，技能便不再能被触发——因此必须作为门禁。
+    """
+    per_skill: list[tuple[str, int]] = []
+    total = 0
+    for r in results:
+        fm = _read_frontmatter((SKILLS_DIR / r.skill / "SKILL.md").read_text(encoding="utf-8"))[0]
+        if fm is None:
+            continue
+        try:
+            data = yaml.safe_load(fm) or {}
+        except Exception:
+            continue
+        cost = len(str(data.get("name", ""))) + len(str(data.get("description", "")))
+        per_skill.append((r.skill, cost))
+        total += cost
+    return total, per_skill
+
+
+def _check_listing_budget(results: list[Result]) -> list[Issue]:
+    """检查技能列表的常驻成本是否在预算内。"""
+    issues: list[Issue] = []
+    total, per_skill = _collect_listing_cost(results)
+    if total == 0:
+        return issues
+
+    if total > DESC_BUDGET:
+        issues.append(
+            Issue(
+                "ALL",
+                "error",
+                "listing-budget-exceeded",
+                f"全部技能的 name+description 合计 {total} 字符，"
+                f"超出宿主共享预算 {DESC_BUDGET} 字符。超出的技能会被丢弃描述、"
+                f"只剩裸名字而无法被触发。请压缩描述或改用 skillOverrides 降级低频技能。",
+            )
+        )
+    elif total > DESC_BUDGET_SOFT:
+        issues.append(
+            Issue(
+                "ALL",
+                "warning",
+                "listing-budget-tight",
+                f"全部技能的 name+description 合计 {total} 字符，"
+                f"已超过建议上限 {DESC_BUDGET_SOFT} 字符（硬预算 {DESC_BUDGET}）。"
+                f"请预留余量给用户自己安装的其他技能。",
+            )
+        )
+
+    # 单条描述接近硬上限时提示——超限会让技能在部分宿主上整个消失
+    for skill, cost in per_skill:
+        if cost > MAX_DESC:
+            issues.append(
+                Issue(
+                    skill,
+                    "error",
+                    "listing-entry-too-long",
+                    f"name+description 合计 {cost} 字符，超过单条上限 {MAX_DESC}。"
+                    f"部分宿主（如 copilot-cli）会直接不加载超限技能。",
+                )
+            )
+    return issues
+
+
 def main(argv: list[str] | None = None) -> int:
     """校验器主函数。"""
     parser = argparse.ArgumentParser(description="校验 Agent Skills 规范符合性")
@@ -449,6 +636,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     results = [validate_skill(t) for t in targets]
+
+    # 技能列表的常驻成本是跨技能的全局约束，单独校验一次。
+    # 只在检查全量技能时生效（--skill 单项检查无法评估全局预算）。
+    if not args.skill:
+        budget_issues = _check_listing_budget(results)
+        if budget_issues:
+            results.append(Result(skill="__listing__", issues=budget_issues))
+
     total_errors = sum(len(r.errors) for r in results)
     total_warnings = sum(len(r.warnings) for r in results)
 

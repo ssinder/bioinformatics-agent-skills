@@ -33,7 +33,7 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, http_session  # noqa: E402
+from bioagent_core import get_logger, http_session  # noqa: E402
 
 __all__ = [
     "fetch_run_metadata",
@@ -45,7 +45,7 @@ __all__ = [
 
 ENA_SEARCH_URL = "https://www.ebi.ac.uk/ena/portal/api/search"
 
-LOGGER = get_logger("biopipe.ena-download")
+LOGGER = get_logger("bioagent.ena-download")
 
 # 查询 run 时请求的字段。fastq_* 是 ENA 已转换好的 FASTQ，
 # 比 submitted_*（原始提交文件，通常是 .sra）更常用。

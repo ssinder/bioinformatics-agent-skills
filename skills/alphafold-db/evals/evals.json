@@ -1,0 +1,58 @@
+{
+  "skill_name": "alphafold-db",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a list of ~200 UniProt accessions in /data/proteome/accessions.txt (one per line, with a header line at the top). I need the predicted structures, but only for the ones the model is confident about - global pLDDT above 70. Can you do this?",
+      "expected_output": "Runs python scripts/download_structures.py --ids /data/proteome/accessions.txt --min-plddt 70 --output-dir structures/. For each accession the skill issues GET https://alphafold.ebi.ac.uk/api/prediction/{accession} and takes the pdbUrl field straight from the response rather than hard-coding a model version, because the DB increments the version suffix (model_v6 -> model_v7) and a hard-coded AF-{ID}-F1-model_v6.pdb URL silently starts 404ing. The header line is detected by pattern rather than skipped unconditionally, so a pure-ID file never loses its first entry - and the troubleshooting entry 'the first accession in my file is skipped' is the specific failure to check for. The API returns a JSON array for a single accession rather than an object, and list/dict/error-object response shapes are normalised into one record type. Every record is written to alphafold_metadata.csv and alphafold_metadata.json with global_plddt, the four confidence-band fractions (very low / low / confident / very high), gene, description, organism, model version and structure URLs. Models whose global pLDDT is below 70 are counted as filtered and are never downloaded. Each file is fetched with its Content-Type checked against the expected PDB types and written as bytes, and existing files are skipped unless --force is given. Finally reports the downloaded / skipped / filtered / failed counts and names the failed accessions, and validates that the four confidence-band fractions sum to 1.0 (a mismatch means a truncated record) and that the sequence_length matches the UniProt entry length (a mismatch means the accession was mapped to a different isoform).",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Resolves the model URL from the /api/prediction/{accession} response instead of hard-coding a model_vN version" },
+        { "type": "behavior", "value": "Applies the --min-plddt 70 filter, counts filtered models separately and reports downloaded / skipped / filtered / failed totals" },
+        { "type": "behavior", "value": "Checks that the four pLDDT confidence-band fractions sum to 1.0 and that the header line in the ID file did not cause the first accession to be dropped" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "All my AlphaFold downloads are failing with HTTP 400. I'm building the URL as https://alphafold.ebi.ac.uk/files/AF-P04637-F1-model_v6.pdb - that should be right, the docs used to say model_v6. What changed?",
+      "expected_output": "Explains the core fragility this skill exists to remove: the model version number is not stable. The AlphaFold DB retrains models periodically and increments the version suffix, so a hard-coded AF-{ACCESSION}-F1-model_v6.pdb URL returns HTTP 400/404 once the DB moves on - it is not that the accession is wrong. The fix is to call GET /api/prediction/{accession} and take the pdbUrl from the response, which the server always points at the current valid model; the client only falls back to constructing a URL from the API's reported modelVersion when the API itself is unavailable. If the user must pin a version deliberately, the modelVersion field reported in the metadata record is the thing to read, not a remembered constant. Also notes the other documented failure modes so the user can rule them out: an accession that is not in the DB reports no prediction (check that accessions are canonical reference-proteome entries rather than isoform or variant identifiers, since roughly 230 million entries cover the reference proteomes), a comma-separated batch query is not supported by /api/prediction/ so the skill queries one accession at a time, and a downloaded file containing HTML with a <!DOCTYPE html> marker means an error page was saved as if it were a structure.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Diagnoses the HTTP 400 as a stale hard-coded model version and switches to resolving the URL from the /api/prediction/{accession} response" },
+        { "type": "behavior", "value": "Distinguishes this from the other failure modes (non-canonical accession, unsupported comma-separated batch query, HTML error page saved as a structure)" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need to screen a proteome before downloading anything - 5000 accessions. Is it faster to pull all the PDBs and check afterwards, or is there a way to see confidence first? And what does a pLDDT of 45 actually mean for my analysis?",
+      "expected_output": "Uses the metadata-only path: python scripts/download_structures.py --ids ids.txt --metadata-only --output-dir meta/. The API response already carries global_plddt and the four confidence-band fractions, so confidence can be screened without downloading any structure - this is the fastest route and it avoids 5000 unnecessary downloads. On the pLDDT value: 45 is in the very-low band and indicates extensive low-confidence regions, typically intrinsic disorder rather than a folded domain; AlphaFold's mean per-residue pLDDT is what global_plddt reports, globular proteins typically sit at 70-95, values below 50 indicate extensive low-confidence regions and values above 95 are unusual. The practical consequence is that residues in a low-pLDDT region have no reliable backbone or side-chain geometry, so any coordinate-level analysis of them - interface geometry, contact counting, docking - is not defensible. The skill therefore supports --min-plddt to skip models below a threshold before downloading, so the recommended workflow is metadata-only first, then re-run with --min-plddt (commonly 70) to fetch only the acceptable models. Notes the sanity checks on the metadata itself: the four band fractions must sum to 1.0 and the sequence_length must equal the UniProt entry length, the latter being the check that catches an accession mapped to a different isoform.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses --metadata-only to screen confidence before downloading, rather than pulling all structures first" },
+        { "type": "behavior", "value": "Explains pLDDT 45 as the very-low band indicating disordered/unreliable regions, and gives the usual 70-95 globular range" },
+        { "type": "behavior", "value": "Recommends the two-step workflow of metadata-only screening followed by a --min-plddt filtered download" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need the actual coordinates for a predicted structure of my target, but it isn't in the AlphaFold Database - it's a novel protein my lab sequenced. Can you predict its structure?",
+      "expected_output": "States the scope limit plainly: this skill retrieves pre-computed predictions from the EBI AlphaFold Database and does not run any structure prediction. For a novel target with no AlphaFold DB entry there is nothing to retrieve. Points to the alternatives that cover the missing capability: run the prediction yourself with AlphaFold2/AlphaFold-Multimer, ColabFold or the AlphaFold Server, then bring the resulting prediction package into this repo's workflow - the alphafold-db skill's select_best_model.py can take that package directly, since it reads a directory of structure files together with the summary_confidences_*.json files and picks the best model by the official ranking_score (0.8 * ipTM + 0.2 * pTM + 0.5 * fraction_disordered - 100 * has_clash), with --rank-only to produce just the ranking table and --rank-by to order by ptm, iptm or mean_plddt instead. Also notes that ranking_score is a ranking metric rather than an accuracy metric, so a top-ranked model is the best of its batch and not a guarantee of accuracy, and that the protein-structure skill is where the downloaded or predicted coordinates then get secondary structure, geometry and pLDDT-style characterisation.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Declines to predict a structure, explaining that this skill only retrieves existing AlphaFold DB entries" },
+        { "type": "behavior", "value": "Routes the user to run AlphaFold/ColabFold/AlphaFold Server themselves, then bring the package to select_best_model.py for best-model selection" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "The download died halfway through - I've got about half the PDB files in structures/ and the rest are missing. The connection here is flaky. Can it pick up where it left off? Also requests isn't installed in my venv.",
+      "expected_output": "On resuming: the download loop already skips any file that already exists in the output directory unless --force is given, so re-running the same command downloads only the missing accessions and leaves the completed ones alone - the existing half is preserved and there is no need to wipe the directory. It is worth verifying that the partially-written files are not the ones that failed, since a truncated file can still exist on disk; the Content-Type check plus the PDB sanity check catches most of this (the first lines should contain HEADER or ATOM records and the last line should be END, and a file containing HTML means an error page was saved). If a specific file is suspect, delete just that file and re-run, or use --force to re-download. On the missing requests: the network access path is built on requests via the shared http_session (exponential-backoff retry plus rate limiting), so without requests the API call cannot run. The client degrades gracefully - it logs 'requests 不可用，无法查询 AlphaFold DB' and returns empty rather than raising a traceback - so the symptom is zero records downloaded rather than a crash, which is worth telling the user explicitly so they do not read an empty metadata CSV as 'no predictions exist'. The fix is pip install requests. The offline metadata processing path needs no third-party package, but the API call itself does, so there is no way around installing it for a download.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Explains that re-running the command resumes because existing files are skipped unless --force is given" },
+        { "type": "behavior", "value": "States that requests is required for the network access and cannot be worked around for the API call" },
+        { "type": "behavior", "value": "Checks the partially downloaded files against the PDB sanity criteria (HEADER/ATOM at the top, END at the bottom) since a truncated file can still exist on disk" }
+      ]
+    }
+  ]
+}

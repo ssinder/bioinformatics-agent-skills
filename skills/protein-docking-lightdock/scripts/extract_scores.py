@@ -37,10 +37,10 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 from lightdock_client import collect_swarm_results, find_global_best  # noqa: E402
 
-LOGGER = get_logger("biopipe.protein-docking-lightdock")
+LOGGER = get_logger("bioagent.protein-docking-lightdock")
 
 GLOBAL_FIELDS = [
     "job_name",

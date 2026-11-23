@@ -64,7 +64,11 @@ from typing import Any, Optional, Union
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, http_session  # noqa: E402
+from bioagent_core import get_logger, http_session  # noqa: E402
+from bioagent_core.ncbi_identity import (  # noqa: E402
+    NCBI_TOOL,
+    resolve_email,
+)
 
 __all__ = [
     "PUG_REST_BASE",
@@ -81,7 +85,7 @@ __all__ = [
     "ELEMENTARY_RANKS",
 ]
 
-LOGGER = get_logger("biopipe.bio-database-fetch")
+LOGGER = get_logger("bioagent.bio-database-fetch")
 
 PUG_REST_BASE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
 EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -476,9 +480,15 @@ def fetch_taxonomy(
     **email 是必填的**：NCBI 要求调用方标识身份。老脚本用 5 个随机
     生成的 ``userN@example.com`` 轮流冒充，既违规也拿不到更高的限速。
 
+    但它**不需要用户去配置**——NCBI 政策要求这个地址属于软件开发者
+    而非终端用户，所以本项目注册并内置了一个身份（见
+    ``bioagent_core.ncbi_identity``）。``email`` 传空时会自动回退到该身份；
+    只有当用户所在机构的 IT 政策要求出口流量使用本机构身份时，才需要
+    显式覆盖。
+
     Args:
         tax_ids: Taxonomy ID 列表。
-        email: 联系邮箱（NCBI 要求）。
+        email: 联系邮箱（NCBI 要求）；留空则使用项目方注册身份。
         api_key: NCBI API key（可选，限速从 3 req/s 提到 10 req/s）。
         session: 可复用的 ``requests.Session``。
         timeout: 单次请求超时秒数。
@@ -489,11 +499,8 @@ def fetch_taxonomy(
     """
     if not tax_ids:
         return []
-    if not email:
-        raise ValueError(
-            "必须提供 email —— NCBI 要求调用方标识身份，"
-            "可用 --email 传入或设置环境变量 BIOPIPE_EMAIL"
-        )
+
+    email = resolve_email(email)
 
     own_session = session is None
     if own_session:
@@ -513,6 +520,8 @@ def fetch_taxonomy(
                 "id": ",".join(chunk),
                 "retmode": "xml",
                 "email": email,
+                # NCBI 要求 tool 与 email 一同提供并已注册
+                "tool": NCBI_TOOL,
             }
             if api_key:
                 params["api_key"] = api_key

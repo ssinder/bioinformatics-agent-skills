@@ -1,0 +1,54 @@
+{
+  "skill_name": "paper-fulltext-extract",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have 25 open-access paper PDFs in ./papers/ and I need them all as structured text for a corpus analysis. Please give me JSON and Markdown for each, with the section hierarchy, the figure captions and the reference lists, and build a search index so I can look things up later.",
+      "expected_output": "Runs extract_fulltext.py --pdf-dir ./papers --output ./out --formats json,markdown --build-index: drives the local GROBID service over POST /api/processFulltextDocument with the file field fixed as 'input', consolidateHeader and consolidateCitations on by default, flavor precision, and the batch step skipping any PDF whose <name>.tei.xml already exists so the run is resumable. Parses each TEI into a structured record — title, authors, affiliations, abstract, keywords, DOI, year, journal — plus the nested section tree (div nodes may nest and the hierarchy is preserved), figures and tables with number, caption and relative graphic path, and only those references that live under <back>. Writes flat artifacts under out/json/<name>.json, out/markdown/<name>.md, out/tei/<name>.tei.xml plus corpus_index.json and corpus_metadata.csv (columns file, title, keywords, n_sections, n_paragraphs, abstract_chars). Reports how many papers parsed successfully and how many failed, with corrupt files recorded as warnings rather than aborting the batch.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Runs the PDF -> GROBID -> TEI -> JSON/Markdown path and builds the corpus index" },
+        { "type": "behavior", "value": "Reports parse success/failure counts per paper instead of failing silently on a corrupt XML file" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'm triaging 60 papers for a systematic review and reading each one in full would take me a week. I only need to know what problem each paper set out to solve — can you pull the opening sentences of the introduction for every paper so I can skim them?",
+      "expected_output": "Uses the introduction lead-sentence extraction path rather than full document extraction: extract_fulltext.py --tei-dir ./tei --output ./out --intro-only, with --intro-section (default 'introduction') naming the section and --max-intro-sentences (default 3) capping how many lead sentences are taken per paper — taking the first sentence of every introduction paragraph and exporting them to intro_sentences.csv with columns file, title, sentence_index, first_sentence. If the user only has PDFs, the GROBID conversion step runs first (or grobid_client.py can batch-convert with resume support). Flags the lead-sentence quality rule: the extracted sentence must be a complete sentence ending with a period, and a truncation mid-sentence means an abbreviation such as 'e.g.' was mistaken for the end of a sentence — which should be checked against the raw TEI rather than accepted. Points out that the lead sentence of a paragraph usually states what the paper sets out to solve, which is why this is a valid triage signal, but that it is not a substitute for reading the Methods of the papers that survive the screen.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses the --intro-only lead-sentence path with --max-intro-sentences rather than producing full documents" },
+        { "type": "behavior", "value": "Checks that the extracted lead sentences are complete sentences ending in a period" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Two problems with my extraction. First, several papers came out with the title 'INTRODUCTION' or 'Methods' instead of the real title. Second, my keyword column shows 'tumor necrosis factor' split into three separate words. And one paper's reference list has one more entry than the paper actually has. Are these bugs in your parser or expected?",
+      "expected_output": "Diagnoses all three as the known legacy defects this skill fixed, and explains each: (a) a title of 'INTRODUCTION' or 'Methods' means GROBID mistook a section name for the title, and the script automatically falls back to the filename — that fallback is correct behaviour and is better than falling back to the journal name; (b) keywords split on whitespace means the keyword took the whitespace-splitting fallback branch, so the TEI should be checked for <term> child elements, and multi-word keywords like 'tumor necrosis factor' must stay intact; (c) a reference count that is 1 higher than the actual count is the paper's own metadata — the <biblStruct> inside <sourceDesc> — and only entries under <back> are the real reference list. Also notes the related validation signals: repeated section headings mean the section tree was double-counted, and any artifact sitting in a nested subdirectory under out/json or out/markdown means the filename derivation used an absolute path and should be flat.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Treats the filename fallback for a bogus title as correct behaviour and explains the misassigned-title cause" },
+        { "type": "behavior", "value": "Explains that the off-by-one reference count is the paper's own biblStruct in sourceDesc, not a miscount" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need to find out which papers in this field have been published on mRNA vaccine thermostability. Please search PubMed, OpenAlex and Semantic Scholar for recent work, merge the results, and give me the citations in BibTeX.",
+      "expected_output": "Declines to handle this as a full-text extraction job and redirects to the literature-search skill, which searches PubMed, OpenAlex and Semantic Scholar by topic and keyword, deduplicates the multi-source results at two levels (exact DOI match plus difflib fuzzy title match at the 0.92 default threshold), scores relevance with title hits weighted 3.0 and abstract hits 1.0, filters by relevance/citation count/year, enriches missing abstracts, and exports RIS, BibTeX or GB/T 7714 references via export_citations.py --format bibtex. Points out that this skill starts from PDFs you already have and produces structured full text, section trees, figures and a corpus index — it has no bibliographic search capability and no way to discover papers you do not already hold. If the user does have a directory of PDFs later, that directory is where this skill applies.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the literature-search skill for multi-source bibliographic discovery and BibTeX export" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I don't have Docker and I'm not allowed to install anything on this cluster. I do have a folder of TEI XML files that a colleague already generated with GROBID. Can I still get the structured output and the search index from those?",
+      "expected_output": "Confirms the full parsing, conversion, indexing and search stages work without the GROBID service, because GROBID is only needed for the PDF -> TEI step: extract_fulltext.py --tei-dir ./tei --output ./out --formats json,markdown,html --build-index takes the TEI directory directly and skips the service entirely, and tei_parser.py --input ./tei/paper.tei.xml --json out/paper.json --markdown out/paper.md --html out/paper.html parses a single existing file. search_corpus.py --xml-dir ./tei --keyword ... --scope all builds and queries the index over the TEI files, and --index-file/--load-index lets the index be reused across runs. Clarifies that GROBID itself is a locally deployed Java service (not a cloud API) started with 'docker run -it -p 8070:8070 kermitt/grobid', that the first start downloads models and only becomes ready when 'Server started' appears in the log, that /api/isalive is the health check, and that the scripts probe it and print the exact deployment command when the service is unreachable — so if the user later wants the PDF step too, that container is the only missing piece. Also notes that the parse-only path is standard-library only, so no Python packages are needed either.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses the --tei-dir path and confirms the pipeline works without the GROBID service" },
+        { "type": "behavior", "value": "Explains that GROBID is only required for the PDF-to-TEI step and states the readiness signal and health-check endpoint" }
+      ]
+    }
+  ]
+}

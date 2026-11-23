@@ -135,7 +135,7 @@ went wrong cannot pass silently.
 
 ## 7. Proxy and environment handling
 
-The HTTP client is created through the shared `biopipe_core.http.http_session()`,
+The HTTP client is created through the shared `bioagent_core.http.http_session()`,
 which by default **trusts environment variables** — `HTTPS_PROXY`,
 `REQUESTS_CA_BUNDLE` and friends. This matters in two ways:
 

@@ -12,7 +12,7 @@
 
 用法::
 
-    from biopipe_core.optional_deps import optional_import, require
+    from bioagent_core.optional_deps import optional_import, require
 
     np = optional_import("numpy")
     if np is None:

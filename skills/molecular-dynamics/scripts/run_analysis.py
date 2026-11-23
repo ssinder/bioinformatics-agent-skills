@@ -22,7 +22,7 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core.optional_deps import optional_import  # noqa: E402
+from bioagent_core.optional_deps import optional_import  # noqa: E402
 
 np = optional_import('numpy')
 np_HINT = '数值计算基础库'
@@ -31,16 +31,16 @@ np_HINT = '数值计算基础库'
 def _require_np():
     """确保 numpy 可用，否则抛出带安装指引的异常。"""
     if np is None:
-        from biopipe_core.optional_deps import MissingDependencyError
+        from bioagent_core.optional_deps import MissingDependencyError
 
         raise MissingDependencyError('numpy', hint=np_HINT)
     return np
 
 
 
-from biopipe_core import cli_parser, get_config, get_logger, write_csv  # noqa: E402
-from biopipe_core.cli import SkillError, run_cli  # noqa: E402
-from biopipe_core.optional_deps import is_available  # noqa: E402
+from bioagent_core import cli_parser, get_config, get_logger, write_csv  # noqa: E402
+from bioagent_core.cli import SkillError, run_cli  # noqa: E402
+from bioagent_core.optional_deps import is_available  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -186,7 +186,7 @@ def _match_resid(spec: str, resid: int) -> bool:
 
 def _analyze(args: argparse.Namespace) -> dict:
     """执行轨迹分析，返回结果字典。"""
-    logger = get_logger(f"biopipe.{SKILL_NAME}")
+    logger = get_logger(f"bioagent.{SKILL_NAME}")
     traj = tio.load_trajectory(
         args.input, start=args.start, stop=args.stop, stride=args.stride
     )
@@ -497,7 +497,7 @@ def _collect_phi_psi(
 
 def _write_outputs(results: dict, output_dir: Path, fmt: str) -> list[str]:
     """写出 JSON / CSV 结果。"""
-    logger = get_logger(f"biopipe.{SKILL_NAME}")
+    logger = get_logger(f"bioagent.{SKILL_NAME}")
     written: list[str] = []
     if fmt in ("json", "both"):
         path = output_dir / "md_analysis.json"
@@ -534,7 +534,7 @@ def main(args: argparse.Namespace) -> int:
             "缺少依赖 numpy，轨迹分析无法运行。"
             "\n请先安装: pip install numpy"
         )
-    logger = get_logger(f"biopipe.{SKILL_NAME}")
+    logger = get_logger(f"bioagent.{SKILL_NAME}")
     output_dir = _resolve_output_dir(args.output)
     results = _analyze(args)
     _write_outputs(results, output_dir, args.format)

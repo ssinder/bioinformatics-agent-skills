@@ -67,7 +67,7 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger  # noqa: E402
+from bioagent_core import get_logger  # noqa: E402
 
 __all__ = [
     "PepMLMConfig",
@@ -78,7 +78,7 @@ __all__ = [
     "DEFAULT_MODEL_NAME",
 ]
 
-LOGGER = get_logger("biopipe.ml-peptide-generation")
+LOGGER = get_logger("bioagent.ml-peptide-generation")
 
 #: 默认的预训练模型
 DEFAULT_MODEL_NAME = "TianlaiChen/PepMLM-650M"

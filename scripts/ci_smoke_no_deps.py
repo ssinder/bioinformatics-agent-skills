@@ -14,7 +14,7 @@
 用 ``sys.meta_path`` 插入一个 import blocker，把 numpy / pandas / scipy /
 matplotlib / seaborn 全部屏蔽掉，然后对 ``skills/*/scripts/*.py`` 全量跑
 ``--help``。任何脚本因此崩溃都说明它存在顶层硬依赖，需要改为可选依赖降级
-（见 ``packages/biopipe_core/optional_deps.py``）。
+（见 ``packages/bioagent_core/optional_deps.py``）。
 
 用法：
     python scripts/ci_smoke_no_deps.py
@@ -69,7 +69,7 @@ def main() -> int:
     packages_dir = REPO_ROOT / "packages"
 
     env = dict(os.environ)
-    # PYTHONPATH 里加上 packages，保证 biopipe_core 可被导入
+    # PYTHONPATH 里加上 packages，保证 bioagent_core 可被导入
     existing = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = os.pathsep.join(
         p for p in (str(packages_dir), existing) if p

@@ -1,0 +1,54 @@
+{
+  "skill_name": "bio-database-fetch",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a list of PubChem CIDs from a screening hit table in /data/chem/cids.txt (about 350 of them, one per line). I need molecular weight, SMILES, InChIKey, XLogP, TPSA and the CAS registry number for each so I can join them onto my activity table. Output to /data/chem/pubchem/.",
+      "expected_output": "Runs fetch_compounds.py --cids /data/chem/cids.txt --output-dir /data/chem/pubchem/, deduplicating the CIDs while preserving order and skipping '#' comments and a header row. Fetches properties through PUG-REST in chunks of at most 100 CIDs per request (PubChem's GET limit), requesting MolecularFormula, MolecularWeight, SMILES, ConnectivitySMILES, InChI, InChIKey, IUPACName, XLogP, ExactMass, TPSA, HBondDonorCount, HBondAcceptorCount, RotatableBondCount, HeavyAtomCount and Charge — requesting both SMILES and ConnectivitySMILES because PubChem renamed CanonicalSMILES to SMILES and asking for the old name returns nothing. Fetches synonyms separately (a well-known compound can have several hundred, of which the first --max-synonyms, default 20, are kept while the true synonym_count is still reported) and extracts CAS numbers from the synonym list by matching the CAS format pattern, topping up from xrefs/RegistryID only for those the synonyms missed — RegistryID alone is a cross-reference dump containing things like CHEBI:15365 and DB00945 and is not a CAS source. Writes compounds.csv and compounds.json with CID, found, IUPAC name, formula, molecular weight, exact mass, XLogP, TPSA, charge, both SMILES columns, InChI, InChIKey, H-bond counts, rotatable bonds, heavy atoms, CAS, synonym count and synonyms. Requires no email configuration because the project ships an identity already registered with NCBI.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Fetches compounds in chunks of at most 100 CIDs per PUG-REST request and requests both SMILES and ConnectivitySMILES" },
+        { "type": "behavior", "value": "Extracts CAS numbers by format-filtering the synonyms rather than using the RegistryID endpoint directly" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My CAS column came back empty for one of my compounds and I got a row where the properties are all blank even though the request returned HTTP 200. Also the CAS field has more than one number for some entries. Is the lookup broken?",
+      "expected_output": "Explains that HTTP 200 proves nothing here: PubChem answers a request for a non-existent CID with HTTP 200 and a body of just {\"CID\": 999999999} with no properties, so every record carries an explicit found flag and the run must check that column — found=False means the identifier is wrong (a typo, or a CID from a different identifier space such as a CAS number or InChIKey used where a CID was expected) or refers to a compound that was removed or merged. For the empty CAS column, walks the likely causes in order: --no-cas was passed; the synonyms request failed while the properties request succeeded (the client logs a warning and still exits 0, so the log must be checked for a synonym-query failure); the compound genuinely has no CAS number in PubChem, which is rare but happens for obscure entries; or the synonyms list is empty, which is visible from the synonym_count column. For the multiple CAS numbers, states that this is legitimate — salts, hydrates and stereoisomers each get their own, the column holds them semicolon-separated, and the user should match on the primary one only when joining against a single-registry table. Adds that the pattern check validates format only and cannot detect a reassigned CAS number, so critical identity work should cross-check the InChIKey.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Tells the user to check the found column rather than trusting the HTTP status code" },
+        { "type": "behavior", "value": "Explains that multiple semicolon-separated CAS numbers are legitimate for salts and stereoisomers" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm annotating an amplicon hits table and I need the taxonomic lineage for the organisms I hit: tax_ids 9606, 10090, 511145, 562 and 83333. What I need per organism is the domain down to species, and I want to be able to join the results back onto my hits table. Also one of my rows is a strain-level entry — I need to know what that means for my annotation.",
+      "expected_output": "Runs fetch_taxonomy.py --tax-ids 9606 10090 511145 562 83333 --output-dir <dir>/, fetching with efetch.fcgi?db=taxonomy&id=...&retmode=xml and no esearch step, because taxonomy IDs are primary keys (unlike BioProject, where an accession must first be resolved to a UID). Parses the scientific name, common name and rank, and the full lineage. Crucially reads the species level from the top-level Rank/ScientificName elements rather than from LineageEx, because LineageEx contains only ancestors and reading it alone leaves the species name — the field the user actually wants — empty; and it does not iterate the whole document as a flat list of Taxon nodes, which would turn 5 queried organisms into ~75 records including ancestors such as 'cellular organisms' and 'Eukaryota'. Writes taxonomy.csv with tax_id, scientific name, common name, rank, domain through species flattened into columns, lineage depth and a full_lineage string, and taxonomy.json with the full nested records including every lineage entry with its rank and taxid. For the strain-level entry, explains that not every taxon has a species rank — entries such as Escherichia coli str. K-12 substr. MG1655 report 'no rank' and the rank column tells the user what the entry actually is. For the join, warns that species names are not stable identifiers (E. coli's phylum was renamed from Proteobacteria to Pseudomonadota), so the join key must be tax_id; notes the superkingdom column is empty in current data because NCBI retired that rank in favour of 'cellular root' and the domain column carries the top-level split; and notes that a missing common name is normal since GenbankCommonName only exists for well-studied organisms.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Reads the species level from the top-level Rank/ScientificName because LineageEx holds only ancestors" },
+        { "type": "behavior", "value": "Advises joining on tax_id rather than the scientific name, and notes the empty superkingdom column" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need the details of these sequencing projects for my paper's data availability statement: PRJNA742158, PRJEB41345, PRJDB10934 and PRJNA489857 — title, description, organism, submitter and release date for each.",
+      "expected_output": "Declines to handle this and redirects to the bioproject-search skill, which retrieves BioProject metadata through NCBI E-utilities (esearch with the [Project Accession] qualifier, then esummary and efetch merged because neither endpoint alone carries every field) and exports accession, title, name, description, organism, taxid, project type, submitter, registration date, release date, last-update date and UID as bioproject_data.csv and bioproject_data.json. Points out that this skill's scope is compound properties from PubChem PUG-REST and taxonomic lineage from NCBI Taxonomy — neither endpoint knows what a PRJNA project is, and taxonomy IDs (9606, 10090) are a completely different identifier space from BioProject accessions, so passing PRJNA accessions to the taxonomy fetcher would return nothing. Notes that the PRJEB/PRJDB prefix question (which archive the project was submitted to) is answered by the BioProject skill's own validation section, not here.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the bioproject-search skill for BioProject metadata and distinguishes accessions from taxonomy IDs" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "PubChem's rate-limited me partway through and my compounds.csv only has 60 of my 350 CIDs. Also, do I need to configure an email address like the other NCBI tools do?",
+      "expected_output": "Explains the email question first: no configuration is required, because the project ships an identity already registered with NCBI and the scripts send tool and email automatically — --email (or the BIOAGENT_EMAIL environment variable for fetch_taxonomy.py) is only an override for institutions whose policy demands a local identity. For the truncated result, does not simply re-run blindly: the chunking is by 100 CIDs per request, so a partial file most likely means a request failed mid-batch and the run stopped rather than silently dropping rows, so the log must be read to find the failing request and the run repeated for the remainder. Notes that the fetch loops over the chunk and processes each CID individually, so a single bad CID does not lose the other 99 in its chunk, and that a chunk whose response omits a CID leaves that record's found flag False rather than dropping it — the count of rows in compounds.csv is therefore a cross-check on how much of the list was actually covered. Points out that the property request and the synonym request are separate calls, so a synonym failure leaves the properties populated but the CAS column empty (the client logs a warning and still exits 0), which is a different symptom from a truncated file.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "States that no email setup is needed because the project ships a registered NCBI identity" },
+        { "type": "behavior", "value": "Distinguishes a truncated run from a synonym-request failure and points at the found flag / row count as the coverage check" }
+      ]
+    }
+  ]
+}

@@ -73,7 +73,7 @@ def run_cli(
     main_func: Callable[[argparse.Namespace], Any],
     argv: Optional[Sequence[str]] = None,
     parser: Optional[argparse.ArgumentParser] = None,
-    skill: str = "biopipe",
+    skill: str = "bioagent",
     version: str = "1.0.0",
 ) -> int:
     """执行技能主函数并统一处理异常与退出码。
@@ -101,7 +101,7 @@ def run_cli(
 
     from .logging_utils import setup_logging
 
-    logger = setup_logging(f"biopipe.{skill}", level=level, log_file=args.log_file, quiet=args.quiet)
+    logger = setup_logging(f"bioagent.{skill}", level=level, log_file=args.log_file, quiet=args.quiet)
 
     try:
         result = main_func(args)

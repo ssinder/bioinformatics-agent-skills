@@ -54,7 +54,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-# 允许本模块被单独调用（biopipe_core 是软依赖，取不到时退回标准库 logging）
+# 允许本模块被单独调用（bioagent_core 是软依赖，取不到时退回标准库 logging）
 try:
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 except (IndexError, OSError):  # pragma: no cover
@@ -507,17 +507,17 @@ def stabilize_after_nan(
 def _get_logger() -> Any:
     """获取 logger。
 
-    优先用 ``biopipe_core``（仓库统一日志格式）；拿不到时退回标准库
+    优先用 ``bioagent_core``（仓库统一日志格式）；拿不到时退回标准库
     ``logging``，保证本模块在裸环境下也能用。
     """
     try:
-        from biopipe_core import get_logger
+        from bioagent_core import get_logger
 
-        return get_logger("biopipe.molecular-dynamics")
+        return get_logger("bioagent.molecular-dynamics")
     except Exception:  # noqa: BLE001
         import logging
 
-        return logging.getLogger("biopipe.molecular-dynamics")
+        return logging.getLogger("bioagent.molecular-dynamics")
 
 
 def _main(argv: Optional[list[str]] = None) -> int:

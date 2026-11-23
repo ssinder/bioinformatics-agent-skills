@@ -12,8 +12,8 @@
 
 ```
 skills/<skill-name>/       技能包,一个技能一个目录,kebab-case 命名
-packages/biopipe_core/     共享工具层（配置/日志/HTTP/CLI/IO）
-packages/biopipe/          统一命令行入口与技能注册表
+packages/bioagent_core/     共享工具层（配置/日志/HTTP/CLI/IO）
+packages/bioagent/          统一命令行入口与技能注册表
 scripts/                   仓库级工具（校验器、骨架生成器）
 tests/                     pytest 测试
 docs/                      文档与技能目录
@@ -37,9 +37,9 @@ python scripts/validate_skills.py --skill <name> --strict
 
 ### 2. 脚本规范
 
-- 共享能力一律从 `biopipe_core` 导入,不要重复实现路径解析、日志、HTTP 重试
+- 共享能力一律从 `bioagent_core` 导入,不要重复实现路径解析、日志、HTTP 重试
 - 禁止硬编码绝对路径;输入输出路径来自 `argparse`
-- 禁止裸 `print()`,用 `get_logger("biopipe.<skill>")`
+- 禁止裸 `print()`,用 `get_logger("bioagent.<skill>")`
 - 入口统一用 `bootstrap_cli(description, skill_name, main)`
 - 重量级依赖(scanpy/OpenMM/MDAnalysis 等)必须优雅降级,核心算法内置纯 Python 实现
 - 每个脚本都要能被 `--help` 正常响应,且不依赖真实数据
@@ -54,8 +54,8 @@ python scripts/validate_skills.py --skill <name> --strict
 
 ### 4. 注册新技能
 
-新增技能后,必须同步更新 `packages/biopipe/registry.py` 的 `REGISTRY`,
-否则 `biopipe <name>` 命令不可用,CI 的集成测试会失败。
+新增技能后,必须同步更新 `packages/bioagent/registry.py` 的 `REGISTRY`,
+否则 `bioagent <name>` 命令不可用,CI 的集成测试会失败。
 
 ## 提交前自检
 

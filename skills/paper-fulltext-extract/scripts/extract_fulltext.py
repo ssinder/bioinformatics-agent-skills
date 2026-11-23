@@ -44,8 +44,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional  # noqa: E402
 
-from biopipe_core import cli_parser, get_logger, run_cli  # noqa: E402
-from biopipe_core.cli import SkillError  # noqa: E402
+from bioagent_core import cli_parser, get_logger, run_cli  # noqa: E402
+from bioagent_core.cli import SkillError  # noqa: E402
 from grobid_client import GrobidClient  # noqa: E402
 from search_corpus import CorpusIndex  # noqa: E402
 from tei_parser import (  # noqa: E402
@@ -208,7 +208,7 @@ def _extract_intro_csv(
 
 def main(args: argparse.Namespace) -> int:
     """流水线主入口。"""
-    logger = get_logger(f"biopipe.{SKILL_NAME}")
+    logger = get_logger(f"bioagent.{SKILL_NAME}")
 
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -335,6 +335,6 @@ def main(args: argparse.Namespace) -> int:
 
 
 if __name__ == "__main__":
-    from biopipe_core.cli import run_cli
+    from bioagent_core.cli import run_cli
 
     sys.exit(run_cli(main, parser=_build_parser(), skill=SKILL_NAME, version="1.0.0"))

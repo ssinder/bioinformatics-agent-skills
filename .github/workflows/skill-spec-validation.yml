@@ -24,15 +24,32 @@ jobs:
       - name: Validate skill spec compliance
         run: python scripts/validate_skills.py
 
+      - name: Check cross-harness compatibility
+        # 检查技能在 Claude Code / Codex / Copilot CLI 等宿主下能否被加载：
+        # description 超限会让整个技能静默不加载，frontmatter 含规范外
+        # 字段会让 claude.ai 上传直接失败。
+        run: python scripts/ci_harness_check.py
+
+      - name: Check skill evaluation cases
+        # 每个技能必须有 evals/evals.json，且至少含一个近似负例
+        # （should_not_trigger）——没有负例就测不出"该不该用这个技能"，
+        # 技能之间会互相抢触发。
+        run: python scripts/ci_check_evals.py --require-all
+
+      - name: Verify version consistency
+        # plugin.json / pyproject.toml / CITATION.cff 三处版本必须一致，
+        # 否则发布出去的 wheel、插件清单与引用元数据会互相矛盾。
+        run: python scripts/ci_version_sync.py
+
       - name: Validate core package imports
         run: |
           pip install -e .
-          python -c "import biopipe_core, biopipe; print('imports OK:', len(biopipe.REGISTRY), 'skills')"
+          python -c "import bioagent_core, bioagent; print('imports OK:', len(bioagent.REGISTRY), 'skills')"
 
       - name: Verify every registered skill exists on disk
         run: |
           python - <<'PY'
-          from biopipe.registry import REGISTRY
+          from bioagent.registry import REGISTRY
           missing = [s.name for s in REGISTRY.values() if not s.skill_md.exists()]
           if missing:
               raise SystemExit(f"注册表中缺少 SKILL.md 的技能: {missing}")

@@ -34,7 +34,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 from hdock_client import (  # noqa: E402
     JobStatus,
     download_top_models,
@@ -43,7 +43,7 @@ from hdock_client import (  # noqa: E402
     wait_for_results,
 )
 
-LOGGER = get_logger("biopipe.protein-docking-hdock")
+LOGGER = get_logger("bioagent.protein-docking-hdock")
 
 FIELDNAMES = [
     "job_name",

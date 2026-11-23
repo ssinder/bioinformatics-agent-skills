@@ -53,7 +53,7 @@ jobs:
           set -e
           python - <<'PY'
           import subprocess, sys
-          from biopipe.registry import REGISTRY
+          from bioagent.registry import REGISTRY
 
           failures = []
           for spec in REGISTRY.values():
@@ -80,3 +80,95 @@ jobs:
         # 关键回归：--help 属于元信息查询，不应因为缺少 numpy / pandas 等
         # 科学计算栈而崩溃。技能脚本必须在缺依赖时优雅降级。
         run: python scripts/ci_smoke_no_deps.py
+
+  backend-agreement:
+    name: Backend agreement (DESeq2 reference)
+    # 对照官方参考实现，验证内置纯 Python 统计实现没有系统性偏差。
+    #
+    # 这是本仓库科学正确性的核心证据：技能在 SKILL.md 里承诺
+    # "同一数据用 --backend python 与 --backend r 各跑一次结果基本一致"，
+    # 那就必须由 CI 真跑一遍，而不是只在文档里这么写。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install R and Bioconductor DESeq2
+        # 用 rocker 的 Bioconductor 镜像，比 apt 装 Bioconductor 快得多。
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            r-base-core r-base-dev \
+            libcurl4-openssl-dev libssl-dev libxml2-dev \
+            build-essential gfortran \
+            libglpk-dev libblas-dev liblapack-dev
+          # Bioconductor 的 DESeq2 从 BiocManager 装；
+          # 固定版本以保证可复现。
+          sudo Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org")'
+          sudo Rscript -e 'BiocManager::install("DESeq2", version="3.20", ask=FALSE, update=FALSE)'
+          Rscript -e 'cat("DESeq2 available:", requireNamespace("DESeq2", quietly=TRUE), "\n")'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -e ".[dev]"
+          pip install numpy scipy pandas
+
+      - name: Verify both backends agree
+        # 关键：这里必须真的跑对照，而不是跳过。
+        # 若环境里明明装了 DESeq2 却跳过，视为失败——否则这个 job
+        # 会变成一个永不验证的摆设徽章。
+        run: |
+          python - <<'PY'
+          import subprocess, sys
+          probe = subprocess.run(
+              ["Rscript", "-e", "cat(requireNamespace('DESeq2', quietly=TRUE))"],
+              capture_output=True, text=True,
+          )
+          if "TRUE" not in probe.stdout:
+              print("::error::DESeq2 未安装成功，无法进行后端一致性验证")
+              raise SystemExit(1)
+          raise SystemExit(subprocess.call([
+              sys.executable, "-m", "pytest",
+              "tests/test_backend_agreement.py", "-v", "--no-header",
+          ]))
+          PY
+
+  scrna-backend-agreement:
+    name: Backend agreement (scanpy reference)
+    # 单细胞流程同样有双后端：内置纯 NumPy 实现 vs scanpy。
+    # 夹具里带有人工真值聚类，因此除了两后端互比，还能验证各自
+    # 对真值的还原度——两个实现可能一起错，但对上真值就说明没错。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          pip install -e ".[dev]"
+          pip install numpy scipy pandas h5py scikit-learn
+          pip install "scanpy>=1.9" "anndata>=0.9" matplotlib
+
+      - name: Verify both backends agree
+        run: |
+          python - <<'PY'
+          import subprocess, sys
+          probe = subprocess.run(
+              [sys.executable, "-c", "import scanpy, anndata; print('OK')"],
+              capture_output=True, text=True,
+          )
+          if probe.returncode != 0:
+              print("::error::scanpy 未安装成功，无法进行后端一致性验证")
+              raise SystemExit(1)
+          raise SystemExit(subprocess.call([
+              sys.executable, "-m", "pytest",
+              "tests/test_scrna_backend_agreement.py", "-v", "--no-header",
+          ]))
+          PY
+

@@ -225,7 +225,7 @@ done
 
 ### 症状：输出目录被写到了意料之外的位置
 
-**原因**：未传 `--output` 时，默认取 `biopipe_core.get_config()` 的
+**原因**：未传 `--output` 时，默认取 `bioagent_core.get_config()` 的
 `output_dir`，其根目录来自 `BIOPIPE_PROJECT_ROOT` 环境变量或当前工作目录。
 
 **处理**：显式传 `--output`，或设置环境变量：

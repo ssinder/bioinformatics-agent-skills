@@ -3,7 +3,7 @@
 这些用例锁住一批曾经真实存在过的缺陷，防止 ruff 规则变更或后续重构
 把它们重新引入：
 
-1. ``biopipe_core.io_utils`` 曾在类型注解里使用 ``Any`` 却未导入 ——
+1. ``bioagent_core.io_utils`` 曾在类型注解里使用 ``Any`` 却未导入 ——
    因 ``from __future__ import annotations`` 的存在，运行时不报错，
    但 ``typing.get_type_hints()`` 会抛 NameError。
 2. ``protein-structure/scripts/analyze_structure.py`` 的 ``__all__``
@@ -150,7 +150,7 @@ class TestTypeHintResolution:
         )
 
     def test_io_utils_write_csv_hints_resolve(self) -> None:
-        from biopipe_core import io_utils
+        from bioagent_core import io_utils
 
         hints = typing.get_type_hints(io_utils.write_csv)
         assert "rows" in hints
@@ -158,7 +158,7 @@ class TestTypeHintResolution:
 
     def test_core_module_hints_resolve(self) -> None:
         """共享层所有公开函数的类型注解都应可解析。"""
-        from biopipe_core import cli, config, http, io_utils, logging_utils
+        from bioagent_core import cli, config, http, io_utils, logging_utils
 
         for module in (cli, config, http, io_utils, logging_utils):
             for name in getattr(module, "__all__", []):
@@ -168,7 +168,7 @@ class TestTypeHintResolution:
 
     def test_no_undefined_names_in_annotations(self) -> None:
         """所有共享层模块的 __all__ 名字必须真实存在。"""
-        from biopipe_core import cli, config, http, io_utils, logging_utils
+        from bioagent_core import cli, config, http, io_utils, logging_utils
 
         for module in (cli, config, http, io_utils, logging_utils):
             for name in getattr(module, "__all__", []):

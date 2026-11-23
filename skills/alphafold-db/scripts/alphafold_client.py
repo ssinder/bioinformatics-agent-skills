@@ -41,7 +41,7 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, http_session  # noqa: E402
+from bioagent_core import get_logger, http_session  # noqa: E402
 
 __all__ = [
     "fetch_prediction",
@@ -55,7 +55,7 @@ __all__ = [
 ALPHAFOLD_API_BASE = "https://alphafold.ebi.ac.uk/api/prediction"
 ALPHAFOLD_FILES_BASE = "https://alphafold.ebi.ac.uk/files"
 
-LOGGER = get_logger("biopipe.alphafold-db")
+LOGGER = get_logger("bioagent.alphafold-db")
 
 # 兜底构造 PDB URL 时探测的模型版本（从新到旧）。
 # 之所以列表化而不是写死单一版本，是为了在 API 不可用时仍有机会命中；

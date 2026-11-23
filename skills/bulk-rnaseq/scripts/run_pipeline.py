@@ -40,9 +40,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
 from typing import Optional
 
-from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
-from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
-from biopipe_core.optional_deps import optional_import  # noqa: E402
+from bioagent_core import SkillError, get_config, get_logger  # noqa: E402
+from bioagent_core.cli import cli_parser, run_cli  # noqa: E402
+from bioagent_core.optional_deps import optional_import  # noqa: E402
 
 # numpy 是可选依赖：缺失时仍可显示 --help 与参数说明，
 # 只有真正执行数值计算时才报错。
@@ -56,14 +56,14 @@ else:
 def _require_numpy():
     """确保 numpy 可用，否则抛出带安装指引的异常。"""
     if np is None:
-        from biopipe_core.optional_deps import MissingDependencyError
+        from bioagent_core.optional_deps import MissingDependencyError
 
         raise MissingDependencyError("numpy", hint=_NUMPY_HINT, extra="rna-seq")
     return np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-LOGGER = get_logger("biopipe.bulk-rnaseq")
+LOGGER = get_logger("bioagent.bulk-rnaseq")
 
 # 默认各步骤的子目录名
 DIR_QC = "01_qc"
@@ -1086,7 +1086,7 @@ if __name__ == "__main__":
     )
 
     def build_parser() -> argparse.ArgumentParser:
-        """构造带业务参数的解析器（沿用 biopipe_core 的公共参数）。"""
+        """构造带业务参数的解析器（沿用 bioagent_core 的公共参数）。"""
         parser = cli_parser(prog="bulk-rnaseq", description=DESCRIPTION, skill="bulk-rnaseq")
 
         g_in = parser.add_argument_group("输入")

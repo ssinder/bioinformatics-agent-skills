@@ -2,7 +2,7 @@
 """文献检索核心库：多源 API 客户端、归一化、去重、相关性打分、摘要富集。
 
 本模块被 ``search_literature.py`` 与 ``export_citations.py`` 复用，
-所有网络访问都通过共享层 :func:`biopipe_core.http_session` 完成（自带重试与限速）。
+所有网络访问都通过共享层 :func:`bioagent_core.http_session` 完成（自带重试与限速）。
 
 数据源与端点
 ------------
@@ -22,13 +22,19 @@ from __future__ import annotations
 import difflib
 import json
 import re
+import sys
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 from typing import Any, Optional
 
-from biopipe_core import SkillError, get_logger, http_session
+# 让本模块既能作为库被同目录脚本导入，也能独立运行。
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-LOGGER = get_logger("biopipe.literature-search")
+from bioagent_core import SkillError, get_logger, http_session  # noqa: E402
+from bioagent_core.ncbi_identity import NCBI_TOOL, resolve_email  # noqa: E402
+
+LOGGER = get_logger("bioagent.literature-search")
 
 # ---------------------------------------------------------------- API 端点
 
@@ -286,11 +292,12 @@ class LiteratureClient:
             "retmode": "json",
             "sort": "relevance",
         }
+        # NCBI 要求 tool 与 email 一同提供且已注册；项目方已注册身份，
+        # 因此这里始终带上，用户无需配置。
+        params["tool"] = NCBI_TOOL
+        params["email"] = resolve_email(self.email)
         if self.ncbi_api_key:
             params["api_key"] = self.ncbi_api_key
-            params["tool"] = "biopipe"
-        if self.email:
-            params["email"] = self.email
 
         payload = self._get("pubmed", PUBMED_ESEARCH_URL, params)
         id_list = payload.get("esearchresult", {}).get("idlist", []) or []

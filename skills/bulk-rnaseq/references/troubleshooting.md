@@ -374,7 +374,7 @@ pip install numpy scipy pandas matplotlib
 pip install pyyaml
 ```
 
-### 4.3 `No module named 'biopipe_core'`
+### 4.3 `No module named 'bioagent_core'`
 
 脚本会把仓库的 `packages/` 目录加入 `sys.path`，但需要正确的目录层级。若是脱离仓库单独拷贝脚本使用，需要手工设置：
 

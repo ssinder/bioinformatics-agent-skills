@@ -44,7 +44,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 from lightdock_client import (  # noqa: E402
     DockingJob,
     LightDockError,
@@ -56,7 +56,7 @@ from lightdock_client import (
     run_docking as lightdock_run,
 )
 
-LOGGER = get_logger("biopipe.protein-docking-lightdock")
+LOGGER = get_logger("bioagent.protein-docking-lightdock")
 
 FIELDNAMES = [
     "job_id",

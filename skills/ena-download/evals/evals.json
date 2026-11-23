@@ -1,0 +1,63 @@
+{
+  "skill_name": "ena-download",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need the raw FASTQ for four runs from a bulk RNA-seq time series: SRR390728, SRR1975568, ERR3152560 and DRR171241. The accession list is in /data/rnaseq/runs.txt. Please fetch them into /data/rnaseq/fastq/ and I also want a metadata table so I can see read counts before I commit more bandwidth.",
+      "expected_output": "Runs download_runs.py --ids /data/rnaseq/runs.txt --output-dir /data/rnaseq/fastq/, accepting SRA/ERR/DRR accessions either directly or from a text file with one per line and # comments. Queries the ENA Portal API through the search endpoint with a 'run_accession=X OR run_accession=Y' expression (not the filereport endpoint, which rejects multi-accession queries) and writes ena_run_metadata.csv and ena_run_metadata.json containing library_strategy, read_count, base_count, organism, instrument, library layout and the per-file fastq_ftp, fastq_bytes and fastq_md5 values. Downloads each FASTQ as a stream from the ENA-published path (ENA's already-converted FASTQ, so no separate fastq-dump step), then verifies the MD5 against ENA's published value and deletes any file whose checksum mismatches so a truncated transfer is not mistaken for a complete one. Reports the counts of downloaded, skipped and failed files plus the list of failed runs, and points out that read_count is a read count and not a read-pair count, so paired-end runs should show 2 FASTQ files.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Resolves URLs, sizes and MD5s from the ENA Portal API fields fastq_ftp/fastq_bytes/fastq_md5 rather than scraping archive pages" },
+        { "type": "behavior", "value": "Verifies MD5 after transfer and deletes mismatching files, reporting downloaded/skipped/failed counts" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My download of SRR1975568 died at about 3 GB of 8 GB because our datacenter cut the connection overnight. The partial file is still sitting in /data/rnaseq/fastq/. If I just run the script again will it start over and waste a night of transfer?",
+      "expected_output": "Confirms the download resumes rather than restarting: an interrupted transfer continues from the byte it stopped at using an HTTP Range header (headers['Range'] = 'bytes={offset}-'), and the file is opened in append mode ('ab') when an offset exists, or 'wb' from scratch when it does not. Notes that the implementation also handles the case where the server ignores Range and answers 200 instead of 206 — in that case the write mode falls back to overwriting from the beginning rather than corrupting the file by appending a second full copy. Explains that an existing complete file is skipped unless --force is given, that --no-resume disables the Range behaviour and restarts from zero, and that because MD5 verification runs after each transfer, a file that was truncated mid-flight will fail the checksum and be deleted so the next run starts clean. Advises keeping --no-verify off so the integrity check still protects the resumed bytes.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "States that the partial file is continued with an HTTP Range request and appended to, not re-downloaded from zero" },
+        { "type": "behavior", "value": "Mentions that MD5 verification still applies to the resumed file and deletes it on mismatch" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I gave the script a list with 30 accessions and expected an RNA-seq experiment, but I got back files where library_strategy says WGS, and a couple of runs have no FASTQ at all ('没有可用的 FASTQ'). I also assumed read_count would equal the number of read pairs but the numbers don't line up. What went wrong?",
+      "expected_output": "Diagnoses each symptom with the skill's own validation rules. For the WGS runs: WGS runs also live in SRA/ENA, so an accession can belong to a different project than expected — the fix is to filter with --strategy RNA-Seq and to check the metadata table's library_strategy column to confirm which runs belong to the intended project. For the runs with no FASTQ: ENA has not converted those submitted files to FASTQ, which happens for some large WGS and long-read submissions where the original format is kept; the workaround is to pull the submitted_ftp field instead of fastq_ftp and convert separately, since the submitted files are always present even when the FASTQ conversion does not exist. For the read counts: read_count is the number of reads, not read pairs, so for paired-end data the number of FASTQ files should be 2 and the total base count should be roughly read_count x read_length — the user's expectation of pairs was the mismatch, not the metadata. Also points out --single-end for taking only the first FASTQ of each run, and --metadata-only for sizing the dataset (checking fastq_bytes) before committing bandwidth.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Recommends --strategy filtering for the unexpected WGS runs instead of assuming the accession list was wrong" },
+        { "type": "behavior", "value": "Explains that read_count counts reads not pairs, and that a missing FASTQ means ENA has not converted the run" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "For my methods section I just need the metadata for the BioProjects in my list — the title, the description, the organism and the submitter for each of the 12 PRJNA accessions in /data/projects/prj_ids.txt. I don't need any reads.",
+      "expected_output": "Declines to handle this as a download task and redirects to the bioproject-search skill, which retrieves BioProject-level metadata (accession, title, name, description, organism, taxid, project type, submitter, registration date, release date, last-update date) through NCBI E-utilities with the [Project Accession] field qualifier, merging esummary and efetch because neither endpoint alone carries every field, and exports bioproject_data.csv and bioproject_data.json. Points out that this skill works at the run level: its metadata table covers per-run fields such as library_strategy, read_count, base_count and the FASTQ paths/sizes/MD5s, not the project-level title/description/submitter, and its output would therefore not answer the methods-section question. Notes that if the user later wants the reads behind those projects, the SRR/ERR/DRR run accessions have to be resolved first, which this skill does via the ENA Portal API.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the bioproject-search skill for project-level metadata, explaining the project-level versus run-level distinction" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I have the FASTQ files now but honestly I'd rather not write my own pipeline. Can this skill run FastQC, trim the reads, quantify with Salmon and run the differential expression, and give me a volcano plot?",
+      "expected_output": "Declines the analysis and redirects to the bulk-rnaseq skill, which runs the full bulk RNA-seq pipeline — quality control, trimming, Salmon quantification, counts matrix construction, DESeq2-style differential expression with a specified contrast, GO/KEGG enrichment, and the volcano plot. Points out that this skill stops at the raw-data boundary: it resolves the ENA Portal API records, downloads the FASTQ, verifies the MD5 and writes the run metadata table, so it cannot interpret reads. Also flags the practical preconditions the user must satisfy before the downstream pipeline is meaningful: the FASTQ must be valid gzip (gzip -t), the MD5 and the size must match fastq_bytes, and the library_strategy should be the RNA-Seq the experiment actually used — a WGS run fed into an RNA-seq pipeline would fail later at the quantification step rather than here.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the bulk-rnaseq skill for the downstream quantification and differential expression analysis" }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "One of my accessions came back empty from ENA — the log says 'ENA 未返回记录'. I checked and the accession is SRR1792205, which I got from a paper's methods section. Also my run against a different accession returned '没有可用的 FASTQ（可能未转换或被删除）'. What's wrong with these two runs?",
+      "expected_output": "Diagnoses both failure modes with the skill's own rules. For the empty result: ENA mirrors SRA (NCBI) and DRA (DDBJ), but some submissions exist only in the originating archive and records can be suppressed by the submitter, so a missing run is not necessarily a bad accession — the first thing to check is whether the accession was meant to be a run at all. ENA accepts run, experiment (SRX) and study (PRJNA) accessions but returns a different record set for each, and using a run accession where an experiment or study accession was meant is a common cause; the verification is a filereport query for run_accession with result=read_run, where a header-only body means the accession is unknown to ENA. For the missing FASTQ: ENA has not converted that run's submitted files to FASTQ, which happens for some large WGS and long-read submissions where the original format is kept as-is; the workaround is to use the submitted_ftp field instead of fastq_ftp and convert separately, since the submitted files are always present. Notes that both cases are reported as failed runs in the final downloaded/skipped/failed counts with the failed-run list, so the batch continues.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Explains the 'no records returned' case as an archive-coverage or wrong-accession-level problem rather than a network error" },
+        { "type": "behavior", "value": "Falls back to the submitted_ftp field when ENA has not converted a run to FASTQ" }
+      ]
+    }
+  ]
+}

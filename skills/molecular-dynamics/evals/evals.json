@@ -1,0 +1,57 @@
+{
+  "skill_name": "molecular-dynamics",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I've got a 100 ns NAMD run as prod.dcd with a matching system.pdb topology. I want RMSD and RMSF per residue, PCA of the conformational motion, and conformational clustering into states. Can you do it? The server doesn't have MDAnalysis installed.",
+      "expected_output": "Runs python scripts/run_analysis.py --input prod.dcd --topology system.pdb --output results/ without requiring MDAnalysis, because the skill ships its own pure-numpy DCD parser that reads the Fortran-style fixed-length record stream (84-byte header record followed by per-frame coordinate records). MDAnalysis is used automatically only if it happens to be installed. The analysis path loads the trajectory, resolves the default 'protein' selection to an atom index array, attaches masses, and aligns every frame to the reference frame with the built-in Kabsch-Sander superposition (SVD of the covariance matrix plus the determinant correction that prevents reflection), then computes global RMSD, per-residue C-alpha RMSD, RMSF, radius of gyration, hydrogen bonds, PCA by eigendecomposition of the coordinate covariance matrix, dihedrals, Ramachandran, conformational clustering (RMSD matrix plus average/complete/ward hierarchical linkage), inter-chain contacts and SASA. Writes md_analysis.json and md_analysis_frames.csv with per-frame index, time, RMSD, Rg, hydrogen bond count and SASA. Validates the output: the --fit-reference frame must have RMSD approximately 0 by construction, mean C-alpha RMSF for a folded globular domain should sit in the 0.5-2 A band (above 5 A means an unstable or badly parameterised run, below 0.01 A means the trajectory is frozen), the first PCA component of a globular protein usually explains 30-60 percent of the variance and anything above 95 percent means global translation/rotation was not removed, and the parsed atom count must match the topology atom count.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Analyses the DCD with the built-in pure-numpy parser and confirms MDAnalysis is not required" },
+        { "type": "behavior", "value": "Applies the Kabsch-Sander superposition before RMSD/PCA and checks that the fit-reference frame has RMSD near zero" },
+        { "type": "behavior", "value": "Validates RMSF against the 0.5-2 A band and the first PCA component against the 30-60 percent variance range" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My hydrogen bond count came out as exactly 0 for every frame in the analysis, but the protein is clearly folded. The trajectory was built from an X-ray crystal structure and I don't think I added hydrogens. What should I do?",
+      "expected_output": "Diagnoses the cause exactly as the validation section describes: zero hydrogen bonds with non-zero donors and acceptors means the topology lacks hydrogen atoms, which is the expected situation for a structure taken straight from an X-ray model. The geometric criterion needs an explicit donor hydrogen, so with no H atoms in the topology no H-bond can ever be formed - this is not a failed analysis. The fix is to add hydrogens to the starting structure before building the simulation topology (the MD toolchain's pdb2pdbx/psfgen or OpenMM's addHydrogens), and to include the added hydrogens in the topology PDB that is passed via --topology so that atom names and elements resolve. Sanity bands to check once hydrogens are present: a stable protein in water shows 50-200 backbone-sidechain and backbone-backbone hydrogen bonds per frame; more than 500 indicates the criterion is too loose (--hbond-angle, --hbond-h-dist 2.5 A, --hbond-da-dist 3.5 A can be tightened). Notes the related case where a DCD and topology disagree - the parsed n_atoms must match the topology atom count, and adding hydrogens without regenerating the DCD/topology pair is the usual way to break that match.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Identifies the zero hydrogen-bond count as missing hydrogens in the topology rather than an analysis bug" },
+        { "type": "behavior", "value": "Gives the concrete fix (add hydrogens and regenerate a matching topology PDB) and the expected post-fix range of 50-200 hydrogen bonds per frame" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want to run a proper MD simulation of a protein-protein complex: 500 ns production with NVT and NPT equilibration first, keeping the backbone restrained during equilibration so the chains don't fly apart. The complex is in complex.pdb. Can you set that up, and how do I know the chains didn't dissociate?",
+      "expected_output": "Runs the staged protocol through run_simulation.py: python scripts/run_simulation.py --input complex.pdb --output results/ --nvt-steps 50000 --npt-steps 50000 --restraints backbone --monitor-chain-separation --steps 500000. The stages are minimisation, then NVT equilibration with the backbone held by position restraints, then NPT equilibration where a MonteCarloBarostat is added and the simulation is rebuilt so the pressure coupling actually takes effect on the density, then production with the restraints removed by default (use --production-restraint-force-constant to keep a weak version). Explains the implementation detail that position restraints must be added to the System before the Simulation and therefore the Context is created, otherwise the force silently never takes effect - and that adding the barostat or removing restraints also requires rebuilding the simulation while carrying over positions and velocities. Reports the simulation_report.json blocks: 'stages' must list every requested stage (a requested --nvt-steps that is missing means the stage was silently skipped), 'restraints' shows the restraint setup, 'chain_separation' must exist when --monitor-chain-separation is on with final_check.separated false for a stable complex and a chain_separation-threshold of 30 A, and 'stability.should_rollback' must be false with a reason field explaining any NaN/Inf/blow-up. Points out that a rolled-back simulation usually means a bad force field or missing hydrogens rather than a dynamics problem, and that if a docked pose was never relaxed the chains separating is a real finding about the starting structure rather than a software bug.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses the staged NVT -> NPT -> production protocol with --restraints backbone and verifies the stages appear in simulation_report.json" },
+        { "type": "behavior", "value": "Checks chain_separation.final_check.separated is false and stability.should_rollback is false, and reports the reason field when either fails" },
+        { "type": "behavior", "value": "Explains that restraints must be registered on the System before the Context is created, otherwise they silently have no effect" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Just download the PDB structure 1AKI from the PDB for me - I need the coordinate file, not any dynamics analysis.",
+      "expected_output": "Redirects rather than doing the work itself: this skill's scope is trajectory analysis (DCD/PDB/XYZ frames) and OpenMM simulation, not structure-file retrieval. Pulling an experimental coordinate file from RCSB PDB is outside this skill - none of the retrieval skills in this repository cover it either, since bio-database-fetch handles PubChem compound and NCBI Taxonomy lookups and ena-download handles ENA sequencing reads and FASTQ files, so the honest answer is that the file has to come from RCSB PDB directly (or from an upstream step in the user's own pipeline) and this skill can analyse it once it exists. Two in-scope paths worth offering: if the target is a predicted model rather than an experimental entry, the alphafold-db skill retrieves the current AlphaFold DB model by UniProt accession; and if the user actually has a trajectory, this skill is the right tool - it can read a multi-model PDB as a trajectory through its own multi-model parser and analyse RMSD, RMSF, PCA, clustering, hydrogen bonds, Ramachandran and SASA on it. Does not fabricate a download flow or run the MD analysis pipeline on a single static structure as if it were a trajectory.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Declines the plain structure-download request, noting that no skill in this repository fetches experimental PDB coordinates from RCSB" },
+        { "type": "behavior", "value": "Routes predicted-model retrieval to alphafold-db and offers the in-scope alternative of analysing an existing trajectory, including a multi-model PDB read as trajectory frames" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I need to cluster a trajectory into conformational states but my only clustering result is one giant cluster, and separately my RMSF is 6 Angstrom everywhere. The trajectory is 500 frames of a 120-residue domain. What do the numbers tell me?",
+      "expected_output": "Treats the two symptoms as separate diagnoses rather than one. On the clustering: the number of clusters must be consistent with the RMSD matrix structure, and if all frames land in one cluster while the RMSD range is wide the linkage threshold is too large - the fix is to specify the split with --n-clusters (for example 5) or give an explicit --cluster-threshold in Angstrom, which takes precedence when supplied. The clustering stage also caps the frames used at --max-cluster-frames (default 200), so 500 frames are subsampled and the result should say so. On the RMSF: mean C-alpha RMSF for a well-folded globular domain is typically 0.5-2 A, and 6 A is above the 5 A line that indicates an unstable or badly parameterised simulation - so the single-cluster result is a symptom of the trajectory itself rather than of the clustering algorithm. Cross-checks the other quantities: Rg against Rg ~ 2.2 * N^0.38 for the 120-residue domain, Ramachandran outliers (a well-behaved simulation has fewer than 0.5 percent outliers in the allowed regions - more indicates force-field problems or broken backbone connectivity), PCA first-component variance (30-60 percent expected for a globular protein), and whether hydrogen bonds are in the 50-200 band and total SASA in the 5000-7000 A2 range for a ~100-residue protein. Suggests diagnosing the force field or topology first and only then re-running the clustering with an explicit threshold.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Diagnoses the single-cluster result as an over-large linkage threshold relative to the RMSD spread, and recommends an explicit --n-clusters or --cluster-threshold" },
+        { "type": "behavior", "value": "Treats the 6 A mean C-alpha RMSF as the primary red flag (well above the 0.5-2 A band and the 5 A instability threshold) and cross-checks force field, Ramachandran outliers and PCA variance" }
+      ]
+    }
+  ]
+}

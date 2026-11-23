@@ -79,7 +79,7 @@ from urllib.parse import urljoin
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, http_session  # noqa: E402
+from bioagent_core import get_logger, http_session  # noqa: E402
 
 __all__ = [
     "HDOCK_BASE_URL",
@@ -97,7 +97,7 @@ __all__ = [
     "build_form_fields",
 ]
 
-LOGGER = get_logger("biopipe.protein-docking-hdock")
+LOGGER = get_logger("bioagent.protein-docking-hdock")
 
 HDOCK_BASE_URL = "http://hdock.phys.hust.edu.cn/"
 #: 普通对接的提交入口。首页 form 的 action 是空的，真实地址由 JS 改写。

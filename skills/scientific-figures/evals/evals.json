@@ -1,0 +1,64 @@
+{
+  "skill_name": "scientific-figures",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to make Figure 8 for my manuscript: an ROC curve comparing my classifier against two baselines, from /data/ml/roc.csv which has columns Model, FPR, TPR. I want the AUC on each curve, the random baseline annotated, and a significance test between the models written out to a CSV. Output prefix /data/ml/figures/fig8_roc.",
+      "expected_output": "Runs make_figures.py roc --input /data/ml/roc.csv --output /data/ml/figures/fig8_roc --stats-output /data/ml/figures/fig8_roc_stats.csv. Matches the columns case-insensitively against the candidate lists (Model/model/method/classifier, FPR/fpr/false_positive_rate, TPR/tpr/true_positive_rate/sensitivity, AUC/auc optional — when AUC is absent it is computed by trapezoidal integration over the sorted FPR points). Labels each curve as '<model> (AUC = 0.xx)' and annotates the diagonal reference as 'Random (AUC = 0.50)', which is the required validation check that the baseline label matches the plotted line. Performs the pairwise AUC Z-test with the Hanley-McNeil standard-error approximation and writes the z/p results to the --stats-output CSV. Applies the shared publication style (Arial-first font stack, top/right spines removed, grid disabled, colour-blind-safe palette, 300 dpi, tight bbox) and saves both PNG and PDF via --formats png pdf, so the PDF is the vector file for submission and the PNG is the raster preview.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Annotates the ROC baseline as 'AUC = 0.50' and keeps the curve labels consistent with the stats CSV" },
+        { "type": "behavior", "value": "Writes both PNG and PDF outputs with the shared publication style" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have classifier results for three models (CNN, XGBoost, and a random forest) and I want a confusion-matrix figure. The CSV /data/ml/cm.csv has one row per model with TN, FP, FN, TP columns. What I can't work out is whether I should plot each model's heatmap with its own colour scale or the same one — my reviewer said the shades were 'not comparable' between panels.",
+      "expected_output": "Runs make_figures.py confusion --input /data/ml/cm.csv --output /data/ml/figures/fig9_cm, building a multi-panel grid of up to 3 columns with one subplot per model, the x-axis labelled 'Pred Neg'/'Pred Pos' and the y-axis 'Actual Neg'/'Actual Pos', and dual annotation of counts and percentages per cell. Answers the reviewer's concern directly: the script fixes a single global vmin/vmax across all subplots computed from the pooled values of every matrix (with a vmax=vmin+1 guard for a degenerate case), so the cell colours ARE comparable across models — if shades look inconsistent in the submitted figure, the data was split across multiple rows or multiple input files rather than one file, and that is the thing to check. Points out that the required columns are TN/FP/FN/TP (case-insensitive, with true_negative/false_positive/false_negative/true_positive accepted) and that a missing column raises a SkillError naming the missing column rather than silently producing an empty panel.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "States that a single global colour scale is applied across all subplots so cell colours are comparable between models" },
+        { "type": "behavior", "value": "Annotates both counts and percentages in each confusion-matrix cell" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "For Figure 11 I need a heatmap of docking binding energies — receptors on the x-axis, ligands on the y-axis, values in kcal/mol from /data/dock/docking.csv. One outlier of -14.2 kcal/mol is squashing all my colour variation. Also my colleague's SHAP beeswarm and my importance bar chart have the features in different orders, which the editor flagged. How do I fix both?",
+      "expected_output": "Runs make_figures.py heatmap --input /data/dock/docking.csv --output /data/dock/fig11_docking --cmap coolwarm_r --colorbar-label 'Binding Energy (kcal/mol)' --x-label Receptor --y-label Ligand --percentile-clip. Explains that --percentile-clip clips the colour scale at the 2%/98% percentiles so the -14.2 outlier lands on the scale boundary instead of compressing everything else, and that this MUST be stated in the figure caption because clipped extremes are visually indistinguishable from the boundary value. Notes the heatmap input convention — the first column is used as row labels unless --row-labels none is passed. For the SHAP issue, explains that the beeswarm y-axis order and the importance bar chart order are guaranteed to match because both are derived from the same top_features list built by ranking mean absolute SHAP value (with the standard deviation of absolute SHAP values as a secondary quantity), and that a mismatch means the two outputs came from different runs or different --top-n values rather than from a plotting bug; regenerating both with make_figures.py shap --top-n 15 --importance-output <prefix>_importance.csv writes the _beeswarm and _importance files from one invocation and restores the correspondence. The importance CSV lists mean_abs_shap for all features.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses --percentile-clip for the outlier and states that clipped extremes must be disclosed in the caption" },
+        { "type": "behavior", "value": "Explains that the beeswarm and importance bar chart share one top_features list, so regenerating both together fixes the ordering mismatch" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have the per-model pLDDT scores from my AlphaFold predictions in /data/structs/plddt.csv (one row per model, a 'Global pLDDT' column). I need the confidence distribution as a supplementary figure with the standard high/medium/low bins, and I want the percentage of residues above 90 shown on it. Also my second supplementary figure is a class-distribution chart of the 40 phyla in /data/taxa/taxa.csv with phylum and count columns — top 20 is fine.",
+      "expected_output": "Generates both figures through the single multi-subcommand entry point with the shared style so they cannot drift apart. For the confidence figure: make_figures.py plddt --input /data/structs/plddt.csv --output /data/structs/fig3_plddt --bins 50, matching the confidence column case-insensitively against 'Global pLDDT', 'plddt', 'pLDDT', 'confidence', 'score', and applying the three-bin colour scheme that matches the official AlphaFold bins (>90 green, 70-90 blue, <70 yellow) with the High (>90) / Medium (70-90) / Low (<70) percentages annotated from the same values. For the taxonomy figure: make_figures.py class-distribution --input /data/taxa/taxa.csv --output /data/taxa/fig1_taxa --top-n 20, matching the phylum column against 'phylum'/'Phylum'/'门' and the count column against 'count'/'Count'/'数量'/'n'. Applies the same publication style to both — Arial-first font stack, top/right spines removed, grid disabled, colour-blind-safe palette, 300 dpi, tight bbox — and saves PNG plus PDF for each, which is the whole reason to use one skill for both panels: a single paper cannot mix Arial in one figure and Times in another. Reminds the user to check the PNG pixel dimensions and whether any text is clipped, since extremely long x-axis labels still need a visual check even with a correct tight bbox.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses the plddt subcommand with the official three-bin AlphaFold colour scheme and the class-distribution subcommand with --top-n 20" },
+        { "type": "behavior", "value": "Renders both supplementary figures with the same unified publication style so the two panels cannot drift apart" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Please go to the EBI AlphaFold Database and download the predicted structures for these 400 UniProt accessions (P0DTC2, Q8N2K0, ...) into /data/structs/models/, then pull the per-residue pLDDT confidence values for each model so I can filter out the unreliable regions.",
+      "expected_output": "Declines to handle this as a figure task and redirects to the alphafold-db skill, which fetches AlphaFold predicted structures by UniProt accession from the EBI AlphaFold Database API, resolves the current model URL from the API instead of hard-coding a version, supports batch accession lists, resumable downloads and pLDDT filtering, and validates the content type. Points out that this skill only renders figures from data the user already holds in a local CSV — the plddt subcommand plots the confidence column of a CSV the user supplies and cannot download models, resolve UniProt accessions or extract per-residue pLDDT from a structure file. Clarifies the division of labour so the workflow is not lost: alphafold-db fetches the models and the confidence metrics, this skill then renders the pLDDT confidence histogram and the confidence-coloured structure figures from the resulting local files. If the user already has the scores in a CSV with a confidence column, that is exactly the input the plddt subcommand expects and the figure can be produced immediately.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the alphafold-db skill for model download and pLDDT retrieval, keeping the plotting step in this skill" }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "matplotlib isn't installed on this box and I can't install it — I got a ModuleNotFoundError when I tried to import. Is there any way to still get journal-quality figures out of this, or do I have to move to another machine?",
+      "expected_output": "Confirms the failure is a deliberate degradation design rather than a crash: the script catches ImportError at import time into a module-level MATPLOTLIB_AVAILABLE flag and raises a clear FigureStyleError with the install instruction ('pip install matplotlib', or 'pip install -r skills/scientific-figures/requirements.txt') only when a plot is actually requested, so the user never sees a raw ImportError traceback. Tells the user honestly that there is no non-matplotlib rendering path — every chart type (roc, confusion, heatmap, plddt, shap, class-distribution, secondary-structure, model-performance, feature-importance) goes through matplotlib, and the statistical helpers (AUC trapezoid integration, Hanley-McNeil Z-test, bootstrap CI) are computed in pure Python but still cannot be drawn without it — so the options are to install matplotlib, to run on a machine that has it, or to export the underlying numbers (the --stats-output, --importance-output and --export-csv tables) and plot them elsewhere. Also flags the environment-specific part of the style contract: Arial is preferred and matplotlib falls back to Helvetica/DejaVu Sans when it is missing, so the layout on the final submission machine should be checked for exactly that reason — a figure produced without Arial will shift subtly on a target machine that has it.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Explains that the matplotlib-missing error is a deliberate graceful degradation with an install hint, and that no rendering path exists without matplotlib" },
+        { "type": "behavior", "value": "Notes the Arial-fallback caveat for the final submission machine" }
+      ]
+    }
+  ]
+}

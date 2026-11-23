@@ -32,7 +32,7 @@ def setup_logging(
     """配置并返回一个 logger。
 
     Args:
-        name: logger 名称，通常为 ``biopipe.<skill>``。
+        name: logger 名称，通常为 ``bioagent.<skill>``。
         level: 日志等级。
         log_file: 可选的日志文件路径，父目录会自动创建。
         quiet: 为 True 时控制台不输出 INFO 及以下内容（错误仍显示）。
@@ -64,7 +64,7 @@ def setup_logging(
     return logger
 
 
-def get_logger(name: str = "biopipe", level: int = logging.INFO, **kwargs) -> logging.Logger:
+def get_logger(name: str = "bioagent", level: int = logging.INFO, **kwargs) -> logging.Logger:
     """获取 logger 的便捷封装。
 
     Args:

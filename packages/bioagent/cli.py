@@ -2,10 +2,10 @@
 
 Usage::
 
-    biopipe --help                 # list every skill
-    biopipe --list                 # print every skill as a table
-    biopipe bulk-rnaseq --help     # show the usage of one skill
-    biopipe bulk-rnaseq --run ...  # run a skill
+    bioagent --help                 # list every skill
+    bioagent --list                 # print every skill as a table
+    bioagent bulk-rnaseq --help     # show the usage of one skill
+    bioagent bulk-rnaseq --run ...  # run a skill
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ for _spec in REGISTRY.values():
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="biopipe",
+        prog="bioagent",
         description=(
             "Unified command-line entry point for research skills — "
             "RNA-seq, single-cell, structure analysis, molecular dynamics, literature mining"
@@ -34,9 +34,9 @@ def _build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  biopipe --list                      list every skill\n"
-            "  biopipe bulk-rnaseq --help          show the usage of one skill\n"
-            "  biopipe scientific-figures --run    run a skill script\n"
+            "  bioagent --list                      list every skill\n"
+            "  bioagent bulk-rnaseq --help          show the usage of one skill\n"
+            "  bioagent scientific-figures --run    run a skill script\n"
         ),
     )
     parser.add_argument(
@@ -70,18 +70,18 @@ def _print_skill_list() -> None:
             spec = REGISTRY[name]
             print(f"  {name:<24} {spec.summary}")
         print()
-    print("Usage: biopipe <skill-name> --help")
+    print("Usage: bioagent <skill-name> --help")
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    """Main entry point of the biopipe command."""
+    """Main entry point of the bioagent command."""
     parser = _build_parser()
     args = parser.parse_args(argv)
 
     if args.version:
         from . import __version__
 
-        print(f"biopipe {__version__}")
+        print(f"bioagent {__version__}")
         return 0
 
     if args.list or not args.skill:

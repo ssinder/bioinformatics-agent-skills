@@ -8,6 +8,8 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Skills](https://img.shields.io/badge/Skills-17-brightgreen.svg)](#available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
+[![skills.sh](https://img.shields.io/badge/skills.sh-bioinformatics-ff69b4)](https://skills.sh/ssinder/bioinformatics-agent-skills)
+[![PyPI](https://img.shields.io/pypi/v/biopipe-agent-skills.svg)](https://pypi.org/project/biopipe-agent-skills/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
 [![Security](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/security-scan.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/security-scan.yml)
@@ -58,7 +60,34 @@ check whether your results are right.
 
 ## Quick start
 
-### Option 1 — install as Claude Code skills
+### Option 1 — install with the skills CLI (recommended)
+
+```bash
+npx skills add ssinder/bioinformatics-agent-skills
+```
+
+This works with 80+ agent hosts (Claude Code, Codex, Cursor, OpenCode, …) and
+handles per-host paths automatically. It also supports installing a single
+skill or a subset:
+
+```bash
+# install one skill
+npx skills add ssinder/bioinformatics-agent-skills --skill bulk-rnaseq
+
+# install a workflow subset (2-3 skills is the sweet spot -- see below)
+npx skills add ssinder/bioinformatics-agent-skills \
+  --skill ena-download --skill bulk-rnaseq --skill scientific-figures
+```
+
+> **Install selectively.** Skills carry a description that the agent reads at
+> startup to decide whether to load one. Install too many at once and the
+> host has to drop some descriptions to fit its context budget — a skill
+> without a description can never be matched, so it never fires. Two to three
+> skills per workflow is the effective range; the
+> [skill guides](docs/skill-guides/) list recommended combinations for common
+> research tasks.
+
+### Option 2 — install as Claude Code skills manually
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
@@ -68,15 +97,18 @@ cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
 Restart Claude Code and the skills are discovered automatically. Ask it to *"run a bulk RNA-seq
 differential expression analysis"* and it will load the `bulk-rnaseq` skill on its own.
 
-### Option 2 — use as a Python package
+Other hosts scan different directories — `~/.claude/skills/` is Claude Code's
+personal path only. See the [supporting guide](SUPPORT.md) for the per-host paths.
+
+### Option 3 — use as a Python package
 
 ```bash
-pip install -e .
-biopipe --list                      # list every skill
-biopipe bulk-rnaseq --help         # usage for one skill
+pip install biopipe-agent-skills
+bioagent --list                      # list every skill
+bioagent bulk-rnaseq --help         # usage for one skill
 ```
 
-### Option 3 — call the scripts directly
+### Option 4 — call the scripts directly
 
 ```bash
 export PYTHONPATH="$PWD/packages"
@@ -162,7 +194,16 @@ check whether the output is correct.
 **No hardcoded paths** — all paths are parameterized and all output follows a standard directory
 convention. Not a single `/Users/xxx/...` is baked into the code.
 
-**Zero setup** — `pip install -e .` is enough. No cloud services, API keys, or databases to configure.
+**Zero setup for most skills** — `pip install -e .` is enough. No cloud services, no accounts, no
+API keys. Two exceptions are documented rather than hidden:
+
+| Skill | What it needs | Why |
+|---|---|---|
+| `bio-database-fetch`, `bioproject-search`, `literature-search` | Nothing — the NCBI identity (`tool` + developer email) is registered and shipped with the skills | NCBI's usage policy requires a *developer's* email, not the end user's. An optional `NCBI_API_KEY` only raises the rate limit from 3 to 10 req/s. |
+| `paper-fulltext-extract` | A local [GROBID](https://grobid.readthedocs.io/) service for PDF → TEI conversion | GROBID is a Java service; the skill talks to it over HTTP. See the skill's Quick Start. |
+
+Every other skill runs with the standard library alone, or degrades gracefully with an explicit
+install hint when an optional scientific stack is missing.
 
 ---
 
@@ -177,8 +218,8 @@ bioinformatics-agent-skills/
 │   │   └── references/        # methodology + troubleshooting guide
 │   └── ...
 ├── packages/
-│   ├── biopipe_core/          # shared layer: config/logging/HTTP retry/CLI/IO
-│   └── biopipe/               # unified CLI entry point and skill registry
+│   ├── bioagent_core/          # shared layer: config/logging/HTTP retry/CLI/IO
+│   └── bioagent/               # unified CLI entry point and skill registry
 ├── scripts/
 │   ├── validate_skills.py     # skill spec validator (CI core)
 │   └── init_skill.py          # skill scaffolding generator
@@ -210,10 +251,28 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) before adding a new skill.
 | `skill-spec-validation` | Validates that every skill conforms to the Agent Skills spec |
 | `script-syntax` | Multi-version Python syntax check + Ruff linting |
 | `tests` | Unit tests + `--help` smoke test for every skill |
+| `backend-agreement` | Cross-checks the built-in Python statistics against Bioconductor DESeq2 |
+| `scrna-backend-agreement` | Cross-checks the built-in single-cell pipeline against scanpy |
 | `security-scan` | Dependency vulnerability audit + hardcoded credential scan |
 | `pr-skill-scan` | Targeted validation and reporting for skills changed in a PR |
 | `pages` | Builds and deploys the documentation site |
 | `release` | Automated release packaging |
+
+---
+
+## Verification
+
+The correctness claims in this repository are measured, not asserted.
+
+| What | How | Where |
+|---|---|---|
+| Built-in Python statistics vs Bioconductor DESeq2 | Paired run on the same fixture; Spearman ρ on log2FC ranking, Jaccard on significant genes, direction agreement | [`tests/test_backend_agreement.py`](tests/test_backend_agreement.py) |
+| Built-in single-cell pipeline vs scanpy | Paired run plus comparison against 600 hand-labelled truth clusters (ARI) | [`tests/test_scrna_backend_agreement.py`](tests/test_scrna_backend_agreement.py) |
+| Agent routing | 87 evaluation cases across all 17 skills, each with at least one near-miss negative case | [`skills/*/evals/evals.json`](skills/) |
+| Spec conformance | Agent Skills spec validation plus cross-harness load checks | [`scripts/validate_skills.py`](scripts/validate_skills.py) |
+
+Full numbers, thresholds and how to reproduce them are in
+**[BENCHMARK.md](BENCHMARK.md)**.
 
 ---
 

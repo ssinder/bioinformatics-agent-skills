@@ -1,0 +1,47 @@
+version: 2
+
+updates:
+  # GitHub Actions 依赖
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+
+  # pip 依赖
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "deps"
+
+  # 每个技能各自的 requirements.txt
+  - package-ecosystem: pip
+    directory: /skills/bulk-rnaseq
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "deps(skill)"
+
+  - package-ecosystem: pip
+    directory: /skills/single-cell-rnaseq
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "deps(skill)"
+
+  - package-ecosystem: pip
+    directory: /skills/molecular-dynamics
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "deps(skill)"
+
+  - package-ecosystem: pip
+    directory: /skills/protein-structure
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "deps(skill)"

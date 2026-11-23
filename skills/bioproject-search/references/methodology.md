@@ -225,7 +225,7 @@ Consequences for a tool that fakes the address:
 - Fabricated addresses in a public repository are a privacy and professionalism
   problem: they invite other users to reuse them, and they get blocked.
 
-This skill therefore makes `--email` mandatory and reads `BIOPIPE_EMAIL` from
+This skill therefore ships a registered project identity and reads `BIOAGENT_EMAIL` from
 the environment as a convenience. It never invents an address.
 
 ## 4. Why not scrape the web page?

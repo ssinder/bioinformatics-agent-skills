@@ -1,0 +1,35 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{md,markdown}]
+# Markdown 用两个空格缩进表示续行；行尾空格在 Markdown 中有语义，
+# 但本仓库的检查器按文本文件处理，故不保留。
+indent_size = 2
+trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.{json,js,jsx,ts,tsx}]
+indent_size = 2
+
+[*.toml]
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+[*.{png,jpg,jpeg,gif,ico,svg,woff,woff2}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[tests/fixtures/**]
+insert_final_newline = false
+trim_trailing_whitespace = false

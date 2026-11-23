@@ -39,7 +39,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional
 
-from biopipe_core import (  # noqa: E402
+from bioagent_core import (  # noqa: E402
     SkillError,
     cli_parser,
     get_config,
@@ -52,7 +52,7 @@ from biopipe_core import (  # noqa: E402
 )
 from peptide_properties import clean_sequence  # noqa: E402
 
-LOGGER = get_logger("biopipe.peptide-design")
+LOGGER = get_logger("bioagent.peptide-design")
 
 
 # ---------------------------------------------------------------- 序列工具
@@ -288,7 +288,7 @@ def run_mmseqs(
     if binary is None:
         raise SkillError("未找到 MMseqs2 可执行文件")
 
-    tmp_dir = Path(tempfile.mkdtemp(prefix="biopipe_mmseqs_"))
+    tmp_dir = Path(tempfile.mkdtemp(prefix="bioagent_mmseqs_"))
     try:
         cluster_prefix = tmp_dir / "clu"
         cmd = [

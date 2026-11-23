@@ -1,0 +1,57 @@
+{
+  "skill_name": "protein-docking-hdock",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to dock my receptor (PDB ID 1CGI, chain E) against my ligand (PDB ID 1CGI, chain I) on the HDOCK server. Give me the docking score and the top models. The server job usually takes a while.",
+      "expected_output": "Uses the plain HTTP form submission rather than browser automation: python scripts/submit_docking.py --receptor-pdb-id 1CGI:E --ligand-pdb-id 1CGI:I --job-name my_docking --output-dir results/. The skill GETs the homepage first (matching browser behaviour) and then POSTs the multipart form to runhdock.php - the form's action attribute is empty and the real target is set by JavaScript at submit time, so posting to the homepage instead returns a byte-identical copy of the homepage with HTTP 200 and no job; the skill posts to the correct endpoint. Submission returns in about two seconds with a job URL, and the job name, job ID and URL are appended to jobs.csv and jobs.json. Because HDOCK jobs commonly take 5-30 minutes and the server keeps results for only two weeks, retrieval is a separate step: python scripts/fetch_docking_results.py --jobs-file results/jobs.csv --output-dir results/ --download-models. The retrieval distinguishes three page states explicitly - 'is QUEUED' maps to status=queued, the presence of the Docking Score table maps to status=done, and an ERROR: message maps to status=failed - so an unfinished job is never mistaken for a failure. The ranking matrix is parsed as a whole, giving the top-10 scores rather than only the best, and the Confidence Score is computed from the Docking Score with the closed form 1.0 / (1.0 + e^(0.02 * (Docking_Score + 150))) when the page does not include the column. Writes results.csv and results.json with status, docking_score, confidence_score and error. Interprets the score: more negative is better, complexes in the PDB normally score around -200 or better, and the score is a knowledge-based iterative scoring function that ranks poses and is not calibrated to experimental binding affinity.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Submits to runhdock.php via plain HTTP form POST and records the job in jobs.csv / jobs.json, keeping submission and retrieval as separate steps" },
+        { "type": "behavior", "value": "Distinguishes queued / done / failed page states so an unfinished job is not reported as a failure" },
+        { "type": "behavior", "value": "Reports the Docking Score and Confidence Score using 1.0 / (1.0 + e^(0.02 * (Docking_Score + 150))) and states the score is not a calibrated binding affinity" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The command says 'submitted' but nothing ever appears on the server. The HTTP response was 200 and looked like a normal HTML page. What went wrong?",
+      "expected_output": "Recognises the distinctive symptom exactly: HTTP 200 with a body that is byte-identical to the homepage (about 16,787 bytes) and no job URL. The cause is that the form was posted to the homepage instead of runhdock.php - the homepage's <form> has an empty action attribute and JavaScript sets document.form1.action = 'runhdock.php' (or 'runhsymdock.php' for a symmetric multimer job) at submit time. The checks: the response URL must contain /data/<job_id>/; if it is still the homepage the submission was not accepted, and rundock.php is a 404 while runhdock.php and runhsymdock.php are the only two valid paths. Since the skill already posts to the correct endpoint, this indicates either the code was adapted incorrectly or the request was modified outside the skill - confirm by checking the job URL in jobs.csv. Related failure modes to rule out: 'Receptor input is required' / 'Ligand input is required' means the server found no usable input, because each molecule needs exactly one of the four input forms and the field names are pdbfile1/pdbid1/fastaseq1/fastafile1 for the receptor and the 2 variants for the ligand, and an empty string does not count as input; and if a FASTA path is passed to --receptor-seq but the file does not exist, the path string itself is sent as the sequence and the server rejects it.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Identifies a byte-identical homepage response with HTTP 200 as the classic symptom of posting to the wrong endpoint" },
+        { "type": "behavior", "value": "Checks that the job URL contains /data/<job_id>/ and names runhdock.php / runhsymdock.php as the only valid endpoints" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I got a Docking Score of -198 and a Confidence Score of 0.41 for my complex. Can I quote this as a binding affinity in my paper? The reviewer asked for a Kd.",
+      "expected_output": "Explains what the number is and is not. The Docking Score comes from HDOCK's knowledge-based iterative scoring function and, in HDOCK's own documentation, should not be treated as the true binding affinity of two molecules because it has not been calibrated to experimental data - it is useful for ranking candidate poses, not for predicting a Kd. So no Kd can be quoted from it; a reviewer asking for affinity needs an experimental measurement (SPR, MST, ITC, thermal shift) or an orthogonal computational method with its own calibration, and the honest statement in the paper is that the score ranks candidate poses. On interpretation: a more negative score is better and complexes in the PDB normally score around -200 or better, so -198 is a plausible mid-range result rather than a strong one; a Confidence Score above 0.7 means 'likely to interact', and because the Confidence Score is a monotone function of the Docking Score it adds no information beyond the score itself - it just puts the result on an interpretable scale. Also notes that the Confidence Score is computed as 1.0 / (1.0 + e^(0.02 * (Docking_Score + 150))) when the page does not include the column, so it can always be recomputed from the Docking Score, and that rank 1 being much better than rank 2 reflects pose separation rather than a measured affinity difference. Suggests the right follow-on: take the top-ranked model and analyse the interface with the pymol-structure-visualization or protein-interactions skills, and optionally run a short MD to test whether the pose is stable.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Refuses to present the Docking Score as a binding affinity or a Kd, citing that the score is not calibrated to experimental data" },
+        { "type": "behavior", "value": "Explains that the Confidence Score is a monotone transform of the Docking Score, above 0.7 means likely to interact, and that -198 is only mid-range against the around -200-or-better typical of PDB complexes" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need to run this docking on my own workstation overnight - 500 candidate pairs, and I want to rank them with a swarm-based search. I have a decent GPU and don't want to hit the public server.",
+      "expected_output": "Points to the protein-docking-lightdock skill, which is the local-docking counterpart: it runs lightdock3 on the local machine, extracts the best complex with correct GSO field semantics and a single consistent coordinate frame, supports batch grids, resumable execution and DFIRE ranking, and produces the best docked complex as a PDB file. Notes the practical constraint that the lightdock package is not available on Windows, so the machine's OS matters. Keeps this skill relevant to the neighbouring need: HDOCK can still be used for a smaller set of high-value comparisons where its server-side scoring is wanted, and the two can be cross-validated - if HDOCK and LightDock agree on the top pose for a pair, that is meaningful support, if they disagree it is a signal the interface is ambiguous. Does not attempt to run lightdock locally under this skill's name or imply this skill can do a local swarm search.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Routes the local batch swarm docking request to the protein-docking-lightdock skill and mentions its Windows package limitation" },
+        { "type": "behavior", "value": "Keeps HDOCK in scope only as an optional server-side cross-check for a smaller set of pairs" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I submitted a job and when I check the results page it says the job 'is QUEUED'. My script treats it as failed and aborts the whole batch of 40 jobs. Also, the server keeps only results for two weeks - can I collect them all at the end of the month?",
+      "expected_output": "Corrects the script's error directly: a queued job is not a failed job. The result page has three distinguishable states - 'is QUEUED' means status=queued, a Docking Score table means status=done, and an 'ERROR:' message means status=failed - and the skill reports them explicitly rather than collapsing 'not ready yet' into 'failed'. The batch therefore continues: queued entries are recorded with status=queued in results.csv and the batch is not aborted on the first unfinished job. The right workflow is to re-run the retrieval command later (fetch_docking_results.py --jobs-file results/jobs.csv --output-dir results/) rather than resubmitting, since resubmitting creates duplicate jobs. If a blocking wait is genuinely wanted, the retrieval script supports --wait to poll instead of checking once, with --poll-interval (default 20 s) and --max-wait (default 3600 s) bounding the wait, and a HDOCK job can normally complete within 30 minutes. On the retention window: the server stores results for two weeks, so collecting everything at the end of the month will find the early-month jobs already gone and the retrieval will report them as errors or missing - the recommendation is to collect each job within the two-week window, e.g. once daily over the batch period, rather than in one pass at the end. Also notes that the stable identifier to bind a result to its job is the job_id in the URL, since the server normalises job names by replacing spaces with underscores.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Distinguishes queued from failed so the batch is not aborted, and reports status=queued in the results table" },
+        { "type": "behavior", "value": "Explains that the two-week server retention makes a single end-of-month collection unreliable and recommends collecting within the window" },
+        { "type": "behavior", "value": "Mentions the --wait polling option with --poll-interval and --max-wait as the alternative to repeated manual re-runs" }
+      ]
+    }
+  ]
+}

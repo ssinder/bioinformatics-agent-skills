@@ -1,0 +1,138 @@
+{
+  "alphafold-db": {
+    "topic": ["topic_0176", "topic_0203"],
+    "operation": ["operation_0474"],
+    "input_data": ["data_1460"],
+    "output_data": ["data_2537"],
+    "input_format": ["format_1475"],
+    "output_format": ["format_1475"]
+  },
+  "bio-database-fetch": {
+    "topic": ["topic_0637"],
+    "operation": ["operation_2421"],
+    "input_data": ["data_1086", "data_1179"],
+    "output_data": ["data_2087", "data_3028"],
+    "input_format": ["format_3752"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "bioproject-search": {
+    "topic": ["topic_3170"],
+    "operation": ["operation_2421", "operation_2422"],
+    "input_data": ["data_0849"],
+    "output_data": ["data_2080"],
+    "input_format": ["format_3752"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "bulk-rnaseq": {
+    "topic": ["topic_3170", "topic_0203"],
+    "operation": ["operation_3800", "operation_3223", "operation_3501"],
+    "input_data": ["data_0928", "data_3754"],
+    "output_data": ["data_0928", "data_3754"],
+    "input_format": ["format_1930", "format_3475"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "ena-download": {
+    "topic": ["topic_3170"],
+    "operation": ["operation_2422", "operation_3921"],
+    "input_data": ["data_0849"],
+    "output_data": ["data_0850"],
+    "input_format": ["format_3752"],
+    "output_format": ["format_1930", "format_3752"]
+  },
+  "literature-search": {
+    "topic": ["topic_3068"],
+    "operation": ["operation_0305", "operation_0306"],
+    "input_data": ["data_0857"],
+    "output_data": ["data_0972"],
+    "input_format": ["format_3752"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "ml-peptide-generation": {
+    "topic": ["topic_0203"],
+    "operation": ["operation_3646", "operation_3799"],
+    "input_data": ["data_1254"],
+    "output_data": ["data_2016"],
+    "input_format": ["format_1929"],
+    "output_format": ["format_1929", "format_3752"]
+  },
+  "molecular-dynamics": {
+    "topic": ["topic_0176", "topic_3892"],
+    "operation": ["operation_2476", "operation_0244", "operation_3890"],
+    "input_data": ["data_3870", "data_1460"],
+    "output_data": ["data_3842", "data_1544", "data_1710"],
+    "input_format": ["format_3867", "format_1475"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "paper-fulltext-extract": {
+    "topic": ["topic_3068"],
+    "operation": ["operation_0306"],
+    "input_data": ["data_0972"],
+    "output_data": ["data_0972"],
+    "input_format": ["format_2021"],
+    "output_format": ["format_2021", "format_3464"]
+  },
+  "peptide-design": {
+    "topic": ["topic_0203"],
+    "operation": ["operation_3646", "operation_0291"],
+    "input_data": ["data_1254"],
+    "output_data": ["data_2016", "data_1519", "data_1520"],
+    "input_format": ["format_1929"],
+    "output_format": ["format_1929", "format_3752"]
+  },
+  "protein-docking-hdock": {
+    "topic": ["topic_0176"],
+    "operation": ["operation_3899"],
+    "input_data": ["data_1460"],
+    "output_data": ["data_1460", "data_1537"],
+    "input_format": ["format_1475", "format_1929"],
+    "output_format": ["format_1475"]
+  },
+  "protein-docking-lightdock": {
+    "topic": ["topic_0176"],
+    "operation": ["operation_3899"],
+    "input_data": ["data_1460"],
+    "output_data": ["data_1460", "data_1537"],
+    "input_format": ["format_1475", "format_1929"],
+    "output_format": ["format_1475"]
+  },
+  "protein-interactions": {
+    "topic": ["topic_0176"],
+    "operation": ["operation_0248"],
+    "input_data": ["data_0906", "data_2537"],
+    "output_data": ["data_1566", "data_1547"],
+    "input_format": ["format_2054", "format_1475"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "protein-structure": {
+    "topic": ["topic_0176"],
+    "operation": ["operation_2406", "operation_0320"],
+    "input_data": ["data_1460", "data_2537"],
+    "output_data": ["data_2956", "data_0897"],
+    "input_format": ["format_1475"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "pymol-structure-visualization": {
+    "topic": ["topic_0176"],
+    "operation": ["operation_0392", "operation_0248"],
+    "input_data": ["data_1460", "data_1743"],
+    "output_data": ["data_1547", "data_1710"],
+    "input_format": ["format_1475"],
+    "output_format": ["format_3752", "format_3464"]
+  },
+  "scientific-figures": {
+    "topic": ["topic_0622", "topic_2269"],
+    "operation": ["operation_2935"],
+    "input_data": ["data_0928", "data_0951"],
+    "output_data": ["data_1710", "data_0862"],
+    "input_format": ["format_3752"],
+    "output_format": ["format_1950", "format_3464"]
+  },
+  "single-cell-rnaseq": {
+    "topic": ["topic_3170", "topic_0203"],
+    "operation": ["operation_0313", "operation_3432", "operation_3680"],
+    "input_data": ["data_3112", "data_0849"],
+    "output_data": ["data_3112", "data_0872"],
+    "input_format": ["format_1475", "format_3752"],
+    "output_format": ["format_3752", "format_3464"]
+  }
+}

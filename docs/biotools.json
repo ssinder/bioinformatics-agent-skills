@@ -1,0 +1,1149 @@
+{
+  "schema": "biotoolsSchema",
+  "tools": [
+    {
+      "name": "alphafold-db",
+      "description": "Use when fetching AlphaFold predicted structures, retrieving models by UniProt accession, or collecting AlphaFold confidence metrics (pLDDT)",
+      "fullDescription": "Use when fetching AlphaFold predicted structures, retrieving models by UniProt accession, or collecting AlphaFold confidence metrics (pLDDT). Downloads PDB/CIF models from the EBI AlphaFold Database API, resolving the current URL from the API instead of hard-coding a model version; supports batch accession lists, resumable downloads, pLDDT filtering, and content-type validation. 用于下载 AlphaFold 结构与 pLDDT。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/alphafold-db",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0176",
+        "topic_0203"
+      ],
+      "function": {
+        "operation": [
+          "operation_0474"
+        ],
+        "inputData": [
+          "data_1460"
+        ],
+        "outputData": [
+          "data_2537"
+        ],
+        "format": [
+          "format_1475"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "fetching",
+        "alphafold",
+        "predicted",
+        "structures",
+        "retrieving",
+        "models",
+        "uniprot",
+        "accession",
+        "collecting",
+        "confidence",
+        "metrics",
+        "plddt",
+        "downloads",
+        "pdb",
+        "cif"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "requests>=2.25.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "bio-database-fetch",
+      "description": "Use when looking up compound properties by PubChem CID, retrieving CAS registry numbers, resolving NCBI Taxonomy IDs to species names, or collecting chemical and taxonomic reference data in bulk",
+      "fullDescription": "Use when looking up compound properties by PubChem CID, retrieving CAS registry numbers, resolving NCBI Taxonomy IDs to species names, or collecting chemical and taxonomic reference data in bulk. Fetches molecular formula, weight, SMILES, InChI, InChIKey, IUPAC name, XLogP, TPSA and CAS numbers from PubChem PUG-REST, plus full taxonomy lineage from NCBI Taxonomy; batched with CSV/JSON export. 用于化合物性质、CAS 号与物种谱系查询。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/bio-database-fetch",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0637"
+      ],
+      "function": {
+        "operation": [
+          "operation_2421"
+        ],
+        "inputData": [
+          "data_1086",
+          "data_1179"
+        ],
+        "outputData": [
+          "data_2087",
+          "data_3028"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "looking",
+        "compound",
+        "properties",
+        "pubchem",
+        "cid",
+        "retrieving",
+        "cas",
+        "registry",
+        "numbers",
+        "resolving",
+        "ncbi",
+        "taxonomy",
+        "ids",
+        "species",
+        "names"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "requests>=2.25.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "bioproject-search",
+      "description": "Use when looking up what a BioProject or PRJNA/PRD accession contains, retrieving sequencing project descriptions, or collecting BioProject metadata in bulk",
+      "fullDescription": "Use when looking up what a BioProject or PRJNA/PRD accession contains, retrieving sequencing project descriptions, or collecting BioProject metadata in bulk. Retrieves title, description, organism, submitter and release dates from the official NCBI E-utilities API rather than scraping web pages; supports keyword filtering with CSV/JSON export. 用于 BioProject 元数据检索与批量导出。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/bioproject-search",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_3170"
+      ],
+      "function": {
+        "operation": [
+          "operation_2421",
+          "operation_2422"
+        ],
+        "inputData": [
+          "data_0849"
+        ],
+        "outputData": [
+          "data_2080"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "looking",
+        "what",
+        "bioproject",
+        "prjna",
+        "prd",
+        "accession",
+        "contains",
+        "retrieving",
+        "sequencing",
+        "project",
+        "descriptions",
+        "collecting",
+        "metadata",
+        "bulk",
+        "retrieves"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "requests>=2.25.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "bulk-rnaseq",
+      "description": "Use when running bulk RNA-seq differential expression analysis: FastQC/trimming, Salmon quantification, counts matrix construction, DESeq2 statistics, GO/KEGG enrichment and publication figures",
+      "fullDescription": "Use when running bulk RNA-seq differential expression analysis: FastQC/trimming, Salmon quantification, counts matrix construction, DESeq2 statistics, GO/KEGG enrichment and publication figures. 用于 bulk 转录组（RNA-seq）差异表达分析全流程。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/bulk-rnaseq",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_3170",
+        "topic_0203"
+      ],
+      "function": {
+        "operation": [
+          "operation_3800",
+          "operation_3223",
+          "operation_3501"
+        ],
+        "inputData": [
+          "data_0928",
+          "data_3754"
+        ],
+        "outputData": [
+          "data_0928",
+          "data_3754"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "running",
+        "bulk",
+        "rna-seq",
+        "differential",
+        "expression",
+        "analysis",
+        "fastqc",
+        "trimming",
+        "salmon",
+        "quantification",
+        "counts",
+        "matrix",
+        "construction",
+        "deseq2",
+        "statistics"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "numpy>=1.21",
+          "packageManager": "pip"
+        },
+        {
+          "name": "scipy>=1.7",
+          "packageManager": "pip"
+        },
+        {
+          "name": "pandas>=1.3",
+          "packageManager": "pip"
+        },
+        {
+          "name": "matplotlib>=3.5",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "ena-download",
+      "description": "Use when fetching raw sequencing reads by SRA/ERR/DRR accession, retrieving FASTQ files for an RNA-seq project, or collecting run metadata and read counts",
+      "fullDescription": "Use when fetching raw sequencing reads by SRA/ERR/DRR accession, retrieving FASTQ files for an RNA-seq project, or collecting run metadata and read counts. Downloads FASTQ from the ENA Portal API, resolving URLs and sizes from the structured API rather than scraping archive pages; supports batch accession lists, HTTP Range resume, and MD5 verification. 用于下载原始 reads 与运行元数据。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/ena-download",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_3170"
+      ],
+      "function": {
+        "operation": [
+          "operation_2422",
+          "operation_3921"
+        ],
+        "inputData": [
+          "data_0849"
+        ],
+        "outputData": [
+          "data_0850"
+        ],
+        "format": [
+          "format_1930",
+          "format_3752"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "fetching",
+        "raw",
+        "sequencing",
+        "reads",
+        "sra",
+        "err",
+        "drr",
+        "accession",
+        "retrieving",
+        "fastq",
+        "files",
+        "rna-seq",
+        "project",
+        "collecting",
+        "run"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "requests>=2.25.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "literature-search",
+      "description": "Use when mining academic literature from PubMed, OpenAlex or Semantic Scholar — searching by topic or keywords, deduplicating multi-source results, filtering by relevance or citation count, enriching missing abstracts, and exporting RIS, BibTeX or GB/T 7714 citations",
+      "fullDescription": "Use when mining academic literature from PubMed, OpenAlex or Semantic Scholar — searching by topic or keywords, deduplicating multi-source results, filtering by relevance or citation count, enriching missing abstracts, and exporting RIS, BibTeX or GB/T 7714 citations. 用于多源学术文献检索、去重、相关性筛选、摘要富集与参考文献格式导出的场景。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/literature-search",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_3068"
+      ],
+      "function": {
+        "operation": [
+          "operation_0305",
+          "operation_0306"
+        ],
+        "inputData": [
+          "data_0857"
+        ],
+        "outputData": [
+          "data_0972"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "mining",
+        "academic",
+        "literature",
+        "pubmed",
+        "openalex",
+        "semantic",
+        "scholar",
+        "searching",
+        "topic",
+        "keywords",
+        "deduplicating",
+        "multi-source",
+        "results",
+        "filtering",
+        "relevance"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "requests>=2.28",
+          "packageManager": "pip"
+        },
+        {
+          "name": "PyYAML>=6.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "ml-peptide-generation",
+      "description": "Use when designing peptides or protein fragments that should bind a target, generating a ranked candidate pool for a target sequence, or comparing how peptide length and top-k sampling affect candidate quality",
+      "fullDescription": "Use when designing peptides or protein fragments that should bind a target, generating a ranked candidate pool for a target sequence, or comparing how peptide length and top-k sampling affect candidate quality. Generates candidates with the PepMLM-650M masked language model, excluding illegal residues (X, B, Z); reports pseudo-perplexity per candidate, supports reproducible seeds, and needs no GPU. 用于多肽生成与候选排序。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/ml-peptide-generation",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0203"
+      ],
+      "function": {
+        "operation": [
+          "operation_3646",
+          "operation_3799"
+        ],
+        "inputData": [
+          "data_1254"
+        ],
+        "outputData": [
+          "data_2016"
+        ],
+        "format": [
+          "format_1929",
+          "format_3752"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "designing",
+        "peptides",
+        "protein",
+        "fragments",
+        "bind",
+        "target",
+        "generating",
+        "ranked",
+        "candidate",
+        "pool",
+        "sequence",
+        "comparing",
+        "how",
+        "peptide",
+        "length"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "torch>=2.0.0",
+          "packageManager": "pip"
+        },
+        {
+          "name": "transformers>=4.30.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "molecular-dynamics",
+      "description": "Use when trajectory RMSD or RMSF, PCA, conformational clustering, hydrogen-bond occupancy, Ramachandran plots or solvent-accessible surface analysis is requested",
+      "fullDescription": "Use when trajectory RMSD or RMSF, PCA, conformational clustering, hydrogen-bond occupancy, Ramachandran plots or solvent-accessible surface analysis is requested. Analyses trajectories with a self-contained pure-numpy DCD and PDB parser plus built-in Kabsch-Sander alignment, SVD-PCA, hierarchical clustering, geometric hydrogen-bond detection, radius of gyration, inter-chain contacts and Shrake-Rupley SASA. 用于轨迹 RMSD/RMSF/PCA 与构象分析。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/molecular-dynamics",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0176",
+        "topic_3892"
+      ],
+      "function": {
+        "operation": [
+          "operation_2476",
+          "operation_0244",
+          "operation_3890"
+        ],
+        "inputData": [
+          "data_3870",
+          "data_1460"
+        ],
+        "outputData": [
+          "data_3842",
+          "data_1544",
+          "data_1710"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "trajectory",
+        "rmsd",
+        "rmsf",
+        "pca",
+        "conformational",
+        "clustering",
+        "hydrogen-bond",
+        "occupancy",
+        "ramachandran",
+        "plots",
+        "solvent-accessible",
+        "surface",
+        "analysis",
+        "requested",
+        "analyses"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "numpy>=1.21",
+          "packageManager": "pip"
+        },
+        {
+          "name": "scipy>=1.7",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "paper-fulltext-extract",
+      "description": "Use when extracting structured full text from scientific PDF papers, parsing section trees and figures, building a searchable corpus across many papers, or pulling lead sentences for rapid paper triage",
+      "fullDescription": "Use when extracting structured full text from scientific PDF papers, parsing section trees and figures, building a searchable corpus across many papers, or pulling lead sentences for rapid paper triage. Converts PDFs to TEI XML via a local GROBID service and parses titles, authors, abstracts, keywords, sections, figures and references into JSON, Markdown or HTML. 用于 PDF 全文抽取与语料检索。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/paper-fulltext-extract",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_3068"
+      ],
+      "function": {
+        "operation": [
+          "operation_0306"
+        ],
+        "inputData": [
+          "data_0972"
+        ],
+        "outputData": [
+          "data_0972"
+        ],
+        "format": [
+          "format_2021",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "extracting",
+        "structured",
+        "full",
+        "text",
+        "scientific",
+        "pdf",
+        "papers",
+        "parsing",
+        "section",
+        "trees",
+        "figures",
+        "building",
+        "searchable",
+        "corpus",
+        "across"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "PyYAML>=6.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "peptide-design",
+      "description": "Use when analyzing or designing antimicrobial peptides — computing physicochemical properties, classifying peptides as antimicrobial or non-antimicrobial, deduplicating peptide libraries by clustering, and exporting FASTA or CSV",
+      "fullDescription": "Use when analyzing or designing antimicrobial peptides — computing physicochemical properties, classifying peptides as antimicrobial or non-antimicrobial, deduplicating peptide libraries by clustering, and exporting FASTA or CSV. Computes molecular weight, isoelectric point, hydrophobicity and instability index; classifies peptides from GO terms and sequence features; clusters libraries with MMseqs2. 用于多肽性质计算、抗菌肽判别与去冗余。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/peptide-design",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0203"
+      ],
+      "function": {
+        "operation": [
+          "operation_3646",
+          "operation_0291"
+        ],
+        "inputData": [
+          "data_1254"
+        ],
+        "outputData": [
+          "data_2016",
+          "data_1519",
+          "data_1520"
+        ],
+        "format": [
+          "format_1929",
+          "format_3752"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "analyzing",
+        "designing",
+        "antimicrobial",
+        "peptides",
+        "computing",
+        "physicochemical",
+        "properties",
+        "classifying",
+        "non-antimicrobial",
+        "deduplicating",
+        "peptide",
+        "libraries",
+        "clustering",
+        "exporting",
+        "fasta"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "protein-docking-hdock",
+      "description": "Use when running protein-protein complex structure prediction on the HDOCK server, checking the docking score of a submitted complex, or downloading top-ranked docked models",
+      "fullDescription": "Use when running protein-protein complex structure prediction on the HDOCK server, checking the docking score of a submitted complex, or downloading top-ranked docked models. Submits jobs by plain HTTP rather than browser automation, accepting PDB files, PDB ID:ChainID references and FASTA sequences; retrieves Docking Score, Confidence Score, ligand RMSD and ranked models, records submissions to CSV, and polls for completion. 用于 HDOCK 对接与结果获取。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/protein-docking-hdock",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0176"
+      ],
+      "function": {
+        "operation": [
+          "operation_3899"
+        ],
+        "inputData": [
+          "data_1460"
+        ],
+        "outputData": [
+          "data_1460",
+          "data_1537"
+        ],
+        "format": [
+          "format_1475"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "running",
+        "protein-protein",
+        "complex",
+        "structure",
+        "prediction",
+        "hdock",
+        "server",
+        "checking",
+        "docking",
+        "score",
+        "submitted",
+        "downloading",
+        "top-ranked",
+        "docked",
+        "models"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "requests>=2.25.0",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "protein-docking-lightdock",
+      "description": "Use when protein-protein docking must be performed on the local machine, when a swarm-level score ranking is needed, or when the best docked complex model must be generated as a PDB file",
+      "fullDescription": "Use when protein-protein docking must be performed on the local machine, when a swarm-level score ranking is needed, or when the best docked complex model must be generated as a PDB file. Runs lightdock3 locally and extracts the best complex with correct GSO field semantics, numeric step selection, and a single consistent coordinate frame; supports batch grids, resumable execution and DFIRE ranking. 用于本地 LightDock 对接。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/protein-docking-lightdock",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0176"
+      ],
+      "function": {
+        "operation": [
+          "operation_3899"
+        ],
+        "inputData": [
+          "data_1460"
+        ],
+        "outputData": [
+          "data_1460",
+          "data_1537"
+        ],
+        "format": [
+          "format_1475"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "protein-protein",
+        "docking",
+        "must",
+        "performed",
+        "local",
+        "machine",
+        "swarm-level",
+        "score",
+        "ranking",
+        "needed",
+        "best",
+        "docked",
+        "complex",
+        "model",
+        "generated"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "protein-interactions",
+      "description": "Use when interaction detection, hotspot ranking, PLIP report parsing, interaction network visualisation or AlphaFold confidence analysis is requested",
+      "fullDescription": "Use when interaction detection, hotspot ranking, PLIP report parsing, interaction network visualisation or AlphaFold confidence analysis is requested. Parses PLIP XML reports and AlphaFold packages with a standard-library XML parser; extracts residue-level salt bridges, hydrogen bonds, hydrophobic, pi-stacking, water bridges, halogen bonds and metal complexes, ranks hotspot residues, and emits Mermaid graphs plus PyMOL scripts. 用于相互作用解析与热点鉴定。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/protein-interactions",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0176"
+      ],
+      "function": {
+        "operation": [
+          "operation_0248"
+        ],
+        "inputData": [
+          "data_0906",
+          "data_2537"
+        ],
+        "outputData": [
+          "data_1566",
+          "data_1547"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "interaction",
+        "detection",
+        "hotspot",
+        "ranking",
+        "plip",
+        "report",
+        "parsing",
+        "network",
+        "visualisation",
+        "alphafold",
+        "confidence",
+        "analysis",
+        "requested",
+        "parses",
+        "xml"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "protein-structure",
+      "description": "Use when secondary structure assignment, radius of gyration, shape analysis, DSSP, PDB parsing or protein structure annotation is requested",
+      "fullDescription": "Use when secondary structure assignment, radius of gyration, shape analysis, DSSP, PDB parsing or protein structure annotation is requested. Parses ATOM/HETATM records with a dependency-free pure-Python parser, computes radius of gyration, gyration tensor and dipole moments, assigns secondary structure via DSSP or a built-in Kabsch-Sander implementation, and optionally retrieves UniProt metadata. 用于 PDB 解析与二级结构指派。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/protein-structure",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0176"
+      ],
+      "function": {
+        "operation": [
+          "operation_2406",
+          "operation_0320"
+        ],
+        "inputData": [
+          "data_1460",
+          "data_2537"
+        ],
+        "outputData": [
+          "data_2956",
+          "data_0897"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "secondary",
+        "structure",
+        "assignment",
+        "radius",
+        "gyration",
+        "shape",
+        "analysis",
+        "dssp",
+        "pdb",
+        "parsing",
+        "protein",
+        "annotation",
+        "requested",
+        "parses",
+        "atom"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "requests>=2.28",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "pymol-structure-visualization",
+      "description": "Use when analyzing inter-chain contacts in protein structures, identifying binding-interface hotspot residues, or building interaction networks and PyMOL visualization scripts",
+      "fullDescription": "Use when analyzing inter-chain contacts in protein structures, identifying binding-interface hotspot residues, or building interaction networks and PyMOL visualization scripts. Computes residue-level contact geometry with a uniform-grid spatial index, classifies each contact into hydrogen bonds, salt bridges, hydrophobic, pi-pi stacking and cation-pi interactions, and exports CSV/JSON with Mermaid networks and PyMOL scripts. 用于链间接触分析、热点鉴定与 PyMOL 脚本。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/pymol-structure-visualization",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0176"
+      ],
+      "function": {
+        "operation": [
+          "operation_0392",
+          "operation_0248"
+        ],
+        "inputData": [
+          "data_1460",
+          "data_1743"
+        ],
+        "outputData": [
+          "data_1547",
+          "data_1710"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "analyzing",
+        "inter-chain",
+        "contacts",
+        "protein",
+        "structures",
+        "identifying",
+        "binding-interface",
+        "hotspot",
+        "residues",
+        "building",
+        "interaction",
+        "networks",
+        "pymol",
+        "visualization",
+        "scripts"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "scientific-figures",
+      "description": "Use when generating publication-ready scientific figures: ROC curves, confusion matrix heatmaps, docking binding-energy heatmaps, pLDDT confidence histograms, SHAP summary beeswarms, or class distribution charts",
+      "fullDescription": "Use when generating publication-ready scientific figures: ROC curves, confusion matrix heatmaps, docking binding-energy heatmaps, pLDDT confidence histograms, SHAP summary beeswarms, or class distribution charts. Renders each chart type with a unified journal-grade visual style. 用于生成顶刊级出版图表（ROC 曲线、混淆矩阵、热图、SHAP 摘要等）。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/scientific-figures",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_0622",
+        "topic_2269"
+      ],
+      "function": {
+        "operation": [
+          "operation_2935"
+        ],
+        "inputData": [
+          "data_0928",
+          "data_0951"
+        ],
+        "outputData": [
+          "data_1710",
+          "data_0862"
+        ],
+        "format": [
+          "format_1950",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "generating",
+        "publication-ready",
+        "scientific",
+        "figures",
+        "roc",
+        "curves",
+        "confusion",
+        "matrix",
+        "heatmaps",
+        "docking",
+        "binding-energy",
+        "plddt",
+        "confidence",
+        "histograms",
+        "shap"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "matplotlib>=3.6",
+          "packageManager": "pip"
+        }
+      ]
+    },
+    {
+      "name": "single-cell-rnaseq",
+      "description": "Use when running single-cell RNA-seq analysis: reading 10x/AnnData matrices, QC filtering, normalization, HVG selection, PCA, clustering, UMAP/t-SNE and cell type annotation",
+      "fullDescription": "Use when running single-cell RNA-seq analysis: reading 10x/AnnData matrices, QC filtering, normalization, HVG selection, PCA, clustering, UMAP/t-SNE and cell type annotation. 用于单细胞转录组（scRNA-seq）质控、降维、聚类与细胞注释全流程。",
+      "homepage": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "repository": "https://github.com/ssinder/bioinformatics-agent-skills",
+      "documentation": "https://github.com/ssinder/bioinformatics-agent-skills/tree/main/skills/single-cell-rnaseq",
+      "toolType": "Command line tool",
+      "topic": [
+        "topic_3170",
+        "topic_0203"
+      ],
+      "function": {
+        "operation": [
+          "operation_0313",
+          "operation_3432",
+          "operation_3680"
+        ],
+        "inputData": [
+          "data_3112",
+          "data_0849"
+        ],
+        "outputData": [
+          "data_3112",
+          "data_0872"
+        ],
+        "format": [
+          "format_3752",
+          "format_3464"
+        ]
+      },
+      "language": "Python",
+      "license": "MIT",
+      "publication": [],
+      "contributors": [
+        {
+          "name": "sinder",
+          "affiliation": "Independent researcher"
+        }
+      ],
+      "keywords": [
+        "running",
+        "single-cell",
+        "rna-seq",
+        "analysis",
+        "reading",
+        "anndata",
+        "matrices",
+        "filtering",
+        "normalization",
+        "hvg",
+        "selection",
+        "pca",
+        "clustering",
+        "umap",
+        "t-sne"
+      ],
+      "operatingSystem": [
+        "Linux",
+        "Mac OS",
+        "Windows"
+      ],
+      "dependencies": [
+        {
+          "name": "numpy>=1.21",
+          "packageManager": "pip"
+        },
+        {
+          "name": "scipy>=1.7",
+          "packageManager": "pip"
+        },
+        {
+          "name": "pandas>=1.3",
+          "packageManager": "pip"
+        },
+        {
+          "name": "scikit-learn>=1.0",
+          "packageManager": "pip"
+        },
+        {
+          "name": "matplotlib>=3.5",
+          "packageManager": "pip"
+        }
+      ]
+    }
+  ]
+}

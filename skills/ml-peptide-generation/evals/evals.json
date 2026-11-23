@@ -1,0 +1,58 @@
+{
+  "skill_name": "ml-peptide-generation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to generate binder peptides for 3 target proteins (targets.fasta). Give me 10, 12 and 15-mers, 20 candidates each, ranked by pseudo-perplexity. I need to be able to reproduce the run later.",
+      "expected_output": "Runs python scripts/generate_peptides.py --input-fasta targets.fasta --output-dir results/ --peptide-lengths 10,12,15 --num-binders 20 --seed 42. The mechanism is PepMLM-650M as a masked language model: N <mask> tokens are appended to the target sequence, the model's amino-acid distribution is read at each masked position and sampled from, and repeating that for N positions yields the N-residue peptide. Reproducibility is built in - --seed fixes random, numpy and torch (set_seed sets random.seed, np.random.seed(seed % 2**32) and torch.manual_seed plus torch.cuda.manual_seed_all when CUDA is present), and the seed is written into every output row so a run can be reproduced later. Illegal residues are excluded at sampling time, not afterwards: the model's vocabulary contains X, B and Z, and those token ids are removed before the draw so the sampling budget is not wasted on rejects, while the has_unknown_aa flag stays in the output so the filter can be audited (--allow-invalid-amino-acids turns the exclusion off). Each candidate is scored by pseudo-perplexity, computed as exp of the mean cross-entropy over the peptide tokens, and the candidates are ranked by it. Writes peptides.csv and peptides.json with rank, target, length, top-k, binder, pseudo-perplexity, validity flag and seed, and optionally one CSV per target with --per-target-dir. The top-k sweep defaults to 3 and the model defaults to TianlaiChen/PepMLM-650M. Reports the per-configuration totals and PPL statistics from parameter_analysis.csv / .json.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Generates with PepMLM-650M over the requested length sweep and ranks candidates by pseudo-perplexity" },
+        { "type": "behavior", "value": "Sets and records the seed so the run is reproducible, and explains that X/B/Z are excluded at sampling time rather than filtered afterwards" },
+        { "type": "behavior", "value": "Writes peptides.csv with the validity flag retained for auditing while keeping the illegal residues out of the draw" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I ran the generation twice with --seed 42 and I get completely different peptide sets both times. That shouldn't happen if the seed is doing its job. What's going on?",
+      "expected_output": "Diagnoses it against the reproducibility contract: the seed is supposed to fix random, numpy and torch simultaneously, and with the same seed and the same input the output must be reproducible. Since it is not, the seed is not reaching one of the three generators, or the run is not deterministic downstream of sampling. The concrete checks: confirm --seed was actually passed on both runs (the seed is written into every output row, so the seed column in peptides.csv is the first thing to compare - if the two files show different seed values the commands differed); confirm the two runs used the same --peptide-lengths, --top-ks and --num-binders and the same target input file, since a different configuration is a different experiment; and confirm --device was the same on both runs, because a CUDA run and a CPU run consume randomness differently and are not guaranteed to match. Then verify the fix by diffing the two peptides.csv files - with the same seed they must be byte-identical apart from the generated_at timestamp. The troubleshooting entry 'Two runs produce different peptides' is the specific item to follow. Note that a configuration sweep across different lengths or top-k values is expected to produce different peptides and is not a reproducibility bug - only the identical configuration must match.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Checks the seed column recorded in peptides.csv and the identity of the seed, length, top-k, num-binders and device settings across the two runs" },
+        { "type": "behavior", "value": "Uses the byte-identical-except-generated_at diff of peptides.csv as the acceptance test for reproducibility" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Some of my generated peptides contain 'X'. I'm about to order them for synthesis - should I filter them out? And is there a pseudo-perplexity cut-off I should use for a 12-mer library?",
+      "expected_output": "On the X-containing peptides: they must not go to synthesis. has_unknown_aa=True means the peptide contains a residue the model could not decide on, so it is not a real design. The skill already excludes X, B and Z at sampling time rather than after the draw, so any peptide still carrying one came either from a run with --allow-invalid-amino-acids or from the analysis side - and analyze_peptides.py drops invalid peptides by default, with --keep-invalid as the explicit opt-in to retain them. The right procedure is to re-run the analysis with the default behaviour (invalid dropped) and to treat any X peptide as a reject rather than trying to repair it. On the cut-off: the analysis script takes --max-ppl to keep only peptides with pseudo-perplexity at or below the threshold, and the threshold must be chosen within one (target, length) pair, because the PPL scale depends on the target sequence - comparing PPL across different targets and concluding one target is easier is invalid. Two further constraints to state: pseudo-perplexity measures the model's own belief, not binding affinity, so it is a triage filter for wet-lab follow-up and nothing more - any affinity claim needs an experimental or orthogonal computational check; and peptides shorter than about 8 residues rarely bind meaningfully, so --min-length 8 should be applied to a synthesis list. Reports the filtered_peptides.csv and the per-configuration mean/median/min/max PPL from parameter_analysis.csv so the cut-off can be chosen from the observed distribution rather than guessed.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Rejects the X-containing peptides as invalid designs and explains that invalid entries are dropped by default unless --keep-invalid is passed" },
+        { "type": "behavior", "value": "States that pseudo-perplexity is comparable only within one (target, length) pair and that it measures model belief rather than binding affinity" },
+        { "type": "behavior", "value": "Recommends --min-length 8 to exclude peptides too short to bind meaningfully" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have a candidate peptide library from a paper - 300 sequences in a FASTA - and I want to compute their physicochemical properties (MW, pI, hydrophobicity, instability index) and decide which ones look like plausible antimicrobial peptides before I order them.",
+      "expected_output": "Routes this to the peptide-design skill, which is the property-calculation and classification skill: it computes molecular weight, isoelectric point, Kyte-Doolittle hydrophobicity, hydrophobic moment, net charge, the Guruprasad instability index, Chou-Fasman conformational propensity, Zhao solubility and Boman value with a self-contained pure-Python implementation, then scores each peptide as antimicrobial or non-antimicrobial using a weighted annotation layer (5 GO term groups plus 5 keyword groups) times 0.6 plus a physicochemical layer (8 rules) times 0.4. It exports the screened results as CSV or FASTA and can deduplicate the library by clustering with MMseqs2 or the built-in fallback. This skill does not fit that request: it generates candidates with the PepMLM-650M masked language model against a target sequence and ranks them by pseudo-perplexity - it takes a target, not a list of existing peptides, and it produces no physicochemical property table. The complementary use of this skill would be to generate new candidates for the same target, in which case the peptide-design properties become the downstream filter on the generated pool.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Routes the physicochemical property calculation and antimicrobial classification to the peptide-design skill" },
+        { "type": "behavior", "value": "Explains that this skill generates candidates from a target sequence rather than analysing an existing peptide library" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "torch isn't installed in this environment and there's no GPU here. Can you still give me the peptide candidates? Also my target protein is 900 residues long - will that be a problem?",
+      "expected_output": "Handles the two problems separately. On torch: the generation path genuinely needs torch plus transformers, so it cannot be run without them - the troubleshooting entry is '缺少依赖: torch' and the fix is to install torch and transformers (a CPU build is sufficient, since the skill needs no GPU; --device cpu forces it). The analysis path is the part that works with the standard library only and no GPU: analyze_peptides.py needs no torch and can filter, threshold and summarise an existing peptides.csv, but it cannot create candidates from nothing. So the honest answer is that without torch the generation step cannot be executed and the candidate pool cannot be produced here; the tool should offer to run the analysis over a previously generated result file instead of implying the generation succeeded. On the 900-residue target: yes, it is a problem. The model truncates at 552 tokens, so a target longer than that is rejected by the skill with an explicit error ('超过模型上下文上限 552') rather than being silently truncated - a silently truncated target would produce peptides for the wrong protein. The options are to use a shorter construct (for example the resolved domain rather than the full-length chain), or to switch to a model with a longer context window by overriding --model, and to note that the 552-token ceiling includes the appended mask tokens, so the target itself must fit with room for the peptide.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "States that torch plus transformers are required for generation while the analysis path needs only the standard library and no GPU" },
+        { "type": "behavior", "value": "Flags the 552-token context limit and refuses to silently truncate a 900-residue target, offering a shorter construct or --model override" },
+        { "type": "behavior", "value": "Notes that the mask tokens count against the 552-token ceiling as well as the target sequence" }
+      ]
+    }
+  ]
+}

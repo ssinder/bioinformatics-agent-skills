@@ -23,7 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import (  # noqa: E402
+from bioagent_core import (  # noqa: E402
     SkillError,
     cli_parser,
     get_config,
@@ -34,7 +34,7 @@ from biopipe_core import (  # noqa: E402
 )
 from literature_core import parse_record_rows, write_citations  # noqa: E402
 
-LOGGER = get_logger("biopipe.literature-search")
+LOGGER = get_logger("bioagent.literature-search")
 
 EXTENSIONS = {
     "ris": ".ris",

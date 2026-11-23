@@ -1,0 +1,54 @@
+{
+  "skill_name": "protein-docking-lightdock",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to dock my receptor (data/rec.pdb) against 12 peptide ligands in data/ligands/ and rank them by score. It has to run locally — this is unpublished structural data and can't go to a web service. Please use 50 swarms and 50 steps on 8 cores, output to data/dock_results/.",
+      "expected_output": "Runs run_docking.py --receptor data/rec.pdb --ligands data/ligands/*.pdb --swarms 50 --glowworms 50 --steps 50 --cores 8 --output-dir data/dock_results/, explicitly acknowledging this is the local LightDock engine (pip install lightdock) rather than a web server, because the data must not leave the machine. Resolves lightdock3_setup.py and lightdock3.py through resolve_executables(), which checks the explicit --setup-exe/--run-exe path, then the current interpreter's <prefix>/bin (where conda/venv installs put the bare scripts, which are NOT on PATH), and finally the system PATH. The setup stage copies both structures into the job directory, strips waters/oxygens/hydrogens per the flags, computes the receptor's minimum-volume ellipsoid, places the swarms on its surface and writes setup.json, and critically translates both structures to the origin, saving them as lightdock_receptor.pdb / lightdock_ligand.pdb. Then runs lightdock3.py setup.json 50 -c 8, and collects each swarm's results by picking the highest-step gso_*.out file by NUMERIC step, parsing every glowworm line and taking the minimum-scoring entry — lower DFIRE score is better. Job directories are named <receptor_stem>__<ligand_stem>, the score table is written incrementally to docking_scores.csv / .json after every job (so an interrupted batch loses nothing), and one failing job does not abort the rest.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Runs lightdock3 locally with the requested swarm/step/core counts and does not propose a web service" },
+        { "type": "behavior", "value": "Writes scores incrementally per job so an interrupted batch keeps its results" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I've got an existing LightDock run in data/lightdock_results/rec__lig/ with swarm_0 through swarm_49. I want the top docked complex as a PDB and a table of all the scores. Something's off though: in my own notes every job says 'best glowworm = 0', which can't be right — there are 50 glowworms per swarm. And my best scores are all around -0.5, which seems too weak for a small complex.",
+      "expected_output": "Diagnoses both symptoms as the exact output-semantics traps this skill fixes. For the glowworm id: the glowworm id is the LINE NUMBER in the GSO file, not the LigID column — in single-structure docking RecID and LigID are both 0, so a parser that captures LigID reports 'best glowworm = 0' for every job, which is the signature the user is seeing; the corrected parser takes the row index. For the score magnitude: a converged small-complex DFIRE score typically lands around -30 to -60, while a value near 0 means the search barely moved from the random start — a score of -0.5 points at a wrong column, a step-selection bug, or a search that never ran. Adds the third trap: the GSO file to use is the one with the largest NUMERIC step (gso_100.out over gso_20.out), not the last one alphabetically, because LightDock writes gso_<step>.out every 10 steps without zero-padding so a lexicographic sort puts gso_100.out before gso_20.out. Then runs extract_scores.py --jobs-root data/lightdock_results/ --output-dir data/scores/ for the ranking and generate_conformations.py --job-dir data/lightdock_results/rec__lig/ for the complex, using the origin-shifted lightdock_receptor.pdb/lightdock_ligand.pdb so the two parts stay in one coordinate frame — a ligand flying off toward the origin means the origin-shifted structures were not used. Notes that LightDock does not report RMSD by default, so lgd_rank.py or a comparison against a known holo structure is needed for that.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Identifies the 'best glowworm = 0 for every job' symptom as the LigID-vs-line-number parsing error" },
+        { "type": "behavior", "value": "Selects the gso file by largest numeric step rather than by alphabetical order, and notes that -30 to -60 is the expected DFIRE magnitude" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I have 5 receptors and 20 ligands — 100 docking pairs — and each job takes hours on 8 cores. My cluster job got preempted after 40 jobs and I'd rather not restart from scratch. Also, before I scale up to the full 100, I want to validate the pipeline on 2 ligands with 5 swarms and 20 steps first.",
+      "expected_output": "Supports both halves of the request with the skill's built-in batch/resume machinery. For the trial run: run_docking.py --receptor rec.pdb --ligands a.pdb b.pdb --swarms 5 --glowworms 10 --steps 20 --cores 4 --output-dir test/ to validate the pipeline before spending CPU on the full grid. For the grid: --receptors recs/*.pdb --ligands ligands/*.pdb forms the Cartesian product of 5 x 20 = 100 jobs, each in its own <receptor>__<ligand> directory, with the score row appended to docking_scores.csv / .json after every single job so a preemption loses only the in-flight job. For the restart: re-running with --resume skips the jobs that already have a valid result and re-runs the rest — without --resume the batch starts the whole grid again. Notes the operational reality the skill is built around: one job of 50 swarms x 50 steps takes minutes to hours depending on core count and protein size, and a batch of 100 pairs takes days, which is why the resume and incremental-write behaviour matter more than the subprocess calls. Also points out --run-timeout (default 86400 s, one day) and --setup-timeout (default 600 s) as the knobs to align with the cluster's wall-clock limit, and that a single failed job is recorded as failed and does not abort the remaining jobs.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses --resume so that preempted jobs are skipped rather than recomputed" },
+        { "type": "behavior", "value": "Explains that the 5x20 receptor/ligand grid forms a Cartesian product of 100 jobs and that results are written incrementally" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I'd like to dock my antibody Fab against a viral spike protein, get the top 5 models with their confidence scores and ligand RMSD, and download the ranked structures. The structures aren't sensitive — I just want it to be fast.",
+      "expected_output": "Declines to handle this and redirects to the protein-docking-hdock skill, which is the web-service path: it submits a job to the HDOCK server over plain HTTP (not browser automation), accepts PDB files, PDB ID:ChainID references and FASTA sequences, polls for completion, and returns the Docking Score, Confidence Score, ligand RMSD and the ranked models for download, with submissions recorded to CSV. Notes that LightDock is the opposite trade-off: a local program whose search runs on the user's own CPUs with no data leaving the machine, which is the right choice for unpublished structures but is exactly the slow option the user is trying to avoid here. Also points out the capability difference: LightDock's own output is a DFIRE swarm score and it does not report RMSD or a confidence score by default (lgd_rank.py or a holo-structure comparison would be needed), so the specific quantities the user asked for are not produced by this skill.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the protein-docking-hdock skill for server-side docking with confidence scores and ligand RMSD" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I'm on Windows 11 and pip install lightdock failed compiling the Cython extension. I have some PDB files I really need docked though. Is there any way this can still work, and how do I tell the script where the lightdock executables are once it's installed?",
+      "expected_output": "Explains that LightDock is officially unsupported on Windows — the Cython extension under lightdock/gso/searchspace/cython/ plus ProDy and freesasa dependency combinations do not build reliably there — so the fix is to move the computation to Linux, macOS or WSL2 (WSL2 needs 'apt install build-essential', and PDB paths must be given as WSL paths, never mixed with Windows-side paths). Explains the executable-resolution problem precisely: LightDock declares its scripts through setup.py's scripts=[...] so they are bare files under <env>/bin/ and are not on PATH, which is why older scripts hard-coded an absolute path and then broke when the environment changed; resolve_executables() handles this by checking the explicit --setup-exe/--run-exe paths, then the current interpreter's <prefix>/bin, then the system PATH — so the practical instruction is to run the script with the SAME interpreter that has lightdock installed (conda activate lightdock; python scripts/run_docking.py ...) rather than the system python. Notes the consequence for this environment: without a working LightDock install, the parsing/scoring half still works — extract_scores.py and generate_conformations.py read an existing run's swarm_*/gso_*.out and lightdock_<i>.pdb files with the correct numeric-step selection, line-number glowworm id and origin-shifted coordinate frame and need no third-party Python package — so an existing run can still be turned into scores and complexes even where the search itself cannot be executed.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "States that LightDock does not support Windows and points to Linux/macOS/WSL2" },
+        { "type": "behavior", "value": "Explains the <prefix>/bin resolution and --setup-exe/--run-exe override, and that the parsing half still works on existing runs" }
+      ]
+    }
+  ]
+}

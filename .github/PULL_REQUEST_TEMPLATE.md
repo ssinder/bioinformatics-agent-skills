@@ -23,7 +23,7 @@
 - [ ] 新增/修改的脚本能响应 `--help`
 - [ ] 没有硬编码绝对路径
 - [ ] 没有裸 `print()`（统一使用 `logger`）
-- [ ] 若新增技能，已更新 `packages/biopipe/registry.py` 的 `REGISTRY`
+- [ ] 若新增技能，已更新 `packages/bioagent/registry.py` 的 `REGISTRY`
 - [ ] `references/methodology.md` 与 `references/troubleshooting.md` 已补齐（新增技能时）
 - [ ] 算法是真实实现，不是占位符
 

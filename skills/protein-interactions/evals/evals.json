@@ -1,0 +1,55 @@
+{
+  "skill_name": "protein-interactions",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I ran PLIP on my docked complex and got a report.xml in /data/dock_results/1ABC/. I need the residue-level interaction table, the top hotspot residues on both the receptor and the ligand side, and a Mermaid network graph I can paste into a slide. Can you handle it?",
+      "expected_output": "Runs python scripts/analyze_interactions.py --input /data/dock_results/1ABC/report.xml --output results/ --make-mermaid. Parses the PLIP XML with the standard library only (xml.etree.ElementTree), handling the modern attribute-style schema (site onf=\"A:ARG+102:NE\" with child <salt_bridge> elements) and the legacy element-style schema (resnr/restype/reschain with _lig suffixed variants), decoding protein labels into chain/resname/resnr/atom while keeping ligand atoms (e.g. LIG:1:CL1) distinguishable. Extracts all interaction types present in the report - salt bridges, hydrogen bonds, hydrophobic contacts, pi-stacking, water bridges, halogen bonds and metal complexes - and writes interaction_analysis.json plus interactions_residue_level.csv with one row per interaction (receptor residue, ligand residue, type, atom, distance). Ranks receptor and ligand residues by participation count to give the hotspot list, respecting --top-residues (default 10). Emits the Mermaid flowchart with receptor and ligand subgraphs and per-interaction-type linkStyle colouring, and validates that the Mermaid file contains exactly one linkStyle line per edge. Reports the total record count and the per-type breakdown; a nonzero interaction count for a buried binding site normally means tens to a few hundred records.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Parses the PLIP report.xml with the standard-library XML parser and produces interaction_analysis.json, interactions_residue_level.csv and the Mermaid graph" },
+        { "type": "behavior", "value": "Ranks hotspot residues separately for the receptor and the ligand side and reports the per-interaction-type counts" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My PLIP report came back with the receptor and the ligand roles clearly swapped - the 'receptor' residues are all part of the small molecule and vice versa. Also every hotspot residue has exactly one interaction, which can't be right for a real binding site. What went wrong?",
+      "expected_output": "Recognises the two symptoms as the documented failure mode: a flat histogram of one interaction per residue means the receptor/ligand roles were swapped, or hydrogens were stripped from the input structure that was fed to PLIP. The role swap happens because PLIP is run with --inter specifying the chain to treat as the ligand; if the wrong chain or the wrong chain order was given, PLIP labels the sides backwards and the parser faithfully records it. Concretely: re-run PLIP on the same structure with the --inter argument pointed at the correct ligand chain, and confirm hydrogens are present in the input PDB (PLIP needs explicit H to assign hydrogen bonds). Also flags the validation rule that a genuine binding hotspot usually shows at least 3 distinct contacts (e.g. ARG102 engaging the ligand three times), and that a salt bridge between two ARG residues or a salt bridge that is really a hydrogen bond indicates a parsing error rather than a result. Re-runs the parser on the corrected report.xml and reports the updated hotspot ranking.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Diagnoses the swapped receptor/ligand roles as a PLIP --inter chain-selection error and the one-interaction-per-residue histogram as the documented symptom of that swap or of missing hydrogens" },
+        { "type": "behavior", "value": "Uses the hotspot plausibility rule (a real hotspot shows >= 3 interactions) as the acceptance criterion for the corrected run" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need to know exactly which hydrogen bonds my ligand makes with my protein, including donor/acceptor atom names and the exact distances - for a supplementary table. My PLIP report is at results/report.xml. Can I trust the counts, and how do I get the per-atom detail out?",
+      "expected_output": "Runs the PLIP-based path, which is the authoritative source for hydrogen-bond geometry (donor/acceptor atom identity plus the D-H...A angle), and explains that the report contains one residue-level row per interaction with the distance in Angstrom - the flat table interactions_residue_level.csv carries receptor residue, ligand residue, type, atom and distance columns. Applies the type cross-check that salt bridges must pair ARG/LYS against ASP/GLU (an ARG-ARG salt bridge is a parsing error) and the sanity band that a ligand with a buried binding site normally yields tens to a few hundred interactions, so a near-zero record count means the XML schema was not recognised and the file should be inspected. Notes that this skill's own geometric criteria (hydrogen bond < 3.5 A with a >120 degree angle) are general approximations and that for publication-grade assignments the PLIP-derived values are the ones to quote. Also offers --make-pymol to generate the annotation script with select / show sticks / color / label / distance commands for a figure, and points out that for inter-chain contacts of a protein-protein complex without a ligand, the pymol-structure-visualization skill is the one that computes contact geometry directly from the PDB.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses the PLIP report as the authoritative source of hydrogen-bond geometry and extracts per-atom donor/acceptor detail with distances from the residue-level table" },
+        { "type": "behavior", "value": "Applies the salt-bridge charge cross-check (ARG/LYS versus ASP/GLU) and the record-count sanity check as validation of the parse" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I've got a two-chain complex PDB and no PLIP report. I just want to know how many hydrogen bonds and salt bridges are at the interface and which residues are the hotspots, so I can decide which residues to mutate.",
+      "expected_output": "Points to the pymol-structure-visualization skill, which computes inter-chain residue contacts straight from a PDB file with no PLIP dependency - it uses a uniform-grid spatial index and classifies each contact by residue chemistry into hydrogen bonds, salt bridges, hydrophobic contacts, pi-pi stacking and cation-pi interactions, with hotspot residues per chain. Explains the trade-offs that make this the right tool here: ASP/GLU are not counted as hydrogen-bond donors by default (carboxyl pKa about 4), HIS is not counted as positively charged by default (imidazole pKa about 6), and ligand contacts are tagged separately as Ligand_contact because a ligand's aromaticity and charge are unknown - flags --include-histidine, --include-ambiguous-donors and --exclude-hetero exist for the cases where the user wants the looser criteria. Notes this skill's own thresholds are general approximations and that for exact donor/acceptor hydrogen-bond geometry the PLIP path in this skill is the one to use, so the correct plan is to run the contact analysis here for hotspot ranking and fall back to PLIP when a manuscript-grade hydrogen-bond table is needed.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Routes the interface contact analysis to the pymol-structure-visualization skill, which works from a PDB without needing PLIP" },
+        { "type": "behavior", "value": "Explains the chemistry defaults that make the two skills differ (ASP/GLU not donors, HIS not positive, ligands tagged separately) instead of silently applying PLIP-grade criteria to an approximation engine" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I've got an AlphaFold Server prediction package - it's a zip with five models and a summary_confidences_0.json. I want to know which model to actually use and whether the confidence is good enough to trust the interface.",
+      "expected_output": "Feeds the zip package straight into this skill: python scripts/analyze_interactions.py --input AF-P69905-F1-model_v4.zip --output results/ --make-mermaid. The package is unzipped, the per-model confidence JSON is read and summarised (pTM, ipTM, mean pLDDT, max PAE, residue counts), and the best model is picked automatically by predicted TM-score confidence using the conservative ptm + 0.5 * iptm combination, falling back to pTM alone if ipTM is missing and then to mean pLDDT / 100. Applies the confidence gates: pLDDT > 90 is high confidence, 70-90 acceptable, < 70 marks a disordered or unreliable region, and a mean pLDDT below 70 means the model should not be used for interaction analysis at all - the answer must not hand back an interface for a model that fails this. Also flags the specific pitfall of a low ipTM paired with a high pTM, which is the signature of a model that is internally confident but has the two chains in the wrong relative position, so the interface would be fictional. Points out that picking the best model and converting CIF to PDB is handled by the alphafold-db skill's select_best_model.py if a PDB file specifically is needed, and that this skill's own package handling produces the confidence summary and the selection in one pass.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Selects the best model from the multi-model zip using the ptm + 0.5 * iptm confidence combination and reports pTM, ipTM and mean pLDDT" },
+        { "type": "behavior", "value": "Refuses to treat the interface as usable when mean pLDDT is below 70, and calls out low ipTM with high pTM as evidence the inter-chain placement is unreliable" }
+      ]
+    }
+  ]
+}

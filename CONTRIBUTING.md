@@ -70,11 +70,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, get_config, bootstrap_cli
+from bioagent_core import get_logger, get_config, bootstrap_cli
 
 
 def main(args) -> int:
-    logger = get_logger("biopipe.my-new-skill")
+    logger = get_logger("bioagent.my-new-skill")
     config = get_config(args.config)
     logger.info("Processing input: %s", args.input)
     return 0
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 - ✅ Always provide a command-line interface with `argparse`
 - ✅ Always include an `if __name__ == "__main__":` entry point
 - ✅ Heavy dependencies (scanpy, OpenMM, ...) must degrade gracefully with a clear error message
-- ✅ Import the shared helpers from `biopipe_core`
+- ✅ Import the shared helpers from `bioagent_core`
 
 ### 5. Validate locally
 
@@ -119,13 +119,37 @@ Then open the Pull Request. CI automatically runs the specification validation, 
 | **Scientific correctness** | The algorithms must be genuinely usable, not pseudocode placeholders |
 | **Reproducibility** | Pin the random seeds and record the parameters and versions |
 | **A fallback path** | The core algorithm should embed a pure-Python implementation, so it does not hard-depend on a heavy library |
-| **Complete documentation** | You MUST provide `references/methodology.md` (the methodological rationale) and `references/troubleshooting.md` (debugging) |
 | **A validation stage** | The Validation section of SKILL.md explains how to check that the results are correct |
+| **A routing line** | SKILL.md states when NOT to use this skill and which skill to use instead |
 
 Scientific code must be genuinely runnable, not a stub.
+
+### On documentation length
+
+Keep `SKILL.md` **short** — the skill body should say what the skill does,
+when to use it, the essential steps, and how to verify the result. Push
+derivation details, parameter tables, and exhaustive troubleshooting into
+`references/`, which the agent reads only when it needs them.
+
+This is not a style preference. The SkillsBench benchmark
+([arXiv:2602.12670](https://arxiv.org/abs/2602.12670)) measured skill
+formats against 87 tasks with paired no-skill / with-skill conditions:
+
+| Skill format | Pass-rate lift |
+|---|---|
+| Standard-length | **+21.5 pp** |
+| Compact | +19.0 pp |
+| Detailed | +14.5 pp |
+| Comprehensive documentation | **+0.7 pp** |
+
+Exhaustive prose is effectively flat. "Complete" is not the goal —
+**retrievable** is. The same benchmark also found that 13 of 87 tasks got
+*worse* with a skill attached, which is why the Validation section is
+mandatory rather than optional.
 
 ## Need Help?
 
 - Questions about the skill specification -- open an Issue and label it `question`
 - Not sure how to write the `description` -- open an Issue describing your analysis scenario and we will help you write it
-- Want more examples -- see `docs/skill-guides/`
+- Want more examples -- see [`docs/skill-guides/`](../docs/skill-guides/) for end-to-end workflow combinations
+- Want to know the exact frontmatter fields the spec requires -- see [the Agent Skills specification](https://agentskills.io/specification)

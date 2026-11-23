@@ -240,7 +240,7 @@ GET https://rest.uniprot.org/uniprotkb/search
 ```
 
 - 批量查询时每批最多 100 个 accession，避免 URL 过长
-- 通过共享层 `biopipe_core.http_session` 发起请求，自带指数退避重试
+- 通过共享层 `bioagent_core.http_session` 发起请求，自带指数退避重试
   （4 次，退避基数 2.0）与最小请求间隔 0.34 s（NCBI/UniProt 速率限制友好）
 - 网络失败时**静默降级**：记录 warning，主流程继续，不影响结构分析结果
 

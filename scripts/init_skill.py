@@ -56,7 +56,7 @@ Use this skill when the user wants to:
 - Record the analysis as a reproducible workflow
 
 For **other** kinds of data, use the dedicated skill that matches them. The authoritative
-list of skill names is the output of `biopipe --list`.
+list of skill names is the output of `bioagent --list`.
 
 ## Quick Start
 
@@ -144,7 +144,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import bootstrap_cli, get_config, get_logger
+from bioagent_core import bootstrap_cli, get_config, get_logger
 
 
 def main(args) -> int:
@@ -156,7 +156,7 @@ def main(args) -> int:
     Returns:
         The exit code; 0 means success.
     """
-    logger = get_logger("biopipe.{name}")
+    logger = get_logger("bioagent.{name}")
     config = get_config(args.config)
 
     logger.info("Skill started: {name}")

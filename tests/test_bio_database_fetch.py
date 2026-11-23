@@ -118,23 +118,80 @@ class TestNoFabricatedEmail:
                 assert "example.com" not in value, f"{name}: {value!r}"
 
     def test_email_is_read_from_cli_or_env(self):
-        """email 必须来自命令行参数或环境变量，而不是硬编码。"""
+        """email 来自命令行参数或环境变量，而不是硬编码在调用点。"""
         source = _script("fetch_taxonomy.py").read_text(encoding="utf-8")
-        assert "BIOPIPE_EMAIL" in source
+        assert "BIOAGENT_EMAIL" in source
         assert "--email" in source
 
-    def test_fetch_taxonomy_requires_email(self):
-        """缺 email 时必须报错，而不是静默发出无身份的请求。"""
-        with pytest.raises(ValueError, match="email"):
-            database_client.fetch_taxonomy(["9606"], email="")
+    def test_uses_registered_project_identity_by_default(self):
+        """缺 email 时回退到项目方注册的身份，而不是报错。
 
-    def test_main_returns_2_without_email(self, monkeypatch, tmp_path):
-        """CLI 缺 email 时退出码为 2（参数错误），不是 0。"""
-        monkeypatch.delenv("BIOPIPE_EMAIL", raising=False)
+        NCBI 政策要求 email 是**软件开发者**的地址而非终端用户的，
+        且必须事先注册。因此由项目方注册并内置，用户无需任何配置——
+        这比要求每个用户导出环境变量更符合政策，也更不容易出错。
+        """
+        from bioagent_core.ncbi_identity import DEFAULT_EMAIL, resolve_email
+
+        resolved = resolve_email(None)
+        assert resolved == DEFAULT_EMAIL
+        assert "@" in resolved and "example" not in resolved
+
+    def test_explicit_email_overrides_registered_identity(self):
+        """显式传入的 email 优先于内置身份。"""
+        from bioagent_core.ncbi_identity import resolve_email
+
+        assert resolve_email("someone@real-lab.org") == "someone@real-lab.org"
+
+    def test_env_var_overrides_registered_identity(self, monkeypatch):
+        """环境变量优先于内置身份（机构政策要求的场景）。"""
+        from bioagent_core.ncbi_identity import resolve_email
+
+        monkeypatch.setenv("BIOAGENT_EMAIL", "lab@example-uni.ac.uk")
+        assert resolve_email(None) == "lab@example-uni.ac.uk"
+
+    def test_fetch_taxonomy_falls_back_to_registered_identity(self, monkeypatch):
+        """缺 email 时不再抛错，而是用注册身份继续。"""
+        monkeypatch.delenv("BIOAGENT_EMAIL", raising=False)
+        monkeypatch.delenv("NCBI_EMAIL", raising=False)
+
+        captured: dict = {}
+
+        class _FakeSession:
+            def get(self, url, params=None, timeout=None):
+                captured.update(params or {})
+
+                class _Resp:
+                    text = "<TaxaSet></TaxaSet>"
+
+                    def raise_for_status(self):
+                        return None
+
+                return _Resp()
+
+        database_client.fetch_taxonomy(["9606"], email="", session=_FakeSession())
+
+        assert captured.get("email"), "请求必须带上 email"
+        assert captured.get("tool"), "请求必须带上 tool（NCBI 要求两者同时注册）"
+
+    def test_main_succeeds_without_email(self, monkeypatch, tmp_path):
+        """CLI 不再要求用户配置邮箱。"""
+        monkeypatch.delenv("BIOAGENT_EMAIL", raising=False)
+        monkeypatch.delenv("NCBI_EMAIL", raising=False)
+
+        called: dict = {}
+
+        def _fake_fetch(tax_ids, email=None, api_key=None, timeout=None, **kw):
+            called["email"] = email
+            return [{"TaxId": "9606", "ScientificName": "Homo sapiens"}]
+
+        monkeypatch.setattr(fetch_taxonomy, "fetch_taxonomy", _fake_fetch)
         code = fetch_taxonomy.main(
             ["--tax-ids", "9606", "--output-dir", str(tmp_path)]
         )
-        assert code == 2
+        assert code == 0
+        assert called.get("email"), "应自动填入注册身份"
+        # NCBI 政策要求免责声明对用户可见
+        assert (tmp_path / "NCBI_DISCLAIMER.txt").is_file()
 
     def test_email_is_passed_to_the_request(self):
         """email 必须真的拼进请求参数。"""

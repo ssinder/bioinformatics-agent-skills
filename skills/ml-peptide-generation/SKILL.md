@@ -1,46 +1,34 @@
 ---
 name: ml-peptide-generation
-description: >-
-  Generates candidate binder peptides for a target protein using the PepMLM-650M
-  masked language model — appends <mask> tokens to the target sequence and
-  samples amino acids at each position, with illegal residues (X, B, Z)
-  excluded from the sampling candidates. Reports pseudo-perplexity for each
-  candidate, supports reproducible generation via an explicit random seed,
-  and provides offline filtering and parameter-sweep analysis that needs no GPU.
-  This skill should be used when designing peptides or protein fragments that
-  should bind a target, generating a ranked candidate pool for a target
-  sequence, or comparing how peptide length and top-k sampling settings affect
-  candidate quality.
+description: "Use when designing peptides or protein fragments that should bind a target, generating a ranked candidate pool for a target sequence, or comparing how peptide length and top-k sampling affect candidate quality. Generates candidates with the PepMLM-650M masked language model, excluding illegal residues (X, B, Z); reports pseudo-perplexity per candidate, supports reproducible seeds, and needs no GPU. 用于多肽生成与候选排序。"
 license: MIT
 compatibility: Python 3.9+; generation needs torch + transformers; analysis needs only the standard library
 metadata:
   version: "1.0"
   last-reviewed: "2026-10-26"
   skill-author: sinder
----
+  edam-topic: "topic_0203"
+  edam-operation: "operation_3646, operation_3799"
+  edam-input-data: "data_1254"
+  edam-output-data: "data_2016"
+  edam-input-format: "format_1929"
+  edam-output-format: "format_1929, format_3752"
 
 # ML Peptide Generation
 
+
+---
+
 ## Overview
 
-This skill generates candidate binder peptides for a target protein with
-**PepMLM-650M**, a masked language model trained on protein sequences.
+Generates candidate binder peptides for a target protein with **PepMLM-650M**, a masked language model trained on protein sequences.
 
-The mechanism is straightforward: append N `<mask>` tokens to the target
-sequence, ask the model for its amino-acid distribution at each masked
-position, and sample from it. Repeating that for N positions produces an
-N-residue peptide.
+The mechanism is straightforward: append N `<mask>` tokens to the target sequence, ask the model for its amino-acid distribution at each masked position, and sample from it. Repeating for N positions produces an N-residue peptide.
 
 Two things this skill does that a naive implementation does not:
 
-- **Reproducible by construction.** Every run takes an explicit `--seed`.
-  The same seed and the same input always produce the same peptides, so a
-  parameter sweep is a controlled experiment rather than a lottery.
-- **Illegal residues are excluded at sampling time, not afterwards.** The
-  model's vocabulary contains `X` (unknown), `B` and `Z` (ambiguous amino
-  acids). Sampling from the raw vocabulary produces peptides that are not
-  chemically meaningful. Here those candidates are removed *before* the
-  draw, so the sampling budget is not wasted on rejects.
+- **Reproducible by construction.** Every run takes an explicit `--seed`. The same seed and input always produce the same peptides, so a parameter sweep is a controlled experiment rather than a lottery.
+- **Illegal residues are excluded at sampling time, not afterwards.** The vocabulary contains `X` (unknown), `B` and `Z` (ambiguous amino acids); sampling from it produces peptides that are not chemically meaningful. Those candidates are removed *before* the draw, so the sampling budget is not wasted on rejects.
 
 ## When to Use This Skill
 
@@ -54,7 +42,7 @@ Two things this skill does that a naive implementation does not:
 ```bash
 export PYTHONPATH="$PWD/packages"
 
-# 生成（需要 torch + transformers）
+# Generate (requires torch + transformers)
 python scripts/generate_peptides.py \
     --input-fasta targets.fasta \
     --output-dir results/ \
@@ -62,7 +50,7 @@ python scripts/generate_peptides.py \
     --num-binders 20 \
     --seed 42
 
-# 分析（只用标准库，无需 GPU）
+# Analyse (standard library only, no GPU needed)
 python scripts/analyze_peptides.py \
     --input results/peptides.csv \
     --output-dir analysis/ \
@@ -71,16 +59,11 @@ python scripts/analyze_peptides.py \
 
 ## Workflow
 
-1. **Collect targets** — `--input-fasta` (FASTA), `--input-csv` (needs `id`
-   and `seq` columns) or `--input-seq` (a single sequence).
-2. **Set the seed** — `--seed` fixes `random`, `numpy` and `torch`. The seed
-   is written into every output row so a run can be reproduced later.
-3. **Generate** — for each target × peptide length × top-k combination,
-   sample `--num-binders` peptides and score each by pseudo-perplexity.
-4. **Analyse** — `analyze_peptides.py` filters invalid peptides, applies
-   optional PPL/length thresholds, and reports per-configuration statistics.
-5. **Select** — rank by pseudo-perplexity and carry the top candidates into
-   downstream validation.
+1. **Collect targets** — `--input-fasta` (FASTA), `--input-csv` (needs `id` and `seq` columns) or `--input-seq` (a single sequence).
+2. **Set the seed** — `--seed` fixes `random`, `numpy` and `torch`. The seed is written into every output row so a run can be reproduced later.
+3. **Generate** — for each target × peptide length × top-k combination, sample `--num-binders` peptides and score each by pseudo-perplexity.
+4. **Analyse** — `analyze_peptides.py` filters invalid peptides, applies optional PPL/length thresholds, and reports per-configuration statistics.
+5. **Select** — rank by pseudo-perplexity and carry the top candidates into downstream validation.
 
 ## Parameters
 
@@ -123,26 +106,12 @@ python scripts/analyze_peptides.py \
 
 ## Validation
 
-- **Pseudo-perplexity measures the model's own belief, not binding affinity.**
-  A low PPL means "this looks like a peptide the model would have generated",
-  not "this binds the target". It is a triage filter for wet-lab follow-up,
-  nothing more. Any claim about affinity needs an experimental or
-  orthogonal computational check.
-- **PPL is only comparable within one (target, length) pair.** The scale
-  depends on the target sequence; do not compare PPL across different
-  targets and conclude one target is "easier".
-- **Check the validity flag.** `has_unknown_aa=True` means the peptide
-  contains a residue the model could not decide on — such a peptide is not
-  a real design. The skill excludes these at sampling time, but the flag
-  stays in the output so the filter can be audited.
-- **Verify reproducibility.** Re-run with the same `--seed` and diff
-  `peptides.csv`; the files must be byte-identical apart from the
-  `generated_at` timestamp.
-- **Peptides shorter than about 8 residues rarely bind meaningfully.** Use
-  `--min-length` to exclude them from a synthesis list.
-- **The model truncates at 552 tokens.** Target sequences longer than that
-  are rejected by the skill rather than silently truncated — a truncated
-  target produces peptides for the wrong protein.
+- **Pseudo-perplexity measures the model's own belief, not binding affinity.** A low PPL means "this looks like a peptide the model would have generated", not "this binds the target". It is a triage filter for wet-lab follow-up, nothing more; any affinity claim needs an experimental or orthogonal computational check.
+- **PPL is only comparable within one (target, length) pair.** The scale depends on the target sequence; do not compare PPL across different targets and conclude one target is "easier".
+- **Check the validity flag.** `has_unknown_aa=True` means the peptide contains a residue the model could not decide on — not a real design. The skill excludes these at sampling time, but the flag stays in the output so the filter can be audited.
+- **Verify reproducibility.** Re-run with the same `--seed` and diff `peptides.csv`; the files must be byte-identical apart from the `generated_at` timestamp.
+- **Peptides shorter than about 8 residues rarely bind meaningfully.** Use `--min-length` to exclude them from a synthesis list.
+- **The model truncates at 552 tokens.** Longer targets are rejected by the skill rather than silently truncated — a truncated target produces peptides for the wrong protein.
 
 ## References
 

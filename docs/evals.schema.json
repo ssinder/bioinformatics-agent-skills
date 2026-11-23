@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ssinder/bioinformatics-agent-skills/schemas/evals.schema.json",
+  "title": "Agent Skill evaluation cases",
+  "description": "Schema for per-skill evaluation cases, following the Agent Skills specification's `evals/evals.json` convention (https://agentskills.io). Each case is run twice — once with the skill attached and once without — so the skill's contribution is measurable rather than assumed.",
+  "type": "object",
+  "required": ["skill_name", "evals"],
+  "additionalProperties": false,
+  "properties": {
+    "skill_name": {
+      "type": "string",
+      "description": "Must match the skill's `name` frontmatter field and its directory name.",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "evals": {
+      "type": "array",
+      "minItems": 3,
+      "description": "Test cases. At least three are recommended; include at least one near-miss that must NOT trigger this skill.",
+      "items": {
+        "type": "object",
+        "required": ["id", "prompt", "expected_output"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": ["string", "integer"],
+            "description": "Unique within this file."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "A realistic user message — the way someone would actually type it. Include real file paths, column names and personal context."
+          },
+          "expected_output": {
+            "type": "string",
+            "description": "Human-readable description of what success looks like. This is the rubric the grader checks against."
+          },
+          "files": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Input files the skill needs, relative to the skill's evals/ directory."
+          },
+          "assertions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type"],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "should_trigger",
+                    "should_not_trigger",
+                    "output_contains",
+                    "behavior"
+                  ],
+                  "description": "should_trigger: the skill must load. should_not_trigger: it must NOT (use for near-misses). output_contains: the response must contain a given string. behavior: a free-form behavioural expectation."
+                },
+                "value": {
+                  "description": "The expected value: true/false for trigger assertions, a string for output_contains."
+                },
+                "requires": {
+                  "type": "object",
+                  "description": "External requirements for the case to run.",
+                  "additionalProperties": false,
+                  "properties": {
+                    "env": { "type": "array", "items": { "type": "string" } },
+                    "cmd": { "type": "array", "items": { "type": "string" } },
+                    "net": { "type": "boolean" },
+                    "mcp": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

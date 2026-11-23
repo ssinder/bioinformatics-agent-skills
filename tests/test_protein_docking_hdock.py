@@ -601,7 +601,7 @@ class TestRealCompletedPage:
         html = _fixture("result_done.html")
         return hdock_client.parse_result_page(
             html,
-            job_name="biopipe_http_test",
+            job_name="bioagent_http_test",
             url="http://hdock.phys.hust.edu.cn/data/6adf1c9e1eb6e/",
         )
 

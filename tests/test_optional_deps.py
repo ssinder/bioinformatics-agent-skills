@@ -6,7 +6,7 @@
 
 本模块验证两件事：
 
-1. :mod:`biopipe_core.optional_deps` 的行为正确；
+1. :mod:`bioagent_core.optional_deps` 的行为正确；
 2. **每个技能脚本在屏蔽 numpy / pandas / scipy / matplotlib 后，
    仍能响应 ``--help``** —— 这是 CI 中新增的冒烟步骤的本地等价物。
 """
@@ -47,7 +47,7 @@ sys.meta_path.insert(0, _Blocker())
 @pytest.fixture(scope="module")
 def blocked_env():
     """构造一个屏蔽科学计算栈的子进程环境（模块级 fixture，兼容 Python 3.9）。"""
-    tmpdir = Path(tempfile.mkdtemp(prefix="biopipe_nodeps_"))
+    tmpdir = Path(tempfile.mkdtemp(prefix="bioagent_nodeps_"))
     (tmpdir / "sitecustomize.py").write_text(
         _SITECUSTOMIZE.format(blocked=set(BLOCKED_MODULES)), encoding="utf-8"
     )
@@ -61,19 +61,19 @@ class TestOptionalDepsHelper:
     """optional_deps 模块的基本行为。"""
 
     def test_optional_import_returns_module(self) -> None:
-        from biopipe_core.optional_deps import optional_import
+        from bioagent_core.optional_deps import optional_import
 
         mod = optional_import("json")
         assert mod is not None
         assert mod.dumps({"a": 1}) == '{"a": 1}'
 
     def test_optional_import_returns_none_for_missing(self) -> None:
-        from biopipe_core.optional_deps import optional_import
+        from bioagent_core.optional_deps import optional_import
 
         assert optional_import("definitely_not_a_real_module_xyz") is None
 
     def test_require_raises_with_hint(self) -> None:
-        from biopipe_core.optional_deps import MissingDependencyError, require
+        from bioagent_core.optional_deps import MissingDependencyError, require
 
         with pytest.raises(MissingDependencyError) as excinfo:
             require("definitely_not_a_real_module_xyz", hint="测试提示", extra="all")
@@ -83,17 +83,17 @@ class TestOptionalDepsHelper:
         assert "pip install" in message
 
     def test_is_available(self) -> None:
-        from biopipe_core.optional_deps import is_available
+        from bioagent_core.optional_deps import is_available
 
         assert is_available("json") is True
         assert is_available("definitely_not_a_real_module_xyz") is False
 
     def test_core_exports_optional_deps_api(self) -> None:
-        import biopipe_core
+        import bioagent_core
 
         for name in ("optional_import", "require", "is_available", "MissingDependencyError"):
-            assert name in biopipe_core.__all__
-            assert hasattr(biopipe_core, name)
+            assert name in bioagent_core.__all__
+            assert hasattr(bioagent_core, name)
 
 
 class TestSkillScriptsDegradeGracefully:

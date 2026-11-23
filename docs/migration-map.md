@@ -16,7 +16,7 @@ description: Complete mapping of 217 scripts from a private legacy archive into 
 |---|---|---|
 | Shape | 22 flat directories, organized by tool name | 17 standard `SKILL.md` skill packages |
 | Scripts | 217 `.py` files | 58 `.py` files (**each skill is a complete, independently triggerable workflow**) |
-| Entry point | Browse directories to find a script | `SKILL.md` frontmatter + `biopipe --list` |
+| Entry point | Browse directories to find a script | `SKILL.md` frontmatter + `bioagent --list` |
 | Dependencies | Implicit (install and explore on your own) | Per-skill `requirements.txt`; core has zero third-party dependencies |
 | Tests | None | 900 test cases (including reverse-verification canaries) |
 

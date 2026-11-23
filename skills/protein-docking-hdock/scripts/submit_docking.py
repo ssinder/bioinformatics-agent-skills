@@ -37,14 +37,14 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 from hdock_client import (  # noqa: E402
     LIGAND_TYPES,
     JobStatus,
     submit_docking_job,
 )
 
-LOGGER = get_logger("biopipe.protein-docking-hdock")
+LOGGER = get_logger("bioagent.protein-docking-hdock")
 
 FIELDNAMES = [
     "job_name",
@@ -136,7 +136,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     """命令行主入口。"""
     args = build_parser().parse_args(argv)
 
-    job_name = args.job_name or f"biopipe_{time.strftime('%Y%m%d_%H%M%S')}"
+    job_name = args.job_name or f"bioagent_{time.strftime('%Y%m%d_%H%M%S')}"
 
     receptor_seq = _read_sequence(args.receptor_seq)
     ligand_seq = _read_sequence(args.ligand_seq)

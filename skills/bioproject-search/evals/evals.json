@@ -1,0 +1,54 @@
+{
+  "skill_name": "bioproject-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I've got a list of BioProject accessions in /data/projects/prj_ids.txt (about 40 of them, one per line) and I need a spreadsheet for our data-management plan: title, description, organism, submitter and release date for each. Some of them are PRJNA, a few are PRJEB and PRJDB. Please dump it to /data/projects/results/.",
+      "expected_output": "Runs search_bioprojects.py --ids /data/projects/prj_ids.txt --output-dir /data/projects/results/ without asking the user to configure an email, because the project ships an identity already registered with NCBI and the scripts send tool and email automatically. Resolves each accession to a UID through esearch using the [Project Accession] field qualifier, then fetches details from BOTH esummary and efetch and merges them — esummary being the only source for the structured organism name, taxonomy ID, project type and submitter organisation, efetch the only source for the release date and the full description text — so calling only one would silently drop about half the metadata. Normalises all three NCBI date formats (esummary '2013/07/16 00:00', efetch '2016-12-15T00:00:00Z' and others) to YYYY-MM-DD, writes bioproject_data.csv and bioproject_data.json into the output directory, and drops the policy-required NCBI_DISCLAIMER.txt alongside them. Reports any accession in the file that does not look like a BioProject accession with a warning instead of silently discarding it.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Does not require the user to supply an email, since the project ships a registered NCBI identity" },
+        { "type": "behavior", "value": "Merges esummary and efetch so that organism/taxid/submitter and release date/description are all present" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Three of the projects in my list came back with an empty release_date and one has an empty registration_date too. Are those real bugs? PRJNA489857 is one of them and it's a human cohort study, and I need the release date for the data-availability statement in my manuscript.",
+      "expected_output": "Explains that an empty date means 'not recorded', not zero — NCBI uses the placeholder '1/01/01 00:00' for unknown dates and the skill deliberately does not convert it into a real date, so the field stays empty. Points out that dbGaP-backed projects have their submitter details stripped, which is the most common reason a human-cohort project like PRJNA489857 looks sparse, and that embargoed projects can also have absent or future release dates (an embargoed project returns its metadata to authorised submitters only). Notes that the registration_date comes from esummary's Registration_Date field while the release date comes from efetch's ProjectReleaseDate, so the two endpoints genuinely carry different fields — one is not a parsing miss. Advises cross-checking the linked BioSample/SRA records or the project's own web page for the authoritative release date rather than treating the blank as an error, and warns against writing a placeholder date into the manuscript.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Treats the empty dates as 'not recorded' (dbGaP stripping or embargo) rather than as a parsing failure" },
+        { "type": "behavior", "value": "Distinguishes registration_date (from esummary) from release date (from efetch) and explains the empty-date placeholder semantics" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need to build a catalogue of COVID-19 super-spreader studies. The accession prefixes don't all match though — I have PRJNA742158, PRJEB41345 and PRJDB10934, and someone also gave me SRR1792205 and SAMN02981745 by mistake. Which of these can I actually pull metadata for through NCBI, and how do I get the descriptions I need for each one?",
+      "expected_output": "Explains the archive-prefix semantics: PRJNA is NCBI, PRJEB is EBI/ENA, PRJDB is DDBJ, and a PRJEB project may be reachable through ENA's own portal rather than NCBI's, so PRJEB41345 may need the ENA route while PRJDB10934 is only reachable via NCBI's mirror of DDBJ. Notes that SRR1792205 (SRA run) and SAMN02981745 (BioSample) are not project accessions — passing them returns nothing, and the skill's --ids validation reports and skips entries that do not look like BioProject accessions rather than silently dropping them. Flags that the organism field comes from the submitter and is not normalised: a project may list several organisms, in which case that field holds a comma-separated list and must not be treated as a single taxid, with the numeric identifier kept in the separate taxid column. States that to search descriptions by keyword across all projects rather than a known accession list, the skill's [Project Accession]-qualified lookup is the wrong tool and NCBI Entrez must be used with bioproject[Filter] plus a keyword term instead.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Explains the PRJNA/PRJEB/PRJDB archive split and that non-project accessions (SRR/SAMN) are rejected with a warning" },
+        { "type": "behavior", "value": "Notes that the organism field can be a comma-separated list and that the numeric identifier belongs in taxid" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Great, I have the BioProject list. Now actually download the raw reads for PRJNA489857's associated runs so I can re-align them — I want the FASTQ files for the RNA-seq samples.",
+      "expected_output": "Declines to download the reads as part of this skill and redirects to the ena-download skill, which fetches raw sequencing data by SRA/ERR/DRR accession through the ENA Portal API, resolving fastq_ftp/fastq_bytes/fastq_md5 from the structured API instead of scraping archive pages, and which supports batch accession lists, HTTP Range resume and MD5 verification. Notes that this skill only returns BioProject-level metadata (title, description, organism, submitter, dates) — it never touches the run-level FASTQ. Also points out that a project accession is not a run accession: the runs under PRJNA489857 have to be identified first (each run has its own SRR/ERR/DRR accession), which is exactly the step ena-download performs when querying the ENA Portal API.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the ena-download skill for FASTQ retrieval and run-level accession resolution" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Our IT department requires every outbound NCBI call to identify with our own institutional identity, so I need to override the contact email. The other thing — I've got 3,000 accessions to pull and the first attempt died partway through with HTTP 429 errors. How should I set this up?",
+      "expected_output": "Confirms both requests are supported without any code change: --email overrides the shipped identity, and the BIOAGENT_EMAIL environment variable does the same, so the call can be made as --email you@your-institution.edu or with BIOAGENT_EMAIL exported. Notes that the shipped identity is already registered with NCBI and that overriding is only needed when local policy demands it. For the 429s, explains the rate limit is 3 requests/second without a key and 10 requests/second with one, so --api-key $NCBI_API_KEY (or the NCBI_API_KEY environment variable) is the fix; the shared HTTP client already throttles to ~3 req/s and retries with exponential backoff, so sustained 429s usually mean several runs are executing in parallel rather than a single run being too aggressive. Points out that a valid email is mandatory — the script exits with code 2 and a '必须提供 --email' style message if none can be resolved — and that every output directory receives an NCBI_DISCLAIMER.txt as the policy requires the notice to be visible to users.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Names both the --email flag and the BIOAGENT_EMAIL environment variable as the override paths" },
+        { "type": "behavior", "value": "Recommends an NCBI API key for the 429s and states the 3-to-10 requests/second rate-limit change" }
+      ]
+    }
+  ]
+}

@@ -36,9 +36,9 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 
-LOGGER = get_logger("biopipe.ml-peptide-generation")
+LOGGER = get_logger("bioagent.ml-peptide-generation")
 
 #: 从文件名推断参数的兜底正则，如 ``results_10_3.csv``
 _FILENAME_PATTERN = re.compile(r"(\d+)[_-](\d+)")

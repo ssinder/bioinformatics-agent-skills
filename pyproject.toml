@@ -78,14 +78,18 @@ Issues = "https://github.com/ssinder/bioinformatics-agent-skills/issues"
 Discussions = "https://github.com/ssinder/bioinformatics-agent-skills/discussions"
 
 [project.scripts]
-biopipe = "biopipe.cli:main"
+bioagent = "bioagent.cli:main"
+# 旧命令名保留一个版本周期的兼容入口。PyPI 上的 `biopipe` 包名与
+# `biopipe` 控制台脚本已被第三方占用（dohlee/python-biopipe），
+# 因此主命令改名为 `bioagent`；此别名仅用于平滑过渡。
+biopipe = "bioagent.cli:main"
 
 [tool.setuptools]
 package-dir = { "" = "packages" }
 
 [tool.setuptools.packages.find]
 where = ["packages"]
-include = ["biopipe_core*", "biopipe*"]
+include = ["bioagent_core*", "bioagent*"]
 
 [tool.ruff]
 line-length = 100

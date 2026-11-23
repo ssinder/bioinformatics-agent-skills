@@ -1,10 +1,10 @@
-"""biopipe_core - 共享工具层
+"""bioagent_core - 共享工具层
 
 为所有生物信息学技能提供统一的路径配置、日志、HTTP 重试与命令行入口。
 所有技能脚本都应通过本模块获取路径与日志，禁止在脚本内硬编码绝对路径。
 
 Usage:
-    from biopipe_core import get_logger, resolve_path, http_session, cli_parser
+    from bioagent_core import get_logger, resolve_path, http_session, cli_parser
 """
 
 from .cli import SkillError, cli_parser, run_cli

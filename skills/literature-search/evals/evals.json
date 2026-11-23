@@ -1,0 +1,54 @@
+{
+  "skill_name": "literature-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm writing the introduction of a review on antimicrobial peptides against Gram-positive pathogens. I need a solid literature base — please search PubMed, OpenAlex and Semantic Scholar for \"antimicrobial peptide\", keep only papers from 2020 onwards with at least 20 citations, fill in missing abstracts, and drop the results to /data/amp/lit_search.csv. I also need the reference list in RIS and GB/T 7714 for my co-authors.",
+      "expected_output": "Runs the three-source search with --topic 'antimicrobial peptide' --source pubmed openalex semantic-scholar --date-range 2020: --min-citations 20 --enrich-abstracts, normalises all records into the unified schema (title/authors/year/doi/journal/abstract/citations/source/pmid/url/type/oa_status), deduplicates them at two levels (exact DOI match first, then difflib fuzzy title match at the default 0.92 threshold, merging dropped records' abstracts and citation counts back into the survivor), scores relevance with title hits weighted 3.0 and abstract hits 1.0 plus log-saturated citation bonus (min(2.0, citations**0.25 * 0.6)) and a recency bonus, filters by citation count and year, enriches missing abstracts in the PubMed -> OpenAlex -> Semantic Scholar order, writes the UTF-8 BOM CSV to the requested path, and then runs export_citations.py --format ris gbt7714 to produce references.ris and references.txt (GB/T 7714-2015 sequential numbering). Should report per-source record counts so a source returning 0 is visible, and flag that citations are not strictly comparable across sources because PubMed counts pmcrefcount while OpenAlex counts cited_by_count.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Searches all three sources (pubmed, openalex, semantic-scholar) and reports the per-source record counts rather than a single merged number" },
+        { "type": "behavior", "value": "Exports both RIS and GB/T 7714 reference files from the same filtered CSV" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'm doing a systematic review on CRISPR off-target effects in rice, and I'm drowning in papers. When I search PubMed for \"CRISPR off-target\" I get back a mess of primary papers, reviews, protocol papers and computational papers all mixed together, and I can't tell which ones actually measured off-target activity experimentally. Can you help me structure this? I also need to know which of my candidate papers don't have abstracts yet.",
+      "expected_output": "Uses the skill's own relevance scoring and term filtering rather than eyeballing the list: score_relevance gives a title keyword hit 3.0 and an abstract-only hit 1.0, then adds a log-saturated citation bonus (citations**0.25 * 0.6, capped at 2.0) and +0.5 for papers from 2021 onward, so recent experimental papers that name 'CRISPR off-target' in the title outrank reviews that only mention it in the abstract. Uses --exclude-terms to drop review/protocol/computational-style hits, and --include-terms to require the experimental terms the user actually cares about, explaining that --include-terms/--exclude-terms match title, name and description text case-insensitively. Reports the null rate of the abstract column and, if --enrich-abstracts is enabled, states the enrichment order (PubMed efetch XML -> OpenAlex inverted-index rebuild -> Semantic Scholar abstract/tldr) and that records with no abstract upstream stay empty because OpenAlex abstracts are reconstructed from the inverted index. Suggests running --min-relevance 0 first to inspect the score distribution before tightening the threshold.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Explains the title-weight-3.0 versus abstract-weight-1.0 scoring and the log-saturated citation bonus, rather than treating the relevance column as an opaque number" },
+        { "type": "behavior", "value": "Reports the abstract null rate and explains that enrichment cannot fill abstracts that do not exist upstream" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My literature CSV at /data/review/raw_hits.csv has 1,200 rows and it's full of duplicates — the same paper shows up three times with slightly different titles (some with a subtitle, some without). I also need to exclude anything about 'protocol' or 'commentary' and keep only papers with an abstract of at least 200 characters. Can the dedup handle this? Also my reviewer asked for the year range to be 2015 to 2021 — the file has papers outside that.",
+      "expected_output": "Runs the offline path (--input results/raw.csv) so no network access is needed, rescoring and rededuplicating the existing CSV rather than re-querying the APIs. Explains the two-level dedup: exact DOI match first, then difflib fuzzy matching on the normalised title with the default --title-similarity 0.92 threshold, where information from dropped records is merged back into the kept one (abstract filled in, citations accumulated, source column marked with a '+' for multi-source hits) and the tool has built-in DOI-conflict protection so two records with different DOIs are never merged even when their titles look similar. Applies --min-abstract-length 200, --exclude-terms protocol commentary, and the 2015-2021 year window, and notes that if titles are still duplicated the fix is to loosen --title-similarity (e.g. 0.88) because subtitle truncation lowers the ratio — while warning that lowering it too far merges a group's series of papers into one. Recommends spot-checking the top 20 rows by relevance before accepting the filter.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses the offline --input path rather than re-running the online search when the user already has a CSV" },
+        { "type": "behavior", "value": "Explains that title-similarity is tunable and what over-merging looks like, instead of silently merging records" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I've already run the literature search and I have 40 PDFs sitting in /data/review/pdfs/. Now I need to turn them into structured full text — section trees, figure captions, reference lists — and then search across all 40 papers for the word 'off-target' so I can see which papers mention it in the body text.",
+      "expected_output": "Declines to handle this as a literature search. This is a full-text extraction and corpus-indexing job, so it points to the paper-fulltext-extract skill, which converts PDFs to TEI XML via a local GROBID service and then parses them into JSON/Markdown/HTML with the section tree, figures and references, and whose search_corpus.py does exactly the cross-paper section/body/title keyword search requested here (--xml-dir, --keyword 'off-target', --scope paragraph or all). The literature-search skill only covers topic/keyword discovery, dedup, scoring, filtering and citation export from bibliographic APIs, and has no PDF-parsing or full-text-search capability.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Redirects to the paper-fulltext-extract skill for PDF-to-structured-text conversion and cross-paper full-text search" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Semantic Scholar keeps returning HTTP 429 and my run only got 12 records out of the 50 I asked for. PubMed seems fine. Also I noticed the OpenAlex abstract column is mostly empty. What's going on and how do I get a complete result set?",
+      "expected_output": "Diagnoses the two problems separately rather than treating them as one failure. For the 429: Semantic Scholar is the strictest source (~1 req/s without an API key), so it is the one that gets truncated first, while the skill already raises the S2 interval to 1.1 s; the fix is to export S2_API_KEY (which takes priority over --s2-api-key), and to lower --max-results or narrow --source to 'pubmed openalex' to complete a first pass. For the empty OpenAlex abstracts: PubMed esummary returns no abstract at all (only bibliographic records) and the OpenAlex works endpoint needs abstract_inverted_index, so the correct remedy is --enrich-abstracts (with --min-abstract-for-enrich 60 as the length threshold below which a record counts as missing), which falls back in the order PubMed efetch XML -> OpenAlex inverted-index rebuild -> Semantic Scholar abstract/tldr; records that have no abstract upstream still end up empty and this is expected, not a bug. Also notes that NCBI is rate-limited to 3 req/s without a key and that the default 0.34 s interval sits right at that ceiling, so NCBI_API_KEY is recommended for the bulk esummary calls.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Attributes the truncation to Semantic Scholar's rate limit and recommends an API key, rather than treating all three sources as equally affected" },
+        { "type": "behavior", "value": "Recommends --enrich-abstracts with the PubMed-to-OpenAlex-to-Semantic-Scholar fallback order for the empty abstract column" }
+      ]
+    }
+  ]
+}

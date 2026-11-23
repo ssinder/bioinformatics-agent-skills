@@ -30,9 +30,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
-from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
-from biopipe_core.optional_deps import is_available  # noqa: E402
+from bioagent_core import SkillError, get_config, get_logger  # noqa: E402
+from bioagent_core.cli import cli_parser, run_cli  # noqa: E402
+from bioagent_core.optional_deps import is_available  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -41,7 +41,7 @@ from typing import Optional
 from scalgorithms import SCANPY_AVAILABLE, run_pipeline  # noqa: E402
 from scdata import read_matrix, summarize_sparsity  # noqa: E402
 
-LOGGER = get_logger("biopipe.single-cell-rnaseq")
+LOGGER = get_logger("bioagent.single-cell-rnaseq")
 
 DIR_QC = "01_qc"
 DIR_NORM = "02_normalized"
@@ -543,7 +543,7 @@ if __name__ == "__main__":
     )
 
     def build_parser() -> argparse.ArgumentParser:
-        """构造带业务参数的解析器（沿用 biopipe_core 的公共参数）。"""
+        """构造带业务参数的解析器（沿用 bioagent_core 的公共参数）。"""
         parser = cli_parser(prog="single-cell-rnaseq", description=DESCRIPTION,
                             skill="single-cell-rnaseq")
 

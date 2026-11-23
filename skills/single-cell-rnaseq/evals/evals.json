@@ -1,0 +1,48 @@
+{
+  "skill_name": "single-cell-rnaseq",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I've got a 10x filtered_feature_bc_matrix directory from a 10k cell run. Can you do QC, pick HVGs, run PCA, cluster with Leiden, make a UMAP and annotate the cell types against my marker reference?",
+      "expected_output": "Runs the single-cell workflow: detects the 10x matrix format, computes QC metrics (total counts, genes detected, mitochondrial percentage), filters cells, normalises to CP10K with log1p, selects highly variable genes, runs PCA, builds the neighbour graph, clusters with Leiden, embeds with UMAP, and scores the marker reference to assign cell type labels. Reports the QC filter rate and cell count per cluster.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Reports the QC removal rate, which should normally fall between 5% and 30%" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My single-cell QC removed 60% of my cells. I used --min-genes 500 and --max-mt-pct 10. Is that too strict?",
+      "expected_output": "Identifies the thresholds as too strict — a 60% removal rate is well above the normal 5-30% band and almost always means min-genes is set too high for the sequencing depth. Suggests lowering min-genes and, if mitochondrial percentage is the binding constraint, checking for dissociation stress rather than simply relaxing max-mt-pct, since relaxing it admits noise cells.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Flags the over-strict threshold instead of simply loosening both cutoffs" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My UMAP shows all the cells squashed into one blob with no visible clusters. What's wrong?",
+      "expected_output": "Suggests the likely causes in order of likelihood: n-top-genes too small, or too few principal components, and suggests increasing the PCA dimension and HVG count. Also checks whether any extreme outlier cells survived filtering. Notes that an entirely collapsed UMAP usually reflects insufficient dimensionality rather than a clustering failure.",
+      "assertions": [
+        { "type": "should_trigger", "value": true }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Please run a differential expression analysis between my two bulk RNA-seq conditions.",
+      "expected_output": "Declines the task as outside this skill and points to the bulk-rnaseq skill, which handles bulk differential expression with DESeq2-style statistics. Does not attempt to run the single-cell pipeline on bulk data.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I don't have scanpy installed and can't install packages on this cluster. Can you still get me UMAP clusters and cell type labels?",
+      "expected_output": "Confirms it can, using the numpy fallback backend that implements its own normalisation, HVG selection, truncated SVD PCA, Louvain clustering (or Leiden when leidenalg is present), spectral UMAP initialisation plus force optimisation, and t-SNE via sklearn. Runs with --backend numpy and notes the results should be statistically equivalent to the scanpy path, with a suggestion to cross-check both if scanpy becomes available.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Confirms the numpy fallback path exists rather than refusing for lack of scanpy" }
+      ]
+    }
+  ]
+}

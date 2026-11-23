@@ -31,7 +31,7 @@ from typing import Any, Optional, Union
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import cli_parser, get_logger, run_cli  # noqa: E402
+from bioagent_core import cli_parser, get_logger, run_cli  # noqa: E402
 from tei_parser import (  # noqa: E402
     TEI_NS,
     element_text,
@@ -40,7 +40,7 @@ from tei_parser import (  # noqa: E402
     normalize_heading,
 )
 
-LOGGER = get_logger("biopipe.paper-fulltext-extract")
+LOGGER = get_logger("bioagent.paper-fulltext-extract")
 
 
 __all__ = [

@@ -29,10 +29,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from analyze_structure import analyze_structure  # noqa: E402
-from biopipe_core import SkillError, cli_parser, get_logger, write_csv  # noqa: E402
-from biopipe_core.cli import run_cli  # noqa: E402
+from bioagent_core import SkillError, cli_parser, get_logger, write_csv  # noqa: E402
+from bioagent_core.cli import run_cli  # noqa: E402
 
-LOGGER = get_logger("biopipe.protein-structure")
+LOGGER = get_logger("bioagent.protein-structure")
 SKILL_NAME = "protein-structure"
 
 

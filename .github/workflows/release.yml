@@ -31,6 +31,11 @@ jobs:
           pip install pyyaml
           python scripts/validate_skills.py
 
+      - name: Verify version consistency
+        # plugin.json / pyproject.toml / CITATION.cff 三处版本必须一致，
+        # 否则发布出去的 wheel、插件清单与引用元数据会互相矛盾。
+        run: python scripts/ci_version_sync.py
+
       - name: Build package
         run: |
           pip install build
@@ -44,3 +49,36 @@ jobs:
           files: |
             dist/*.tar.gz
             dist/*.whl
+
+  publish-pypi:
+    name: Publish to PyPI
+    # 仅在正式 tag 推送时发布。workflow_dispatch 不重复上传——
+    # PyPI 不允许同名文件重复上传。
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: release
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/biopipe-agent-skills/
+    permissions:
+      # Trusted Publishing (OIDC) 需要 id-token 权限。
+      # 换来的是一次性的短期令牌，比长期 API token 安全，
+      # 且能自动附带 PEP 740 attestations。
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build package
+        run: |
+          pip install build
+          python -m build
+
+      - name: Publish to PyPI
+        # pypa/gh-action-pypi-publish 在 Trusted Publishing 模式下
+        # 会自动生成并上传 PEP 740 attestations，把每个文件绑定到
+        # 仓库、工作流与 commit。
+        uses: pypa/gh-action-pypi-publish@release/v1

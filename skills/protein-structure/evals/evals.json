@@ -1,0 +1,56 @@
+{
+  "skill_name": "protein-structure",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a set of crystal structures in /data/kinase_pdb/ and I need a table of radius of gyration, helix/sheet content and shape class for each of them so I can pick which ones are folded properly for a figure. Can you run the analysis on all of them?",
+      "expected_output": "Runs the batch path: python scripts/batch_analyze.py --input /data/kinase_pdb/ --output results/ --workers 4, which parses each PDB with the built-in dependency-free parser and writes batch_summary.json plus batch_results.csv. Reports per structure: chain/residue/atom counts, element composition (noting that hydrogen is usually absent from X-ray structures so a C/N/O-only element_counts is expected), mass-weighted Rg plus the gyration tensor principal axes and shape descriptors (asphericity, acylindricity, relative shape anisotropy), the dipole estimate, and the H/E/C secondary-structure breakdown with helix percentage. For each structure the Rg should be checked against the empirical rule Rg ~ 2.2 * N^0.38 (roughly 11-14 A for a 100-residue globular domain) and the helix content against the 20-50% band typical of globular proteins, flagging any structure whose helix percentage is near 0% or 100% as a suspect for the hydrogen-bond threshold rather than as a real result. Writes one-row-per-structure CSV with Rg, shape class and helix/sheet percentages and reports how many files were analysed versus skipped (including any skipped for being shorter than --min-residues or hitting --max-files).",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Runs batch_analyze.py over the directory and writes both batch_summary.json and batch_results.csv, not one report per file" },
+        { "type": "behavior", "value": "Validates Rg against the Rg ~ 2.2 * N^0.38 empirical rule and flags helix content near 0% or 100% as a red flag" },
+        { "type": "behavior", "value": "Notes that an element_counts containing only C/N/O reflects missing hydrogens in an X-ray structure rather than a parse failure" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My DSSP result for a protein that is obviously mostly alpha-helical comes back with 0% helix. I ran the built-in implementation on a file I got from OpenMM, so it might be in different units. What's going on?",
+      "expected_output": "Diagnoses the most likely cause from the troubleshooting guide: the built-in assigner only reports H when the O(i)...N(i+4) contact exists, and that fails when the coordinates are in nm rather than Angstrom (OpenMM writes nm by default), which makes C-alpha-C-alpha spacing ~0.38 A instead of ~3.8 A and invalidates every hydrogen-bond distance criterion. Points out the other candidates in order: missing N/CA atoms so amide hydrogens cannot be rebuilt, a chain broken by TER records so the i -> i+4 index is offset, and a threshold that is too strict. Concretely: measure the C-alpha-C-alpha distance (should be ~3.8 A) and if it is ~0.38 A convert by multiplying coordinates by 10 to get Angstrom; if the threshold is the issue, re-run with --hbond-energy -0.2; if the chain is broken, check the TER records. Also notes the structural sanity checks - C(i)-N(i+1) should be ~1.33 A - and that cross-checking builtin against external DSSP (--dssp-method external) should agree within a few percent on helix content.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Identifies the nm-vs-Angstrom unit mismatch as the leading hypothesis and tells the user to check the C-alpha-C-alpha distance (~3.8 A expected, ~0.38 A indicates nm)" },
+        { "type": "behavior", "value": "Gives the concrete remediation (multiply coordinates by 10 to convert nm to Angstrom, or loosen --hbond-energy to -0.2) rather than merely reporting 0% helix" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Which secondary-structure backend should I use? I don't have mkdssp installed on this machine, only Python 3.9 with Biopython. And while you're at it - does the built-in DSSP agree well enough with the real thing for a paper figure?",
+      "expected_output": "Explains the three --dssp-method values: auto (try external mkdssp/dssp first, fall back to the built-in Kabsch-Sander implementation), external (require mkdssp, error out if absent), builtin (always use the internal assigner). Since mkdssp is missing, auto silently uses builtin and the analysis still succeeds - the skill has no hard dependency on Biopython, requests or mkdssp for the parsing/geometry/secondary-structure path. On the agreement question: the built-in assigner rebuilds missing amide hydrogens, evaluates Kabsch-Sander hydrogen-bond energies and classifies H/G/I/E/B/T/S/-; external DSSP uses a fuller hydrogen-bond network including water bridges and uses explicit hydrogens when present, and simplifies beta-bridges differently, so the total secondary-structure distribution (helix + sheet + coil) should typically differ by no more than 5-10 percent, with a divergence above 20 percent signalling a malformed or non-standard structure. For a publication figure it recommends running both with --dssp-method builtin and --dssp-method external and reporting the agreement, noting the --hbond-energy threshold (default -0.5 kcal/mol) as the knob that shifts helix assignments.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "States that auto mode falls back to the built-in Kabsch-Sander implementation when mkdssp is absent, so the run still works without Biopython or DSSP installed" },
+        { "type": "behavior", "value": "Quantifies expected builtin-vs-external agreement as roughly 5-10 percent on total secondary-structure distribution, with >20 percent indicating an anomalous structure" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I don't have an experimental structure for my target protein. Should I just predict the fold with AlphaFold and use that, or is there a way to tell from the sequence alone?",
+      "expected_output": "Explains that this skill only characterises structures it already has - it parses PDB coordinates and computes geometry and secondary structure, and it has no folding or structure-prediction capability. Routes the structure-generation part to the alphafold-db skill, which retrieves pre-computed predictions from the EBI AlphaFold Database by UniProt accession and exposes global pLDDT plus the four confidence-band fractions, so a predicted model can be downloaded and then fed into this skill for the secondary-structure and geometry characterisation. Notes the pLDDT interpretation: >90 high confidence, 70-90 acceptable, <70 disordered or unreliable, and that a mean pLDDT below 70 means the model should not be used for interaction analysis at all. For the sequence-only part, notes that this skill can attach UniProt metadata via --query-uniprot (protein name, organism, sequence length, function) to a structure that has already been obtained, but cannot derive a fold from a sequence.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Declines to predict or model a structure and points to the alphafold-db skill for retrieving AlphaFold predictions" },
+        { "type": "behavior", "value": "Offers the concrete follow-on path: download the predicted model via alphafold-db, then run this skill's secondary-structure and geometry analysis on it, with pLDDT band interpretation given" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Requests isn't installed on this cluster and I have no internet access, but I've got a PDB file and I still want the radius of gyration and secondary structure. Also, can I pull the protein name and function for accession P69905 from somewhere?",
+      "expected_output": "Confirms the core analysis still runs: the PDB parser, the geometry module and the built-in Kabsch-Sander secondary-structure assigner are all pure Python with no third-party dependency, so python scripts/analyze_structure.py --input 1crn.pdb --output results/ works offline, and Biopython and mkdssp are optional. Forces the built-in backend because --dssp-method auto will not find mkdssp anyway; if the external DSSP path is requested explicitly it should error clearly rather than silently produce nothing. On the UniProt question: --query-uniprot needs the shared http_session built on requests and network access, so it cannot work here - the skill should say so plainly instead of returning empty metadata, and note that the offline alternative is to supply the accession in the output or cross-reference UniProt separately. Reports the offline results normally (Rg, shape descriptors, H/E/C content) and flags that UniProt annotation is the one part that is unavailable, rather than treating the whole analysis as failed.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Confirms the offline path works because the parser, geometry and built-in DSSP assigner are dependency-free pure Python" },
+        { "type": "behavior", "value": "States that --query-uniprot requires requests plus network access and cannot be satisfied offline, without pretending the metadata lookup succeeded" }
+      ]
+    }
+  ]
+}

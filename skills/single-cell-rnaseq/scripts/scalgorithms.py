@@ -41,7 +41,7 @@ from typing import Any, Callable, Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core.optional_deps import optional_import  # noqa: E402
+from bioagent_core.optional_deps import optional_import  # noqa: E402
 
 np = optional_import('numpy')
 np_HINT = '数值计算基础库'
@@ -50,7 +50,7 @@ np_HINT = '数值计算基础库'
 def _require_np():
     """确保 numpy 可用，否则抛出带安装指引的异常。"""
     if np is None:
-        from biopipe_core.optional_deps import MissingDependencyError
+        from bioagent_core.optional_deps import MissingDependencyError
 
         raise MissingDependencyError('numpy', hint=np_HINT)
     return np
@@ -63,7 +63,7 @@ pd_HINT = '表格数据处理'
 def _require_pd():
     """确保 pandas 可用，否则抛出带安装指引的异常。"""
     if pd is None:
-        from biopipe_core.optional_deps import MissingDependencyError
+        from bioagent_core.optional_deps import MissingDependencyError
 
         raise MissingDependencyError('pandas', hint=pd_HINT)
     return pd
@@ -76,7 +76,7 @@ sp_HINT = '稀疏矩阵运算'
 def _require_sp():
     """确保 scipy.sparse 可用，否则抛出带安装指引的异常。"""
     if sp is None:
-        from biopipe_core.optional_deps import MissingDependencyError
+        from bioagent_core.optional_deps import MissingDependencyError
 
         raise MissingDependencyError('scipy.sparse', hint=sp_HINT)
     return sp

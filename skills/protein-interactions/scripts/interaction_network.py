@@ -23,10 +23,10 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import get_logger  # noqa: E402
+from bioagent_core import get_logger  # noqa: E402
 from plip_parser import parse_plip_xml  # noqa: E402
 
-logger = get_logger("biopipe.protein-interactions")
+logger = get_logger("bioagent.protein-interactions")
 
 __all__ = [
     "build_mermaid",

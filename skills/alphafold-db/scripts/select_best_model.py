@@ -58,9 +58,9 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 
-LOGGER = get_logger("biopipe.alphafold-db")
+LOGGER = get_logger("bioagent.alphafold-db")
 
 #: 置信度 JSON 里可能出现的排序键，按优先级排列。
 RANK_KEYS = ("ranking_score", "ptm", "iptm", "mean_plddt")
@@ -424,7 +424,7 @@ def cif_to_pdb_fallback(cif_path: Path, pdb_path: Path) -> int:
     pdb_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
     with pdb_path.open("w", encoding="utf-8", newline="\n") as handle:
-        handle.write("REMARK   1 CONVERTED FROM mmCIF BY biopipe select_best_model\n")
+        handle.write("REMARK   1 CONVERTED FROM mmCIF BY bioagent select_best_model\n")
         for serial, record in enumerate(records, 1):
             group = get(record, "group_PDB", "ATOM").upper()
             if group not in ("ATOM", "HETATM"):

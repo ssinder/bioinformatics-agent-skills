@@ -111,7 +111,7 @@ curl -s "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/property/Mo
 NCBI requires a contact email on every request. Supply it with `--email` or:
 
 ```bash
-export BIOPIPE_EMAIL="you@your-institution.edu"
+# 通常无需配置；如需覆盖：export BIOAGENT_EMAIL="you@your-institution.edu"
 ```
 
 Do not substitute a placeholder address. The field exists so that NCBI can

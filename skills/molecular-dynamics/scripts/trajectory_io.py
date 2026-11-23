@@ -22,7 +22,7 @@ from typing import Any, Optional, Union
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core.optional_deps import optional_import  # noqa: E402
+from bioagent_core.optional_deps import optional_import  # noqa: E402
 
 np = optional_import('numpy')
 np_HINT = '数值计算基础库'
@@ -31,7 +31,7 @@ np_HINT = '数值计算基础库'
 def _require_np():
     """确保 numpy 可用，否则抛出带安装指引的异常。"""
     if np is None:
-        from biopipe_core.optional_deps import MissingDependencyError
+        from bioagent_core.optional_deps import MissingDependencyError
 
         raise MissingDependencyError('numpy', hint=np_HINT)
     return np
@@ -861,9 +861,9 @@ def _main(argv: Optional[list[str]] = None) -> int:
     import argparse
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
-    from biopipe_core import get_logger
+    from bioagent_core import get_logger
 
-    logger = get_logger("biopipe.molecular-dynamics.trajectory_io")
+    logger = get_logger("bioagent.molecular-dynamics.trajectory_io")
     parser = argparse.ArgumentParser(
         prog="trajectory_io", description="读取轨迹文件并打印概览（DCD / PDB / XYZ）"
     )

@@ -52,8 +52,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional  # noqa: E402
 
-from biopipe_core import cli_parser, get_logger, run_cli  # noqa: E402
-from biopipe_core.cli import SkillError  # noqa: E402
+from bioagent_core import cli_parser, get_logger, run_cli  # noqa: E402
+from bioagent_core.cli import SkillError  # noqa: E402
 from contact_chemistry import (  # noqa: E402
     INTERACTION_TYPES,
     LIGAND_CONTACT,
@@ -67,7 +67,7 @@ from contact_geometry import (  # noqa: E402
     ResiduePair,
 )
 
-LOGGER = get_logger("biopipe.pymol-structure-visualization")
+LOGGER = get_logger("bioagent.pymol-structure-visualization")
 
 SKILL_NAME = "pymol-structure-visualization"
 

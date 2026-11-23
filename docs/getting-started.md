@@ -32,7 +32,7 @@ pip install -e ".[visualization]"
 Verify the installation:
 
 ```bash
-biopipe --list
+bioagent --list
 ```
 
 ## Configuration
@@ -54,7 +54,7 @@ Run your scripts from the project root — the directories are created automatic
 
 ### Configuration file
 
-Place a `biopipe.yaml` in the project root to customise the directory layout:
+Place a `bioagent.yaml` in the project root to customise the directory layout:
 
 ```yaml
 root: /path/to/project
@@ -79,10 +79,10 @@ JSON is supported as well, and you can point at a different file with the `--con
 export PYTHONPATH="$PWD/packages"
 
 # 1. List the available skills
-biopipe --list
+bioagent --list
 
 # 2. Show the full usage of a specific skill
-biopipe bulk-rnaseq --help
+bioagent bulk-rnaseq --help
 
 # 3. Try a small step first to review the parameters
 python skills/peptide-design/scripts/analyze_peptides.py --help
@@ -103,7 +103,7 @@ python skills/<name>/scripts/<entry>.py --input ... -q
 Logs are written to stderr and to the given file at the same time, using this format:
 
 ```
-2026-10-25 20:46:22 | INFO    | biopipe.bulk-rnaseq | starting QC
+2026-10-25 20:46:22 | INFO    | bioagent.bulk-rnaseq | starting QC
 ```
 
 ## Common installation issues
@@ -113,7 +113,7 @@ Logs are written to stderr and to the given file at the same time, using this fo
 **A**: This is by design. Every core algorithm ships with a built-in pure-Python implementation, so the skill prints a notice and falls back automatically:
 
 ```
-WARNING | biopipe.single-cell-rnaseq | scanpy is not available, switching to the numpy fallback backend
+WARNING | bioagent.single-cell-rnaseq | scanpy is not available, switching to the numpy fallback backend
 ```
 
 Install the matching optional dependency whenever you need the full functionality.

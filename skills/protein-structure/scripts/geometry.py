@@ -25,10 +25,10 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import get_logger  # noqa: E402
+from bioagent_core import get_logger  # noqa: E402
 from pdb_parser import parse_pdb_file  # noqa: E402
 
-logger = get_logger("biopipe.protein-structure")
+logger = get_logger("bioagent.protein-structure")
 
 __all__ = [
     "radius_of_gyration",

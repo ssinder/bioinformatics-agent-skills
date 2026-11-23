@@ -53,15 +53,15 @@ The body MUST contain the following sections (as `##` level-2 headings):
 1. **Import the shared layer**: add this at the top of the script
    ```python
    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
-   from biopipe_core import get_logger, get_config, SkillError
+   from bioagent_core import get_logger, get_config, SkillError
    ```
    (`parents[3]` is used because the script lives at `skills/<name>/scripts/x.py`, three levels up reaches the repository root)
 
 2. **Never hardcode absolute paths**: every input and output path comes from a command-line argument; defaults are derived from `get_config()`
 
-3. **Never use bare `print()`**: use `logger = get_logger("biopipe.<skill-name>")` and emit output with `logger.info(...)`
+3. **Never use bare `print()`**: use `logger = get_logger("bioagent.<skill-name>")` and emit output with `logger.info(...)`
 
-4. **Unified CLI**: use `biopipe_core.cli.bootstrap_cli(description, skill_name, main)` as the entry point; `main(args)` returns the exit code. It MUST expose business parameters such as `--input` and `--output`.
+4. **Unified CLI**: use `bioagent_core.cli.bootstrap_cli(description, skill_name, main)` as the entry point; `main(args)` returns the exit code. It MUST expose business parameters such as `--input` and `--output`.
 
 5. **File header**: every script MUST carry a shebang + encoding declaration + module docstring (including a usage example)
 

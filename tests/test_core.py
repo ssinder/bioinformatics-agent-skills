@@ -1,4 +1,4 @@
-"""biopipe_core 共享工具层的单元测试。"""
+"""bioagent_core 共享工具层的单元测试。"""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "packages"))
 
-from biopipe_core import (  # noqa: E402
+from bioagent_core import (  # noqa: E402
     ensure_dir,
     get_config,
     read_csv_safe,
@@ -145,12 +145,12 @@ class TestRegistry:
     """技能注册表测试。"""
 
     def test_registry_non_empty(self):
-        from biopipe.registry import REGISTRY
+        from bioagent.registry import REGISTRY
 
         assert len(REGISTRY) >= 8
 
     def test_registry_entries_have_skill_md(self):
-        from biopipe.registry import REGISTRY
+        from bioagent.registry import REGISTRY
 
         missing = [s.name for s in REGISTRY.values() if not s.skill_md.exists()]
         if missing:
@@ -158,7 +158,7 @@ class TestRegistry:
         assert not missing
 
     def test_registry_names_are_kebab(self):
-        from biopipe.registry import REGISTRY
+        from bioagent.registry import REGISTRY
 
         for name in REGISTRY:
             assert name == name.lower()

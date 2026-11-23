@@ -39,9 +39,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from alphafold_client import fetch_predictions  # noqa: E402
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 
-LOGGER = get_logger("biopipe.alphafold-db")
+LOGGER = get_logger("bioagent.alphafold-db")
 
 # 允许的 PDB 内容类型。AlphaFold DB 返回 text/plain；
 # 某些代理/CDN 可能返回 octet-stream。
@@ -123,7 +123,7 @@ def download_structure(
     Returns:
         ``(是否成功, 说明信息)``。
     """
-    from biopipe_core import http_session
+    from bioagent_core import http_session
 
     own_session = session is None
     if own_session:
@@ -312,7 +312,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         LOGGER.info("共 %d 条记录，元数据在 %s", len(records), output_dir)
         return 0
 
-    from biopipe_core import http_session
+    from bioagent_core import http_session
 
     session = http_session(min_interval=0.2, retries=3)
     if session is None:

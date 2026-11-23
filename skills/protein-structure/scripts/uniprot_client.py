@@ -23,13 +23,13 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, http_session  # noqa: E402
+from bioagent_core import get_logger, http_session  # noqa: E402
 
 __all__ = ["fetch_uniprot_entries", "parse_uniprot_entry", "UNIPROT_BASE_URL"]
 
 UNIPROT_BASE_URL = "https://rest.uniprot.org"
 
-LOGGER = get_logger("biopipe.protein-structure")
+LOGGER = get_logger("bioagent.protein-structure")
 
 # 需要从 UniProt 请求的字段
 QUERY_FIELDS = (

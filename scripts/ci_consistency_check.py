@@ -11,7 +11,7 @@ plugin.json 的 keywords 等。随着技能增减，这些数字会悄悄过时�
 
 1. README 徽章 ``Skills-N`` 的 N 必须等于实际技能数；
 2. README 的技能清单表格必须与实际技能集合完全一致（不多不少）；
-3. ``packages/biopipe/registry.py`` 的 REGISTRY 必须与 ``skills/``
+3. ``packages/bioagent/registry.py`` 的 REGISTRY 必须与 ``skills/``
    目录一一对应（不多不少）；
 4. 每个技能都必须有 SKILL.md、scripts/、references/；
 5. plugin.json 的 name 与 pyproject 的项目名一致；
@@ -34,7 +34,7 @@ DOCS_DIR = REPO_ROOT / "docs"
 README = REPO_ROOT / "README.md"
 PLUGIN_JSON = REPO_ROOT / "plugin.json"
 PYPROJECT = REPO_ROOT / "pyproject.toml"
-REGISTRY_PY = REPO_ROOT / "packages" / "biopipe" / "registry.py"
+REGISTRY_PY = REPO_ROOT / "packages" / "bioagent" / "registry.py"
 
 
 def _skill_dirs() -> list[Path]:
@@ -102,7 +102,7 @@ def _check_readme_listing(problems: list[str], skill_names: list[str]) -> None:
 def _check_registry(problems: list[str], skill_names: list[str]) -> None:
     """REGISTRY 必须与 skills/ 目录一一对应。"""
     if not REGISTRY_PY.is_file():
-        problems.append("packages/biopipe/registry.py 不存在")
+        problems.append("packages/bioagent/registry.py 不存在")
         return
     text = REGISTRY_PY.read_text(encoding="utf-8")
     registered = set(re.findall(r'name="([a-z0-9\-]+)"', text))
@@ -156,16 +156,21 @@ def _check_plugin_json(problems: list[str]) -> None:
         if not target.is_dir():
             problems.append(f"plugin.json 的 skills 路径不存在: {skills_path}")
 
-    repo_name = plugin.get("name")
-    if repo_name and repo_name != REPO_ROOT.name:
-        problems.append(
-            f"plugin.json 的 name ({repo_name}) 与仓库目录名 ({REPO_ROOT.name}) 不一致"
-        )
-
+    # plugin.json 的 name 必须是**仓库/插件名**，它对应的是 GitHub 上的
+    # 仓库名，而不是本地检出目录名。本地克隆到任意别名目录（如
+    # `repo`、`tmp/clone`）都是正常的，不应因此报错——所以这里以
+    # repository 字段里的 slug 为准，而不是 REPO_ROOT.name。
     repo_slug = "ssinder/bioinformatics-agent-skills"
     repository = plugin.get("repository") or ""
     if repository and repo_slug not in repository:
         problems.append(f"plugin.json 的 repository 指向了非本仓库地址: {repository}")
+
+    repo_name = plugin.get("name")
+    expected_name = repo_slug.split("/")[-1]
+    if repo_name and repo_name != expected_name:
+        problems.append(
+            f"plugin.json 的 name ({repo_name}) 与仓库名 ({expected_name}) 不一致"
+        )
 
     # homepage 可以指向文档站（Pages），也可以指向仓库首页，
     # 只需保证它属于本项目，不能指向别人的地址。

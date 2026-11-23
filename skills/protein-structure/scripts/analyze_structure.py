@@ -37,8 +37,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional
 
-from biopipe_core import SkillError, cli_parser, get_config, get_logger, write_csv  # noqa: E402
-from biopipe_core.cli import run_cli  # noqa: E402
+from bioagent_core import SkillError, cli_parser, get_config, get_logger, write_csv  # noqa: E402
+from bioagent_core.cli import run_cli  # noqa: E402
 from geometry import (  # noqa: E402
     bounding_box,
     end_to_end_distance,
@@ -53,7 +53,7 @@ from secondary_structure import (  # noqa: E402
     run_external_dssp,
 )
 
-LOGGER = get_logger("biopipe.protein-structure")
+LOGGER = get_logger("bioagent.protein-structure")
 
 SKILL_NAME = "protein-structure"
 

@@ -45,10 +45,11 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core.ncbi_identity import resolve_email  # noqa: E402
 from bioproject_client import search_bioprojects  # noqa: E402
 
-LOGGER = get_logger("biopipe.bioproject-search")
+LOGGER = get_logger("bioagent.bioproject-search")
 
 # BioProject accession 的典型形态：PRJNA/PRJEB/PRJDB + 数字
 _ACCESSION_RE = re.compile(r"^PRJ(?:NA|EB|DB)\d+$", re.IGNORECASE)
@@ -176,7 +177,7 @@ def build_parser() -> argparse.ArgumentParser:
             "\n"
             "说明:\n"
             "  数据来自 NCBI E-utilities（结构化 XML），不解析网页，因此不受网页改版影响。\n"
-            "  NCBI 要求提供联系邮箱；可用 --email 传入或设置环境变量 BIOPIPE_EMAIL。\n"
+            "  NCBI 要求提供联系邮箱；留空则使用项目方注册身份（NCBI 要求开发者邮箱而非终端用户邮箱）。\n"
         ),
     )
     parser.add_argument(
@@ -192,13 +193,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--email",
-        default=os.environ.get("BIOPIPE_EMAIL", ""),
-        help="联系邮箱（NCBI 要求；也可用环境变量 BIOPIPE_EMAIL）",
+        default=None,
+        help="联系邮箱（NCBI 要求开发者身份，本项目已内置；仅在机构政策要求时覆盖）",
     )
     parser.add_argument(
         "--api-key",
-        default=os.environ.get("BIOPIPE_API_KEY", ""),
-        help="NCBI API key（可选；也可用环境变量 BIOPIPE_API_KEY）",
+        default=os.environ.get("NCBI_API_KEY", "") or os.environ.get("BIOPIPE_API_KEY", ""),
+        help="NCBI API key（可选；也可用环境变量 NCBI_API_KEY。个人 key 仅用于把限速从 3 req/s 提到 10 req/s）",
     )
     parser.add_argument(
         "--filter",
@@ -240,12 +241,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     """命令行主入口。"""
     args = build_parser().parse_args(argv)
 
-    if not args.email:
-        LOGGER.error(
-            "必须提供 --email 或设置环境变量 BIOPIPE_EMAIL —— "
-            "NCBI 要求调用方标识身份（老脚本伪造 userN@example.com 会被限速封禁）"
-        )
-        return 2
+    # email 不再是必填项：NCBI 政策要求的是**软件开发者**的邮箱且须事先
+    # 注册，本项目已注册并内置身份，用户无需任何配置。仅当需要覆盖时
+    # 才传 --email 或设置 BIOAGENT_EMAIL。
+    if args.email is None:
+        args.email = resolve_email(None)
 
     accessions = _collect_accessions(args.ids)
     if not accessions:

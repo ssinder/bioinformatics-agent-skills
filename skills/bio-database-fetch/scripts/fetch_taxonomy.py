@@ -11,7 +11,7 @@
 
 1. **email 是必填且真实的**。NCBI 要求调用方标识身份，老脚本准备了
    5 个 ``userN@example.com`` 轮流冒充——既违规，也会因为无法联系到
-   调用方而被更严格地限速。这里从 ``--email`` 或 ``BIOPIPE_EMAIL``
+   调用方而被更严格地限速。这里从 ``--email`` 读取，缺省时回退到项目方已注册的身份
    环境变量读取，缺失时直接报错。
 2. **不再多线程写同一个文件**。老脚本用 ``ThreadPoolExecutor``，每个
    线程各自 ``open(output_tsv, "a")`` 追加一行，两个线程的写入会交错，
@@ -30,7 +30,9 @@ Examples:
     python fetch_taxonomy.py --tax-ids 9606 10090 --output-dir results/
 
     # email 也可从环境变量读
-    export BIOPIPE_EMAIL="you@your-institution.edu"
+    # 通常无需配置——本项目已内置注册身份
+# 仅在机构 IT 政策要求时覆盖：
+export BIOAGENT_EMAIL="you@your-institution.edu"
     python fetch_taxonomy.py --tax-ids 9606 --output-dir results/
 """
 
@@ -48,10 +50,11 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core.ncbi_identity import disclaimer_block, resolve_email  # noqa: E402
 from database_client import ELEMENTARY_RANKS, fetch_taxonomy  # noqa: E402
 
-LOGGER = get_logger("biopipe.bio-database-fetch")
+LOGGER = get_logger("bioagent.bio-database-fetch")
 
 #: 输出 CSV 的列顺序。``by_rank`` 展开成固定的几列，其余层级放在
 #: ``full_lineage`` 与 ``lineage_json`` 里。
@@ -103,7 +106,7 @@ def build_parser() -> argparse.ArgumentParser:
             "示例:\n"
             "  python fetch_taxonomy.py --tax-ids taxids.txt --output-dir results/\n"
             "  python fetch_taxonomy.py --tax-ids 9606 10090 --output-dir results/\n"
-            "  export BIOPIPE_EMAIL=you@example.edu\n"
+            "  # 通常无需配置；如需覆盖：\n  export BIOAGENT_EMAIL=you@example.edu\n"
             "  python fetch_taxonomy.py --tax-ids 9606 --output-dir results/\n"
             "\n"
             "说明:\n"
@@ -125,8 +128,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--email",
-        default=os.environ.get("BIOPIPE_EMAIL", ""),
-        help="联系邮箱（NCBI 要求）；默认取环境变量 BIOPIPE_EMAIL",
+        default=None,
+        help="联系邮箱（NCBI 要求开发者身份，本项目已内置；仅在机构政策要求时覆盖）",
     )
     parser.add_argument(
         "--api-key",
@@ -229,12 +232,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if not args.email:
-        LOGGER.error(
-            "必须提供 email —— NCBI 要求调用方标识身份。"
-            "用 --email 传入，或设置环境变量 BIOPIPE_EMAIL"
-        )
-        return 2
+    # email 不再是必填项：NCBI 政策要求的是**软件开发者**的邮箱且须事先
+    # 注册，本项目已注册并内置身份，用户无需任何配置。仅当需要覆盖时
+    # 才传 --email 或设置 BIOAGENT_EMAIL。
+    if args.email is None:
+        args.email = resolve_email(None)
 
     tax_ids = collect_tax_ids(args.tax_ids)
     if not tax_ids:
@@ -277,6 +279,13 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     coverage = summarize_rank_coverage(rows)
     LOGGER.info("共 %d 条记录，输出目录: %s", len(rows), output_dir.resolve())
+
+    # NCBI 政策要求：在软件中使用 E-utilities 时，NCBI 的免责声明与
+    # 版权声明必须对用户可见。因此除了写进日志，也落一份文件到输出目录，
+    # 让下游使用者能直接看到。
+    disclaimer_path = output_dir / "NCBI_DISCLAIMER.txt"
+    disclaimer_path.write_text(disclaimer_block(), encoding="utf-8")
+    LOGGER.info("NCBI 免责声明已写入: %s", disclaimer_path)
     LOGGER.info("层级覆盖: %s", ", ".join(f"{k}={v}" for k, v in coverage.items()))
     return 0
 

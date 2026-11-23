@@ -33,7 +33,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import (  # noqa: E402
+from bioagent_core import (  # noqa: E402
     SkillError,
     cli_parser,
     get_config,
@@ -57,7 +57,7 @@ from peptide_filters import (  # noqa: E402
 )
 from peptide_properties import SequenceError, compute_properties  # noqa: E402
 
-LOGGER = get_logger("biopipe.peptide-design")
+LOGGER = get_logger("bioagent.peptide-design")
 
 # 输出的理化性质列
 PROPERTY_FIELDS = [

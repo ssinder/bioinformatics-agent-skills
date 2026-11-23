@@ -37,7 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional
 
-from biopipe_core import (  # noqa: E402
+from bioagent_core import (  # noqa: E402
     SkillError,
     cli_parser,
     get_config,
@@ -60,7 +60,7 @@ from literature_core import (  # noqa: E402
     score_relevance,
 )
 
-LOGGER = get_logger("biopipe.literature-search")
+LOGGER = get_logger("bioagent.literature-search")
 
 
 def build_parser() -> argparse.ArgumentParser:

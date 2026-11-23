@@ -259,7 +259,8 @@ between NCBI requests (3 req/s), with exponential backoff on failure.
 NCBI's usage policy asks for a contact `email` on every request so that
 problems can be reported to a real person. The skill makes the email
 **mandatory** for the Taxonomy path and reads it from `--email` or the
-`BIOPIPE_EMAIL` environment variable.
+`BIOAGENT_EMAIL` environment variable, falling back to the registered
+project identity the skills ship with.
 
 Fabricating placeholder addresses is not acceptable here. It defeats the
 purpose of the field — nobody can be contacted — and it is a violation of

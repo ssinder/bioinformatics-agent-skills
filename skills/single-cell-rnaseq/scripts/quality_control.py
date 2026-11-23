@@ -29,8 +29,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import SkillError, get_config, get_logger  # noqa: E402
-from biopipe_core.cli import cli_parser, run_cli  # noqa: E402
+from bioagent_core import SkillError, get_config, get_logger  # noqa: E402
+from bioagent_core.cli import cli_parser, run_cli  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -39,7 +39,7 @@ from typing import Optional
 from scalgorithms import compute_qc_metrics, filter_cells_genes  # noqa: E402
 from scdata import gene_is_hb, gene_is_mitochondrial, read_matrix, summarize_sparsity  # noqa: E402  # noqa: E402
 
-LOGGER = get_logger("biopipe.single-cell-rnaseq")
+LOGGER = get_logger("bioagent.single-cell-rnaseq")
 
 
 def run_quality_control(
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     DESCRIPTION = "单细胞质量控制：计算 QC 指标并按阈值过滤细胞与基因"
 
     def build_parser() -> argparse.ArgumentParser:
-        """构造带业务参数的解析器（沿用 biopipe_core 的公共参数）。"""
+        """构造带业务参数的解析器（沿用 bioagent_core 的公共参数）。"""
         parser = cli_parser(prog="single-cell-rnaseq", description=DESCRIPTION, skill="single-cell-rnaseq")
         parser.add_argument("--input", required=True, help="输入矩阵（10x h5 / mtx 目录 / csv / h5ad）")
         parser.add_argument("--output", help="输出目录（默认 <results>/01_qc）")

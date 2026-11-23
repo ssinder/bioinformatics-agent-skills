@@ -54,7 +54,8 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from biopipe_core import get_logger, http_session  # noqa: E402
+from bioagent_core.ncbi_identity import NCBI_TOOL, resolve_email  # noqa: E402
+from bioagent_core import get_logger, http_session  # noqa: E402
 
 __all__ = [
     "search_bioprojects",
@@ -70,7 +71,7 @@ __all__ = [
 EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 BIOPROJECT_DB = "bioproject"
 
-LOGGER = get_logger("biopipe.bioproject-search")
+LOGGER = get_logger("bioagent.bioproject-search")
 
 # esummary 的 Registration_Date 形如 "2013/07/16 00:00"，还可能是
 # "1/01/01 00:00"（占位日期，公共项目里很常见——NCBI 用它表示
@@ -148,8 +149,10 @@ def _esearch_to_uids(accessions: Sequence[str], session, email: str, api_key: Op
         "retmode": "json",
         "retmax": str(len(accessions) * 2 + 10),
     }
-    if email:
-        params["email"] = email
+    # NCBI 要求 tool 与 email 一同提供且已注册；项目方已注册身份，
+    # 因此这里始终带上，用户无需配置。
+    params["tool"] = NCBI_TOOL
+    params["email"] = resolve_email(email)
     if api_key:
         params["api_key"] = api_key
 
@@ -423,11 +426,10 @@ def search_bioprojects(
     """
     if not accessions:
         return []
-    if not email:
-        raise ValueError(
-            "必须提供 email —— NCBI 要求调用方标识身份，"
-            "可用 --email 传入或设置环境变量 BIOPIPE_EMAIL"
-        )
+    # NCBI 政策要求 email 是**软件开发者**的邮箱而非终端用户的，
+    # 且该值须事先注册。本项目已注册并内置身份，因此这里回退即可，
+    # 用户无需任何配置；仅在机构 IT 政策要求时显式覆盖。
+    email = resolve_email(email)
 
     own_session = session is None
     if own_session:
@@ -493,15 +495,15 @@ def _main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("accessions", nargs="+", help="BioProject accession（PRJNA…）")
     parser.add_argument(
         "--email",
-        default=os.environ.get("BIOPIPE_EMAIL", ""),
-        help="联系邮箱（NCBI 要求；也可用环境变量 BIOPIPE_EMAIL）",
+        default=os.environ.get("BIOAGENT_EMAIL", ""),
+        help="联系邮箱（NCBI 要求；也可用环境变量 BIOAGENT_EMAIL）",
     )
-    parser.add_argument("--api-key", default=os.environ.get("BIOPIPE_API_KEY", ""), help="NCBI API key")
+    parser.add_argument("--api-key", default=os.environ.get("NCBI_API_KEY", "") or os.environ.get("BIOPIPE_API_KEY", ""), help="NCBI API key（可选；也可用环境变量 NCBI_API_KEY）")
     parser.add_argument("--json", action="store_true", help="以 JSON 输出完整记录")
     args = parser.parse_args(argv)
 
     if not args.email:
-        LOGGER.error("必须提供 --email 或设置环境变量 BIOPIPE_EMAIL")
+        LOGGER.error("必须提供 --email 或设置环境变量 BIOAGENT_EMAIL")
         return 2
 
     rows = search_bioprojects(args.accessions, email=args.email, api_key=args.api_key or None)

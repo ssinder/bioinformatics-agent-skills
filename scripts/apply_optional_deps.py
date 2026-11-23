@@ -58,7 +58,7 @@ def _build_block(alias: str, module: str, hint: str) -> str:
         f"def {req}():\n"
         f'    """确保 {module} 可用，否则抛出带安装指引的异常。"""\n'
         f"    if {alias} is None:\n"
-        f"        from biopipe_core.optional_deps import MissingDependencyError\n"
+        f"        from bioagent_core.optional_deps import MissingDependencyError\n"
         f"\n"
         f"        raise MissingDependencyError({module!r}, hint={alias}_HINT)\n"
         f"    return {alias}\n"
@@ -68,7 +68,7 @@ def _build_block(alias: str, module: str, hint: str) -> str:
 
 
 #: 插入到第一个替换块之前的导入语句
-IMPORT_LINE = "from biopipe_core.optional_deps import optional_import  # noqa: E402\n\n"
+IMPORT_LINE = "from bioagent_core.optional_deps import optional_import  # noqa: E402\n\n"
 
 
 def transform(path: Path, check_only: bool = False) -> list[str]:

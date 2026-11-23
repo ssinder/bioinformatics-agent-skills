@@ -1,0 +1,56 @@
+{
+  "skill_name": "pymol-structure-visualization",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a docked protein complex at /data/complex/complex.pdb with chains A and B. I want to know which residues hold the interface together, find the hotspot residues on each chain, and get a PyMOL script that labels them plus a Mermaid network for the paper. PyMOL is not installed on this box.",
+      "expected_output": "Runs python scripts/analyze_contacts.py --input /data/complex/complex.pdb --chains A B --output results/ --make-mermaid --make-pymol --make-pymol-contacts. The computation is entirely separate from rendering: atoms go into a uniform-grid spatial index whose cell size is max_distance * 1.0001 (so an atom exactly on a bucket boundary cannot be missed) and a 3x3x3 cell neighbourhood is scanned per atom, then each residue pair is classified by the chemistry of the two sides rather than by distance alone. Each contact type carries its own cutoff - hydrogen bond 3.5 A, salt bridge 4.0 A, hydrophobic 4.5 A, pi-pi stacking 5.0 A, cation-pi 6.0 A - and the overall --max-distance defaults to 6.0 A. A pair can carry several types (ARG-ASP is both a hydrogen bond and a salt bridge): interaction_types lists all of them and interaction_type gives the highest-priority one. Writes contacts.csv (UTF-8 BOM so it opens directly in Excel) with Chain_Pair, ChainA/ResnA/ResiA, ChainB/ResnB/ResiB, Min_Distance, N_Atom_Pairs, Interaction_Type and All_Types, plus contact_summary.csv, contacts.json, contact_network.mmd, visualize_contacts.pml and draw_contacts.pml. Confirms that the PyMOL scripts are produced as artifacts even though PyMOL itself is absent, because the skill never launches the GUI. Reports the per-type counts and the hotspot_a / hotspot_b rankings, and validates that a typical protein-protein interface should show hydrogen bonds in the order of 5-30 - a jump to hundreds means --max-distance is too large.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Computes inter-chain contacts with the uniform-grid spatial index and classifies them by residue chemistry, not distance alone" },
+        { "type": "behavior", "value": "Produces the PyMOL scripts (visualize_contacts.pml, draw_contacts.pml) and the Mermaid graph without requiring PyMOL to be installed" },
+        { "type": "behavior", "value": "Reports hotspot residues per chain and the per-type contact counts, flagging a hydrogen-bond count far above the 5-30 range as an over-wide cutoff" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My contact analysis on a kinase-inhibitor complex reports zero hydrogen bonds and zero salt bridges even though the inhibitor is clearly buried. I think the chemistry rules are excluding things. Is that right?",
+      "expected_output": "Explains the two deliberate chemistry defaults that this skill fixed relative to the legacy implementation: ASP/GLU are NOT counted as hydrogen-bond donors (the carboxyl pKa is about 4, so at physiological pH they are essentially fully deprotonated) and HIS is NOT counted as a positively charged residue (imidazole pKa about 6, so only roughly 10 percent is protonated). Both exclusions are correct at physiological pH and the legacy behaviour inflated the hydrogen-bond and salt-bridge counts. If the user's chemistry warrants the looser treatment, the skill provides --include-ambiguous-donors (treat ASP/GLU as weak donors) and --include-histidine (count HIS as positive). Also checks the likely real cause here: because this is a ligand complex, contacts involving the ligand are tagged as Ligand_contact rather than by residue-level chemistry - the skill deliberately does not guess a ligand's aromaticity or charge, and if the structure contains a ligand the by_type summary should contain a Ligand_contact entry. Points out that zero Ligand_contact entries on a structure that visibly contains a ligand means the ligand was excluded, and that --exclude-hetero is off by default so waters and ligands are included unless removed. For the precise interaction type of a ligand contact, directs the user to the protein-interactions skill (PLIP).",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Explains that ASP/GLU are excluded as donors and HIS as positive by default, with the pKa rationale and the --include-ambiguous-donors / --include-histidine flags as the opt-in" },
+        { "type": "behavior", "value": "Checks that a Ligand_contact type appears in by_type when the structure contains a ligand, and routes ligand interaction typing to the protein-interactions PLIP path" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm getting 940 contact pairs for a 2-chain complex and a lot of them have distances below 2.0 Angstrom. My --max-distance is 6.0 (the default). What's the right cutoff for a paper figure?",
+      "expected_output": "Diagnoses both numbers against the skill's own validation checklist rather than just accepting them. Hundreds of contacts means --max-distance is set too large - the default 6.0 A is a permissive discovery cutoff and the per-type thresholds (hydrogen bond 3.5, salt bridge 4.0, hydrophobic 4.5, pi-pi 5.0, cation-pi 6.0) are the meaningful ones to reason with, so the fix is to tighten --max-distance (for example --max-distance 4.0 for strong contacts only) and to use --min-distance to suppress the very short ones. Contacts with Min_Distance below 2.0 A indicate steric clashes in the structure or a coordinate-precision problem, not real interactions - the expectation is hydrogen bonds at 2.6-3.2 A and salt bridges at 2.6-3.5 A, so the structure itself should be checked (a badly refined or misprotonated model produces artificially short distances). Also flags that for a multi-model file only the first MODEL is analysed, so an NMR-style ensemble is being reduced to one conformer, and that chain identifiers are read from the file rather than assumed to be A/B. Recommends re-running with a tighter cutoff and re-deriving one recorded distance with cmd.distance inside PyMOL as a spot check before the numbers go into a figure.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Identifies the 940-pair count as an over-wide --max-distance and the sub-2.0 A distances as steric clashes or a coordinate-precision problem rather than real contacts" },
+        { "type": "behavior", "value": "Quotes the expected distance bands (hydrogen bonds 2.6-3.2 A, salt bridges 2.6-3.5 A) and recommends a tighter --max-distance plus a cmd.distance spot check" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "For a manuscript I need exact hydrogen-bond geometry - donor atom, acceptor atom and the D-H...A angle - for every interaction between my protein and a small-molecule inhibitor, plus the ligand's halogen bonds and metal coordination. What's the right tool for this?",
+      "expected_output": "Routes this to the protein-interactions skill, which is the PLIP-based path and the authoritative source for precise hydrogen-bond geometry (donor/acceptor atom identity with the D-H...A angle criterion of distance < 3.5 A and angle > 120 degrees). It extracts salt bridges, hydrogen bonds, hydrophobic contacts, pi-stacking, pi-cation, water bridges, halogen bonds and metal complexes from a PLIP report.xml, ranks hotspot residues, and can run PLIP on the structure directly with --run-plip and --plip-structure. States plainly that this skill's own classification is a general approximation rather than an exact force-field criterion - the skill's own note says that for publication-grade interaction assignments PLIP should be used - and that this skill's Ligand_contact type deliberately does not resolve a ligand's donor/acceptor chemistry at all, so a ligand-specific question cannot be answered here. The correct plan is to run PLIP for the manuscript table and optionally use this skill for the interface-level geometry and the PyMOL/Mermaid artefacts on the protein-protein portion.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true },
+        { "type": "behavior", "value": "Routes the precise ligand hydrogen-bond, halogen-bond and metal-coordination question to the protein-interactions skill using PLIP" },
+        { "type": "behavior", "value": "States that this skill's thresholds are approximations and that its Ligand_contact type cannot resolve donor/acceptor chemistry for a ligand" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "My input is a CIF file (1abc.cif) rather than a PDB. And my hotspot ranking changes every time I run it - is that a bug?",
+      "expected_output": "On the CIF input: the script reads PDB-format ATOM/HETATM records only, so a .cif file cannot be parsed directly - the skill's troubleshooting notes CIF as an unsupported input. The answer is to convert it first, with gemmi or biotite in Python, or with PyMOL in headless mode (pymol -cq), and then point the analysis at the resulting .pdb; if the CIF happens to come from an AlphaFold prediction package, the alphafold-db skill's select_best_model.py already contains a CIF-to-PDB converter with a built-in fallback when Biopython is absent. Either way the converted file's fixed-column alignment must be checked, since chain ID at column 22, residue number at 23-26 and coordinates at 31-38 / 39-46 / 47-54 must line up or every downstream tool misreads the structure. On the varying hotspot ranking: it is not a bug, because the ranking is a deterministic sort of contact counts by descending count with residue-number tie-breaking, so a ranking that really does change between runs means the input changed - most often a multi-model file (only the first MODEL is used), a different --max-distance, or --include-histidine / --include-ambiguous-donors / --exclude-hetero toggled between runs. Asks the user to confirm the file, cutoff and flags are identical between the two runs, and suggests fixing them on the command line so the ranking is reproducible.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Identifies the CIF file as an unsupported input and gives a conversion route plus a fixed-column alignment check for the converted PDB" },
+        { "type": "behavior", "value": "Explains that the hotspot ranking is a deterministic sort, so a changing ranking points to a changed input file, multi-model handling, cutoff or chemistry flags rather than nondeterminism" }
+      ]
+    }
+  ]
+}

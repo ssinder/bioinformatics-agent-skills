@@ -37,8 +37,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from typing import Optional
 
-from biopipe_core import cli_parser, get_config, get_logger  # noqa: E402
-from biopipe_core.cli import SkillError, run_cli  # noqa: E402
+from bioagent_core import cli_parser, get_config, get_logger  # noqa: E402
+from bioagent_core.cli import SkillError, run_cli  # noqa: E402
 from md_equilibration import (  # noqa: E402
     ChainSeparationMonitor,
     build_restraint_force,
@@ -149,7 +149,7 @@ def _run_openmm(args: argparse.Namespace, output_dir: Path) -> dict:
     import openmm
     from openmm import app, unit
 
-    logger = get_logger(f"biopipe.{SKILL_NAME}")
+    logger = get_logger(f"bioagent.{SKILL_NAME}")
 
     structure_path = Path(args.input)
     if not structure_path.exists():
@@ -407,7 +407,7 @@ def _run_openmm(args: argparse.Namespace, output_dir: Path) -> dict:
 
 def main(args: argparse.Namespace) -> int:
     """技能主入口。"""
-    logger = get_logger(f"biopipe.{SKILL_NAME}")
+    logger = get_logger(f"bioagent.{SKILL_NAME}")
     available, message = _check_openmm()
     logger.info("%s", message)
 

@@ -28,7 +28,7 @@ __all__ = [
 
 
 def get_project_root() -> Path:
-    """返回本仓库根目录（packages/biopipe_core/config.py 的上上级）。"""
+    """返回本仓库根目录（packages/bioagent_core/config.py 的上上级）。"""
     return Path(__file__).resolve().parents[2]
 
 
@@ -72,7 +72,7 @@ class ProjectConfig:
             extra = _parse_config_file(cfg_path)
             root = Path(extra.get("root", root)).expanduser().resolve()
         else:
-            default_cfg = root / "biopipe.yaml"
+            default_cfg = root / "bioagent.yaml"
             if default_cfg.exists():
                 extra = _parse_config_file(default_cfg)
                 cfg_path = default_cfg

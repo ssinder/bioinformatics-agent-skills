@@ -1,0 +1,48 @@
+{
+  "skill_name": "bulk-rnaseq",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have bulk RNA-seq FASTQ files for a treated vs control experiment (3 reps each). Can you run the full pipeline — QC, trimming, Salmon quantification, differential expression, GO enrichment — and give me a volcano plot? My counts are in /data/exp1/fastq and the sample sheet is /data/exp1/metadata.csv.",
+      "expected_output": "Runs the bulk RNA-seq pipeline end to end: quality control, trimming, Salmon quantification, counts matrix construction, DESeq2-style differential expression with treated vs control as the contrast, and GO/KEGG enrichment, then produces a volcano plot. Should explain that counts (not TPM) feed the differential expression step and report the number of significant genes.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Uses counts rather than TPM for the differential expression step" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My DESeq2 run gave me NA for padj on every single gene. What's going on? I have a samples sheet with a 'condition' column and a 'batch' column, and I ran it with design = ~condition.",
+      "expected_output": "Identifies the most likely cause: an incorrectly specified design formula. Suggests inspecting the sample sheet for confounding between batch and condition, and considering ~batch + condition or a model that accounts for the batch structure. Explains that NA p-values usually mean the dispersion could not be estimated for that gene, which frequently traces back to a design matrix that is not full rank.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Diagnoses the NA padj as a design-formula or rank-deficiency problem rather than a data problem" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "For the volcano plot I want to truncate the y-axis at -log10(p) = 3 so it looks cleaner in the manuscript. Does the repo's figure script support that?",
+      "expected_output": "Generates the volcano plot and notes the caveat that truncating the y-axis can visually understate the significance of points above the cut, suggesting an axis break or a footnote instead. Mentions the scientific-figures skill is the one that renders publication-grade charts if a specific style is needed.",
+      "assertions": [
+        { "type": "should_trigger", "value": true }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have 10x single-cell data in a filtered_feature_bc_matrix folder and want UMAP clusters plus cell type annotation.",
+      "expected_output": "Declines to handle this as bulk RNA-seq and points to the single-cell-rnaseq skill instead, which covers 10x matrix input, QC filtering, HVG selection, PCA, clustering, UMAP and cell type annotation. Does not attempt the bulk pipeline on single-cell data.",
+      "assertions": [
+        { "type": "should_not_trigger", "value": true }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Can you just run DESeq2 on my count matrix? I already have the counts, I don't need FastQC or Salmon.",
+      "expected_output": "Uses the bulk-rnaseq skill, skipping the QC, trimming and quantification steps since counts already exist, and runs only the counts matrix construction and differential expression part with appropriate group labels. Points out that a counts matrix still needs a tx2gene mapping to be gene-level if it is not already.",
+      "assertions": [
+        { "type": "should_trigger", "value": true },
+        { "type": "behavior", "value": "Skips the upstream QC and quantification steps rather than insisting on FASTQ input" }
+      ]
+    }
+  ]
+}

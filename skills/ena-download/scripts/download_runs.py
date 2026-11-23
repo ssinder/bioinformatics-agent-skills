@@ -49,10 +49,10 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 from ena_client import build_fastq_url, fetch_run_metadata  # noqa: E402
 
-LOGGER = get_logger("biopipe.ena-download")
+LOGGER = get_logger("bioagent.ena-download")
 
 # 每次读取的块大小（流式下载）
 CHUNK_SIZE = 1024 * 1024
@@ -132,7 +132,7 @@ def download_file(
     Returns:
         ``(是否成功, 说明信息)``。
     """
-    from biopipe_core import http_session
+    from bioagent_core import http_session
 
     own_session = session is None
     if own_session:
@@ -347,7 +347,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         LOGGER.info("共 %d 条记录，元数据在 %s", len(records), output_dir)
         return 0
 
-    from biopipe_core import http_session
+    from bioagent_core import http_session
 
     session = http_session(min_interval=0.34, retries=3)
     if session is None:

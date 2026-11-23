@@ -533,7 +533,7 @@ if __name__ == "__main__":
     import sys
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
-    from biopipe_core import get_logger
+    from bioagent_core import get_logger
 
-    logger = get_logger("biopipe.protein-structure")
+    logger = get_logger("bioagent.protein-structure")
     sys.exit(_main())

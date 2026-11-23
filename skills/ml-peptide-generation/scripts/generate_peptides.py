@@ -38,7 +38,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from biopipe_core import ensure_dir, get_logger  # noqa: E402
+from bioagent_core import ensure_dir, get_logger  # noqa: E402
 from pepmlm_client import (  # noqa: E402
     PepMLMClient,
     PepMLMConfig,
@@ -47,7 +47,7 @@ from pepmlm_client import (  # noqa: E402
     set_seed,
 )
 
-LOGGER = get_logger("biopipe.ml-peptide-generation")
+LOGGER = get_logger("bioagent.ml-peptide-generation")
 
 #: 输出 CSV 的列顺序
 FIELDNAMES = [

@@ -10,12 +10,12 @@ valid email address. There is no default, by design.
 **Fix**:
 
 ```bash
-export BIOPIPE_EMAIL="you@your-institution.edu"
+# 通常无需配置；如需覆盖：export BIOAGENT_EMAIL="you@your-institution.edu"
 python scripts/search_bioprojects.py --ids prj_ids.txt --output-dir results/
 ```
 
 or pass `--email` directly. If you have an NCBI API key, set
-`BIOPIPE_API_KEY` too — it raises the rate limit from 3 to 10 requests per
+`NCBI_API_KEY` too — it raises the rate limit from 3 to 10 requests per
 second.
 
 ## HTTP 429 (Too Many Requests)

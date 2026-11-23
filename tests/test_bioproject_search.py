@@ -187,14 +187,53 @@ class TestNoFakeEmail:
                             f"{name} 把占位邮箱赋给了 {target.id}"
                         )
 
-    def test_email_is_required(self):
-        """缺 email 时必须报错，而不是用一个占位值蒙混过去。"""
-        with pytest.raises(ValueError, match="email"):
-            bioproject_client.search_bioprojects(["PRJNA1"], email="")
+    def test_email_falls_back_to_registered_identity(self):
+        """缺 email 时回退到项目方注册身份，而不是报错。
 
-    def test_cli_rejects_missing_email(self, monkeypatch):
-        monkeypatch.delenv("BIOPIPE_EMAIL", raising=False)
-        assert search_bioprojects.main(["--ids", "PRJNA1", "--output-dir", "out"]) == 2
+        NCBI 政策要求 email 属于**软件开发者**且事先注册，因此由项目方
+        注册并内置是正确的做法——要求终端用户各自配置反而容易出错。
+        """
+        from bioagent_core.ncbi_identity import DEFAULT_EMAIL, resolve_email
+
+        assert resolve_email(None) == DEFAULT_EMAIL
+
+        captured: dict = {}
+
+        class _FakeSession:
+            def get(self, url, params=None, timeout=None):
+                captured.update(params or {})
+
+                class _Resp:
+                    text = "<eSearchResult></eSearchResult>"
+
+                    def raise_for_status(self):
+                        return None
+
+                return _Resp()
+
+        bioproject_client.search_bioprojects(
+            ["PRJNA1"], email="", session=_FakeSession()
+        )
+        assert captured.get("email"), "请求必须带上 email"
+        assert captured.get("tool"), "请求必须带上 tool"
+
+    def test_cli_does_not_require_email(self, monkeypatch, tmp_path):
+        """CLI 不再要求用户配置邮箱。"""
+        monkeypatch.delenv("BIOAGENT_EMAIL", raising=False)
+        monkeypatch.delenv("NCBI_EMAIL", raising=False)
+
+        called: dict = {}
+
+        def _fake_search(accessions, email=None, api_key=None, **kw):
+            called["email"] = email
+            return []
+
+        monkeypatch.setattr(search_bioprojects, "search_bioprojects", _fake_search)
+        code = search_bioprojects.main(
+            ["--ids", "PRJNA1", "--output-dir", str(tmp_path)]
+        )
+        assert code != 2, "缺少邮箱不应再被当成参数错误"
+        assert called.get("email"), "应自动填入注册身份"
 
 
 class TestBuildEsearchTerm:
