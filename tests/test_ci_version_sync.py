@@ -65,6 +65,7 @@ class TestConsistencyAcrossFiles:
     def test_citation_matches(self) -> None:
         """CITATION.cff 版本与包版本一致。"""
         import re
+
         import tomllib
 
         pyproject = tomllib.loads(
@@ -176,6 +177,7 @@ class TestCheckerCatchesDrift:
         assert plugin["version"] == "2.0.0"
 
         import re
+
         import tomllib
 
         pyproject = tomllib.loads(

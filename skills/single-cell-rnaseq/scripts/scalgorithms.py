@@ -144,6 +144,38 @@ class PipelineResult:
 
 
 # --------------------------------------------------------------------------- #
+# scanpy 版本兼容层
+# --------------------------------------------------------------------------- #
+def _seed_kwargs(fn: Callable, seed: int) -> dict:
+    """按 scanpy 版本返回正确的随机种子参数。
+
+    scanpy 1.11 起把 ``random_state`` 改名为 ``rng``，旧版本只认
+    ``random_state``。直接硬编码任何一个都会在另一个版本上抛
+    ``TypeError: unexpected keyword argument``。
+
+    这里用签名探测决定用哪个名字，因此同一份代码在 scanpy 1.9 到
+    1.13 上都能跑——用户装到什么版本都能用。
+
+    同样的漂移还有：``sc.pp.neighbors`` 的 ``prune`` 参数在 scanpy
+    1.10 被移除（旧版用它做 UMAP 式剪枝）；``sc.pp.filter_cells`` 的
+    ``max_pct_counts_mt`` / ``max_pct_counts_hb`` 也在 1.10 被移除，
+    且 1.13 起要求每次调用只传一个可选参数。
+    """
+    import inspect
+
+    try:
+        params = inspect.signature(fn).parameters
+    except (TypeError, ValueError):
+        return {"random_state": seed}
+
+    if "rng" in params:
+        return {"rng": seed}
+    if "random_state" in params:
+        return {"random_state": seed}
+    return {}
+
+
+# --------------------------------------------------------------------------- #
 # 1. 质控指标
 # --------------------------------------------------------------------------- #
 def compute_qc_metrics(
@@ -718,7 +750,21 @@ def cluster_leiden(
     if leidenalg_mod is not None and igraph_mod is not None:
         import igraph as ig
 
-        g = ig.Graph.Weighted_AdjacencyMatrix(adj.tocoo())
+        # igraph 1.0 把类方法 `Weighted_AdjacencyMatrix` 改名为
+        # `Weighted_Adjacency`，且两者接受的参数不同：
+        #   - 旧版接受一个 scipy COO 矩阵
+        #   - 新版直接接受稀疏矩阵（内部转 COO），或 list of lists
+        # 因此这里按可用属性分别用对应的构造方式，
+        # 这样 igraph 0.9 / 0.10 / 0.11 / 1.0 上都能用。
+        if hasattr(ig.Graph, "Weighted_AdjacencyMatrix"):
+            g = ig.Graph.Weighted_AdjacencyMatrix(adj.tocoo())
+        elif hasattr(ig.Graph, "Weighted_Adjacency"):
+            g = ig.Graph.Weighted_Adjacency(adj)
+        else:
+            raise RuntimeError(
+                f"igraph {ig.__version__} 既无 Weighted_AdjacencyMatrix "
+                f"也无 Weighted_Adjacency，无法构建加权邻接图"
+            )
         partition = leidenalg_mod.find_partition(
             g, leidenalg_mod.RBConfigurationVertexPartition, resolution_parameter=resolution,
             seed=seed,
@@ -1184,12 +1230,28 @@ def _run_scanpy_pipeline(
 
     n_cells_before = ad.n_obs
     n_genes_before = ad.n_vars
-    sc.pp.filter_cells(
-        ad, min_genes=min_genes, min_counts=min_counts,
-        max_pct_counts_mt=None if max_mt_pct >= 100 else max_mt_pct,
-    )
+
+    # scanpy 1.10 起移除了 `filter_cells` 的 `max_pct_counts_mt` /
+    # `max_pct_counts_hb` 参数（现在只有 min_counts / min_genes /
+    # max_counts / max_genes）。这里改为**自己算布尔掩码**再筛——
+    # 既兼容新旧版本，也让过滤逻辑完全在本仓库掌控之下，
+    # 不依赖 scanpy 的参数是否还在。
+    #
+    # 另外 scanpy 1.13 起要求每次 `filter_cells` 调用**只传一个**
+    # 可选参数（传两个会报 "Provide exactly one of the optional
+    # parameters"），所以 min_genes 与 min_counts 要分两次调用。
+    if min_genes is not None:
+        sc.pp.filter_cells(ad, min_genes=min_genes)
+    if min_counts is not None:
+        sc.pp.filter_cells(ad, min_counts=min_counts)
+
+    if max_mt_pct is not None and max_mt_pct < 100:
+        keep = ad.obs["pct_counts_mt"].to_numpy() <= max_mt_pct
+        ad = ad[keep].copy()
     if max_hb_pct is not None:
-        sc.pp.filter_cells(ad, max_pct_counts_hb=max_hb_pct)
+        keep = ad.obs["pct_counts_hb"].to_numpy() <= max_hb_pct
+        ad = ad[keep].copy()
+
     sc.pp.filter_genes(ad, min_cells=min_cells_per_gene)
 
     qc_stats = {
@@ -1234,7 +1296,7 @@ def _run_scanpy_pipeline(
     ad_hvg = ad[:, hvg_mask].copy()
     sc.pp.scale(ad_hvg, max_value=10.0)
     n_comp = int(min(n_comps, min(ad_hvg.shape) - 1))
-    sc.tl.pca(ad_hvg, n_comps=n_comp, svd_solver="arpack", random_state=seed)
+    sc.tl.pca(ad_hvg, n_comps=n_comp, svd_solver="arpack", **_seed_kwargs(sc.tl.pca, seed))
     ad.obsm["X_pca"] = np.asarray(ad_hvg.obsm["X_pca"])
     ad.uns["pca"] = {
         "variance_ratio": np.asarray(ad_hvg.uns["pca"]["variance_ratio"])
@@ -1246,21 +1308,54 @@ def _run_scanpy_pipeline(
 
     # --- 5. 邻接图 ---
     n_pcs = int(min(50, ad.obsm["X_pca"].shape[1]))
-    sc.pp.neighbors(
-        ad, n_neighbors=n_neighbors, n_pcs=n_pcs, prune=1.0 / max(n_neighbors, 1),
-        random_state=seed,
-    )
+    sc.pp.neighbors(ad, n_neighbors=n_neighbors, n_pcs=n_pcs, **_seed_kwargs(sc.pp.neighbors, seed))
     log(f"邻接图完成: k={n_neighbors}")
 
     # --- 6. 聚类 ---
+    #
+    # scanpy 1.11 起 `flavor="leidenalg"`（默认）需要额外的 leidenalg 包；
+    # 另一个 `flavor="igraph"` 只依赖 igraph 本身，但与 igraph 1.0 的
+    # API 不兼容（"Graph has no attribute 'Weighted_AdjacencyMatrix'"）。
+    #
+    # 因此**优先用 leidenalg**（社区的标准选择，scanpy 官方默认），
+    # 不可用时回退到 Louvain——Louvain 在 scanpy 里走 igraph 路径，
+    # 但同样可能因 igraph 版本不兼容而失败，所以最后还有一级兜底：
+    # 复用本模块自带的 Louvain 实现（不依赖 scanpy）。
+    cluster_key = None
     try:
-        sc.tl.leiden(ad, resolution=resolution, key_added="leiden", random_state=seed)
+        sc.tl.leiden(
+            ad,
+            resolution=resolution,
+            key_added="leiden",
+            **_seed_kwargs(sc.tl.leiden, seed),
+        )
         cluster_key = "leiden"
         log("聚类完成 (Leiden)")
-    except (ImportError, ValueError, AttributeError):
-        sc.tl.louvain(ad, resolution=resolution, key_added="louvain", random_state=seed)
+    except (ImportError, ValueError, AttributeError, TypeError) as exc:
+        log(f"Leiden 不可用: {exc}")
+
+    if cluster_key is None:
+        try:
+            sc.tl.louvain(
+                ad,
+                resolution=resolution,
+                key_added="louvain",
+                **_seed_kwargs(sc.tl.louvain, seed),
+            )
+            cluster_key = "louvain"
+            log("聚类完成 (Louvain via scanpy)")
+        except (ImportError, ValueError, AttributeError, TypeError) as exc:
+            log(f"scanpy Louvain 不可用: {exc}，改用内置实现")
+
+    if cluster_key is None:
+        # 最终兜底：用本模块自带的纯 NumPy Louvain 实现，
+        # 它不依赖 scanpy 的聚类后端，也不依赖 igraph 版本。
+        # 邻接矩阵取 scanpy 刚算好的 `obsp["connectivities"]`。
+        adj = ad.obsp["connectivities"]
+        labels_arr = _louvain_one_level(adj, resolution=resolution, seed=seed)
+        ad.obs["louvain"] = [str(x) for x in labels_arr]
         cluster_key = "louvain"
-        log("聚类完成 (Louvain，leidenalg 不可用)")
+        log("聚类完成 (内置 Louvain 实现)")
 
     labels = np.asarray([str(x) for x in ad.obs[cluster_key]])
     ad.obs["cluster"] = labels
@@ -1269,14 +1364,11 @@ def _run_scanpy_pipeline(
     log(f"聚类完成: {n_clusters} 个 cluster")
 
     # --- 7. UMAP / t-SNE ---
-    sc.tl.umap(
-        ad, min_dist=min_dist, random_state=seed,
-        neighbors_key="neighbors",
-    )
+    sc.tl.umap(ad, min_dist=min_dist, neighbors_key="neighbors", **_seed_kwargs(sc.tl.umap, seed))
     ad.obsm["X_umap"] = np.asarray(ad.obsm["X_umap"])
     log("UMAP 完成")
     if compute_tsne_embedding:
-        sc.tl.tsne(ad, random_state=seed)
+        sc.tl.tsne(ad, **_seed_kwargs(sc.tl.tsne, seed))
         ad.obsm["X_tsne"] = np.asarray(ad.obsm["X_tsne"])
         log("t-SNE 完成")
 
@@ -1286,9 +1378,19 @@ def _run_scanpy_pipeline(
     )
     markers = _scanpy_markers_to_frame(ad, n_marker_genes)
     if len(markers):
-        markers["gene"] = markers["gene_index"].map(
-            lambda i: str(ad.var_names[int(i)]) if int(i) < len(ad.var_names) else f"gene_{i}"
-        )
+        # `_scanpy_markers_to_frame` 已经把 scanpy 的输出规范化了：
+        # `gene` 列是可读基因名，`gene_index` 是它在 var_names 里的位置
+        # （对不上时为 -1）。这里只需在能对上的情况下用 var_names 校正
+        # 显示名，避免出现 "gene_3" 这种占位符。
+        var_names = list(ad.var_names)
+
+        def _normalize(row: object) -> str:
+            index = int(getattr(row, "gene_index", -1))
+            if 0 <= index < len(var_names):
+                return str(var_names[index])
+            return str(getattr(row, "gene", ""))
+
+        markers["gene"] = markers.apply(_normalize, axis=1)
 
     summary = (
         markers.groupby("cluster")["gene"].count().reset_index()
@@ -1331,25 +1433,44 @@ def _scanpy_markers_to_frame(ad: Any, n_marker_genes: int) -> pd.DataFrame:
                      "logfoldchanges", "pvals", "pvals_adj"]
         )
 
-    names = list(rgg["names"].dtype.names)
-    lfc = np.asarray(rgg["logfoldchanges"].dtype.names)
-    pvals = np.asarray(rgg["pvals"].dtype.names)
-    pvals_adj = np.asarray(rgg["pvals_adj"].dtype.names)
-    scores = np.asarray(rgg["scores"].dtype.names)
+    # scanpy 的 `uns["rank_genes_groups"]` 里每个字段（names / scores /
+    # logfoldchanges / pvals / pvals_adj）都是**结构化数组**，字段名是
+    # 各个 group。因此要按字段名访问：`rgg["scores"][grp]`，
+    # 而不是先取 `.dtype.names` 再当数组用——后者拿到的是字符串数组，
+    # 再用 `[grp]` 切片就变成了字符串索引。
+    groups = list(rgg["names"].dtype.names)
 
     rows: list[dict[str, Any]] = []
-    for grp in names:
-        n_keep = min(n_marker_genes, len(rgg["names"][grp]))
+    var_names = list(ad.var_names)
+    name_to_index = {str(name): i for i, name in enumerate(var_names)}
+
+    for grp in groups:
+        names_arr = rgg["names"][grp]
+        n_keep = min(n_marker_genes, len(names_arr))
         for rank in range(n_keep):
+            raw_name = names_arr[rank]
+            gene_name = str(raw_name)
+            # scanpy 各版本在 `uns["rank_genes_groups"]["names"]` 里存的
+            # 有时是基因名、有时是 var 索引。两者都要能处理：
+            #   - 能对上 var_names → 视为基因名，取其索引
+            #   - 是纯数字 → 视为索引
+            #   - 都不是 → gene_index 记 -1，由调用方回退到基因名
+            if gene_name in name_to_index:
+                gene_index = name_to_index[gene_name]
+            else:
+                try:
+                    gene_index = int(gene_name)
+                except ValueError:
+                    gene_index = -1
             rows.append({
                 "cluster": str(grp),
                 "rank": rank + 1,
-                "gene": str(rgg["names"][grp][rank]),
-                "gene_index": int(rgg["names"][grp][rank]),
-                "score": float(scores[grp][rank]),
-                "logfoldchanges": float(lfc[grp][rank]),
-                "pvals": float(pvals[grp][rank]),
-                "pvals_adj": float(pvals_adj[grp][rank]),
+                "gene": gene_name,
+                "gene_index": gene_index,
+                "score": float(rgg["scores"][grp][rank]),
+                "logfoldchanges": float(rgg["logfoldchanges"][grp][rank]),
+                "pvals": float(rgg["pvals"][grp][rank]),
+                "pvals_adj": float(rgg["pvals_adj"][grp][rank]),
             })
     return pd.DataFrame(rows)
 

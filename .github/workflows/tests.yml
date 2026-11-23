@@ -10,11 +10,21 @@ on:
 jobs:
   unit:
     name: Unit tests
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.11", "3.13"]
+        # Python 3.9 在 Ubuntu 24.04 之后的 runner 镜像里已被移除
+        # （actions/setup-python 报 "version '3.9' ... was not found"），
+        # 因此它跑在仍提供 3.9 的 ubuntu-22.04 上。
+        # 项目声明支持 3.9（requires-python），所以这条检查必须保留。
+        include:
+          - python-version: "3.9"
+            os: ubuntu-22.04
+          - python-version: "3.11"
+            os: ubuntu-latest
+          - python-version: "3.13"
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -97,7 +107,6 @@ jobs:
           python-version: "3.11"
 
       - name: Install R and Bioconductor DESeq2
-        # 用 rocker 的 Bioconductor 镜像，比 apt 装 Bioconductor 快得多。
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -105,10 +114,21 @@ jobs:
             libcurl4-openssl-dev libssl-dev libxml2-dev \
             build-essential gfortran \
             libglpk-dev libblas-dev liblapack-dev
-          # Bioconductor 的 DESeq2 从 BiocManager 装；
-          # 固定版本以保证可复现。
+          # Bioconductor 的 DESeq2 从 BiocManager 装。
+          #
+          # **不要锁 Bioconductor 版本**：每个 Bioc 大版本绑定一个 R 版本
+          # （3.20 要求 R 4.4，3.22 要求 R 4.5…），而 runner 镜像里的
+          # R 版本会变——写死版本会在 R 升级后直接失败：
+          #   "Bioconductor version '3.20' requires R version '4.4'"
+          #
+          # BiocManager 会自动选与当前 R 匹配的 Bioc 版本。
+          # 这**不**影响对照测试的有效性：对照的是"内置实现 vs 官方实现"，
+          # 而 DESeq2 的核心算法（size factor 归一化、离散度估计、Wald 检验）
+          # 在这些版本间是稳定的。
           sudo Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org")'
-          sudo Rscript -e 'BiocManager::install("DESeq2", version="3.20", ask=FALSE, update=FALSE)'
+          sudo Rscript -e 'BiocManager::install("DESeq2", ask=FALSE, update=FALSE)'
+          Rscript -e 'cat("R:", R.version.string, "\n")'
+          Rscript -e 'cat("Bioconductor:", as.character(BiocManager::version()), "\n")'
           Rscript -e 'cat("DESeq2 available:", requireNamespace("DESeq2", quietly=TRUE), "\n")'
 
       - name: Install Python dependencies
@@ -152,8 +172,16 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install -e ".[dev]"
-          pip install numpy scipy pandas h5py scikit-learn
-          pip install "scanpy>=1.9" "anndata>=0.9" matplotlib
+          # scanpy 后端对照需要 scanpy + anndata + leidenalg。
+          # 注意 igraph 的版本兼容：leidenalg 0.12 与 igraph 1.0 不兼容
+          # （"Graph has no attribute 'Weighted_AdjacencyMatrix'"），
+          # 而 leidenalg 声明支持 igraph>=1.0 —— 上游的声明与实际不符，
+          # 所以这里显式锁 igraph<1.0。
+          #
+          # 本仓库的 cluster_leiden 已同时适配 igraph 的新旧 API
+          # （Weighted_AdjacencyMatrix / Weighted_Adjacency），
+          # 但 leidenalg 自身仍用旧名，因此锁版本更稳妥。
+          pip install "scanpy>=1.9" "anndata>=0.9" matplotlib leidenalg "igraph<1.0"
 
       - name: Verify both backends agree
         run: |

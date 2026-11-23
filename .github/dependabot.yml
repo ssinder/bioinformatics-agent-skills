@@ -8,22 +8,34 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
+    # Actions 更新会频繁触发 CI，且失败时排查成本高。
+    # 保持每月一次更稳妥——真出问题时手动升级即可。
+    open-pull-requests-limit: 3
 
-  # pip 依赖
+  # 核心 pip 依赖
   - package-ecosystem: pip
     directory: /
     schedule:
       interval: weekly
     commit-message:
       prefix: "deps"
+    open-pull-requests-limit: 3
 
-  # 每个技能各自的 requirements.txt
+  # 各技能自己的 requirements.txt
+  #
+  # 这些依赖只在对应技能被使用时才生效，升级它们不会影响其他技能。
+  # 因此**不单独开 PR**——那会产生大量噪音（本仓库一度积累了 11 个
+  # 技能级 PR），却几乎不需要人工判断。
+  #
+  # 维护策略：随主分支的版本发布一起批量升级，由 CI 验证。
+  # 真有安全问题再用 dependabot 的 security updates 单独处理。
   - package-ecosystem: pip
     directory: /skills/bulk-rnaseq
     schedule:
       interval: monthly
     commit-message:
       prefix: "deps(skill)"
+    open-pull-requests-limit: 0
 
   - package-ecosystem: pip
     directory: /skills/single-cell-rnaseq
@@ -31,6 +43,7 @@ updates:
       interval: monthly
     commit-message:
       prefix: "deps(skill)"
+    open-pull-requests-limit: 0
 
   - package-ecosystem: pip
     directory: /skills/molecular-dynamics
@@ -38,6 +51,7 @@ updates:
       interval: monthly
     commit-message:
       prefix: "deps(skill)"
+    open-pull-requests-limit: 0
 
   - package-ecosystem: pip
     directory: /skills/protein-structure
@@ -45,3 +59,4 @@ updates:
       interval: monthly
     commit-message:
       prefix: "deps(skill)"
+    open-pull-requests-limit: 0

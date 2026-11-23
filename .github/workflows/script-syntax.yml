@@ -10,11 +10,25 @@ on:
 jobs:
   syntax:
     name: Python syntax check
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.11", "3.13"]
+        # include 而非单纯的版本列表：Python 3.9 在 Ubuntu 24.04 之后的
+        # runner 镜像里已被移除（actions/setup-python 会报
+        # "The version '3.9' with architecture 'x64' was not found"），
+        # 所以它必须跑在仍提供 3.9 的 ubuntu-22.04 上。
+        #
+        # 本项目声明支持 Python 3.9（pyproject 的 requires-python），
+        # 因此这条检查要保留——它守护的是"在 3.9 上不出现 PEP 604
+        # 之类的语法错误"，而本地无法覆盖。
+        include:
+          - python-version: "3.9"
+            os: ubuntu-22.04
+          - python-version: "3.11"
+            os: ubuntu-latest
+          - python-version: "3.13"
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 

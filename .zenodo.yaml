@@ -1,0 +1,60 @@
+# Zenodo 元数据
+#
+# 作用：让 GitHub Release 自动归档到 Zenodo，从而为**每一个版本**生成
+# 一个独立的 DOI（version DOI）。同时 Zenodo 会为整个项目生成一个
+# concept DOI（指向最新版本）——这是引用时应当使用的那个。
+#
+# 启用步骤（在 GitHub 仓库设置里操作一次）：
+#   Settings → General → Repository metadata → Enable Zenodo GitHub Integration
+# 启用后，每次打 tag 触发 Release，Zenodo 会自动收录并分配 DOI。
+#
+# 元数据主体也写在 CITATION.cff 里，Zenodo 会优先读取它（cff-version 1.2.0
+# 受支持）。本文件补充 CITATION.cff 无法表达的部分：关键词、相关标识符、
+# 与 concept DOI 的对应关系。
+#
+# 文档：https://docs.zenodo.org/docs/github/
+
+# Zenodo 会用这个文件的元数据；CITATION.cff 作为补充，两边不一致时以本文件为准。
+# 但实际上 CITATION.cff 的 title/abstract/author/license 会被 Zenodo 直接采用，
+# 所以这里只写它表达不了的部分。
+name: "BioinfoAgent Skills: Agent Skills for Computational Biology"
+access_right: open
+
+license:
+  id: "MIT"
+
+keywords:
+  - agent-skills
+  - bioinformatics
+  - computational-biology
+  - rna-seq
+  - single-cell
+  - molecular-dynamics
+  - protein-structure
+  - literature-mining
+  - reproducible-research
+
+# 关联标识符：让 Zenodo 把这个版本与 GitHub 仓库、后续版本串起来。
+related_identifiers:
+  - identifier: "https://github.com/ssinder/bioinformatics-agent-skills"
+    relation: "isSupplementTo"
+    scheme: "url"
+    resource_type: "software"
+  - identifier: "https://agentskills.io"
+    relation: "isDocumentedBy"
+    scheme: "url"
+    resource_type: "other"
+
+# 让 Zenodo 把每个版本关联到项目的 concept record
+# （概念 DOI 指向最新版本，随新 release 自动更新）。
+version: "1.0.0"
+
+# GitHub 仓库的描述会作为 abstract 的补充
+description: >-
+  A collection of Agent Skills for computational biology covering bulk RNA-seq
+  differential expression, single-cell analysis, protein structure analysis,
+  molecular dynamics, protein-protein docking, antimicrobial peptide design,
+  literature mining, and publication-quality figures. Each skill ships
+  runnable scripts with a pure-Python fallback path, an explicit validation
+  section describing how to check the output is correct, and evaluation cases
+  covering both the requests it should handle and the near-misses it should not.

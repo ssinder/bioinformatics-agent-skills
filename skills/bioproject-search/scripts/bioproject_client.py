@@ -54,8 +54,8 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages"))
 
-from bioagent_core.ncbi_identity import NCBI_TOOL, resolve_email  # noqa: E402
 from bioagent_core import get_logger, http_session  # noqa: E402
+from bioagent_core.ncbi_identity import NCBI_TOOL, resolve_email  # noqa: E402
 
 __all__ = [
     "search_bioprojects",

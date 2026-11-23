@@ -12,14 +12,10 @@
 
 from __future__ import annotations
 
-import json
-import os
 import subprocess
 import sys
-import tempfile
 import zipfile
 from pathlib import Path
-from typing import Optional
 from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

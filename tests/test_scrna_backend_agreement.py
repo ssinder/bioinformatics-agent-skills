@@ -29,8 +29,8 @@ sys.path.insert(0, str(REPO_ROOT / "packages"))
 
 def _scanpy_available() -> bool:
     try:
-        import scanpy  # noqa: F401
         import anndata  # noqa: F401
+        import scanpy  # noqa: F401
     except ImportError:
         return False
     return True
@@ -73,51 +73,81 @@ def _run_backend(backend: str, outdir: Path) -> dict:
 
 
 def _read_clusters(outdir: Path) -> dict[str, int]:
-    """读取聚类结果，返回 {cell_id: cluster}。"""
+    """读取聚类结果，返回 {cell_id: cluster}。
+
+    产出布局（见 run_pipeline.py 的 DIR_* 常量）：
+
+    - ``01_qc/obs_qc.csv`` —— 每个细胞的 obs（含 cluster / leiden 列）
+    - ``03_dimensionality/embeddings.csv`` —— 嵌入坐标
+    - ``05_annotated/cluster_annotations.csv`` —— 簇的注释汇总
+
+    细胞级标签在 ``01_qc/obs_qc.csv`` 里——那是流程里第一个落盘的
+    obs 快照，包含后续步骤写入的 cluster / leiden / cell_type 列。
+    """
     candidates = [
+        outdir / "01_qc" / "obs_qc.csv",
         outdir / "04_clustered" / "clusters.csv",
         outdir / "04_clustered" / "obs.csv",
     ]
     for path in candidates:
-        if path.is_file():
-            with open(path, encoding="utf-8-sig", newline="") as handle:
-                reader = csv.DictReader(handle)
-                if reader.fieldnames and "cell_id" in reader.fieldnames:
-                    col = next(
-                        (c for c in reader.fieldnames if c in ("cluster", "leiden", "labels")),
-                        None,
-                    )
-                    if col:
-                        return {
-                            row["cell_id"]: int(row[col])
-                            for row in reader
-                            if row.get("cell_id") and row.get(col) not in (None, "")
-                        }
-    # 退回到 embeddings + clusters 组合
-    emb_path = outdir / "03_dimensionality" / "embeddings.csv"
-    for path in outdir.rglob("*.csv"):
-        if "cluster" not in path.name.lower():
+        if not path.is_file():
             continue
         with open(path, encoding="utf-8-sig", newline="") as handle:
             reader = csv.DictReader(handle)
             if not reader.fieldnames:
                 continue
             id_col = next(
-                (c for c in reader.fieldnames if c in ("cell_id", "cell", "barcode")),
+                (c for c in reader.fieldnames if c in ("cell_id", "cell", "barcode", "index")),
                 None,
             )
             cl_col = next(
-                (c for c in reader.fieldnames if c in ("cluster", "leiden", "labels")),
+                (c for c in reader.fieldnames if c in ("cluster", "leiden", "louvain", "labels")),
                 None,
             )
             if id_col and cl_col:
-                return {
-                    row[id_col]: int(row[cl_col])
-                    for row in reader
-                    if row.get(id_col) and row.get(cl_col) not in (None, "")
-                }
-    if emb_path.is_file():
-        pytest.fail(f"在 {outdir} 下找不到聚类结果 CSV")
+                clusters: dict[str, int] = {}
+                for row in reader:
+                    raw_id = row.get(id_col)
+                    raw_cl = row.get(cl_col)
+                    if raw_id is None or raw_cl in (None, ""):
+                        continue
+                    try:
+                        clusters[str(raw_id)] = int(float(raw_cl))
+                    except ValueError:
+                        continue
+                if clusters:
+                    return clusters
+
+    # 兜底：在输出目录里搜任何含 cluster 列的 CSV
+    for path in sorted(outdir.rglob("*.csv")):
+        try:
+            with open(path, encoding="utf-8-sig", newline="") as handle:
+                reader = csv.DictReader(handle)
+                if not reader.fieldnames:
+                    continue
+                id_col = next(
+                    (c for c in reader.fieldnames if c in ("cell_id", "cell", "barcode")),
+                    None,
+                )
+                cl_col = next(
+                    (c for c in reader.fieldnames if c in ("cluster", "leiden", "louvain")),
+                    None,
+                )
+                if not (id_col and cl_col):
+                    continue
+                clusters = {}
+                for row in reader:
+                    if row.get(id_col) and row.get(cl_col) not in (None, ""):
+                        try:
+                            clusters[str(row[id_col])] = int(float(row[cl_col]))
+                        except ValueError:
+                            continue
+                if clusters:
+                    return clusters
+        except OSError:
+            continue
+
+    pytest.fail(f"在 {outdir} 下找不到聚类结果 CSV")
     return {}
 
 
@@ -135,7 +165,6 @@ def _adjusted_rand_index(a: dict[str, int], b: dict[str, int]) -> float:
     if not common:
         return 0.0
 
-    from itertools import product
 
     contingency: dict[tuple[int, int], int] = {}
     for cell in common:

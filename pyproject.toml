@@ -70,10 +70,16 @@ dev = [
     "ruff>=0.4",
     "black>=24.3",
     "mypy>=1.9",
+    # 打包测试要真的构建 wheel，因此需要 build
+    "build>=1.0",
     "numpy>=1.23",
     "pandas>=1.5",
     "scipy>=1.9",
     "h5py>=3.8",
+    # 单细胞流程的 numpy 降级后端需要 sklearn（kNN / t-SNE / 聚类）
+    "scikit-learn>=1.1",
+    "matplotlib>=3.6",
+    "leidenalg>=0.10",
     # MDAnalysis 2.8+ 要求 Python >= 3.10；Python 3.9 只能用 2.7.x
     "MDAnalysis>=2.6,<2.8; python_version < '3.10'",
     "MDAnalysis>=2.6; python_version >= '3.10'",
