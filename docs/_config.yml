@@ -66,13 +66,21 @@ nav:
     url: /
   - title: Getting started
     url: /getting-started.html
+  - title: Skill guides
+    url: /skill-guides/
   - title: Skills
     url: /skills/
+  - title: Benchmark
+    url: /BENCHMARK.html
   - title: Skill spec
     url: /SKILL_SPEC.html
   - title: Migration map
     url: /migration-map.html
+  - title: Roadmap
+    url: https://github.com/ssinder/bioinformatics-agent-skills/blob/main/ROADMAP.md
   - title: Contributing
     url: https://github.com/ssinder/bioinformatics-agent-skills/blob/main/CONTRIBUTING.md
+  - title: Support
+    url: https://github.com/ssinder/bioinformatics-agent-skills/blob/main/SUPPORT.md
   - title: GitHub
     url: https://github.com/ssinder/bioinformatics-agent-skills

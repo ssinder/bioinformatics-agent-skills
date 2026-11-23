@@ -152,6 +152,17 @@ def main() -> int:
     home_current = HOME.read_text(encoding="utf-8") if HOME.is_file() else ""
     home_updated = _apply_to_home(home_current, table)
 
+    # BENCHMARK.md 在仓库根目录，但文档站从 docs/ 构建，取不到它。
+    # 因此同步一份到 docs/，让站点导航里的 Benchmark 链接有效。
+    benchmark_src = REPO_ROOT / "BENCHMARK.md"
+    benchmark_dst = REPO_ROOT / "docs" / "BENCHMARK.md"
+    benchmark_current = (
+        benchmark_dst.read_text(encoding="utf-8") if benchmark_dst.is_file() else ""
+    )
+    benchmark_updated = (
+        benchmark_src.read_text(encoding="utf-8") if benchmark_src.is_file() else ""
+    )
+
     if args.check:
         problems: list[str] = []
         if not OUTPUT.is_file():
@@ -160,6 +171,8 @@ def main() -> int:
             problems.append(f"{OUTPUT.relative_to(REPO_ROOT)} 与 SKILL.md 不同步")
         if home_updated != home_current:
             problems.append("docs/index.md 中的技能表格与 SKILL.md 不同步")
+        if benchmark_current != benchmark_updated:
+            problems.append("docs/BENCHMARK.md 与仓库根目录的 BENCHMARK.md 不同步")
 
         if problems:
             for p in problems:
@@ -173,6 +186,9 @@ def main() -> int:
     if home_updated != home_current:
         HOME.write_text(home_updated, encoding="utf-8")
         print("已更新 docs/index.md 中的技能表格")
+    if benchmark_updated != benchmark_current:
+        benchmark_dst.write_text(benchmark_updated, encoding="utf-8")
+        print("已更新 docs/BENCHMARK.md")
 
     print(f"已生成 {OUTPUT.relative_to(REPO_ROOT)}（{len(_skill_rows())} 个技能）")
     return 0

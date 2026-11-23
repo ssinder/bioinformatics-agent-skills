@@ -27,14 +27,42 @@ class SkillSpec:
     @property
     def entry_path(self) -> Path:
         """Absolute path of the entry script."""
-        root = Path(__file__).resolve().parents[2]
-        return root / "skills" / self.name / self.entry
+        return skills_root() / self.name / self.entry
 
     @property
     def skill_md(self) -> Path:
         """Absolute path of SKILL.md."""
-        root = Path(__file__).resolve().parents[2]
-        return root / "skills" / self.name / "SKILL.md"
+        return skills_root() / self.name / "SKILL.md"
+
+
+def skills_root() -> Path:
+    """Locate the directory that holds the skill packages.
+
+    Two layouts must both work:
+
+    * **Development / editable install** — the repository checkout, where
+      ``skills/`` sits next to ``packages/``.
+    * **Wheel install** — ``pip install biopipe-agent-skills`` puts the
+      skill packages *inside* the installed package, because the wheel
+      ships them as package data.
+
+    Without the second case, ``pip install`` would give a ``bioagent``
+    command that lists 17 skills but cannot run any of them.
+    """
+    # Installed layout: <site-packages>/bioagent/skills/
+    packaged = Path(__file__).resolve().parent / "skills"
+    if packaged.is_dir():
+        return packaged
+
+    # Development layout: <repo>/skills/
+    repo_root = Path(__file__).resolve().parents[2]
+    candidate = repo_root / "skills"
+    if candidate.is_dir():
+        return candidate
+
+    # Neither found — return the packaged path so the error message
+    # points at the location that was actually looked for.
+    return packaged
 
 
 REGISTRY: dict[str, SkillSpec] = {

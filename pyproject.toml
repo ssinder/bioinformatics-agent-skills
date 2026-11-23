@@ -1,5 +1,7 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+# setuptools>=77 支持 PEP 639 的 SPDX license 表达式与 license-files。
+# 低版本会把 `license = "MIT"` 当作无效值而构建失败。
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +10,8 @@ version = "1.0.0"
 description = "Agent Skills for computational biology - RNA-seq, single-cell, structure analysis, molecular dynamics, and literature mining"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "sinder", email = "senenenenes@163.com" }]
 keywords = [
     "agent-skills",
@@ -23,7 +26,6 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -31,6 +33,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
+    # Agent Skills 是本包的核心用途，PyPI 上还没有对应分类，
+    # 只能用最贴近的类别标注，让检索者能通过 "Agent" 找到它。
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Environment :: Console",
+    "Natural Language :: English",
 ]
 
 dependencies = [

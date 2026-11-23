@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Skills](https://img.shields.io/badge/Skills-17-brightgreen.svg)](#available-skills)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
-[![skills.sh](https://img.shields.io/badge/skills.sh-bioinformatics-ff69b4)](https://skills.sh/ssinder/bioinformatics-agent-skills)
+[![skills.sh](https://skills.sh/b/ssinder/bioinformatics-agent-skills?style=for-the-badge&height=28)](https://skills.sh/ssinder/bioinformatics-agent-skills)
 [![PyPI](https://img.shields.io/pypi/v/biopipe-agent-skills.svg)](https://pypi.org/project/biopipe-agent-skills/)
 [![CI](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/skill-spec-validation.yml)
 [![Tests](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml/badge.svg)](https://github.com/ssinder/bioinformatics-agent-skills/actions/workflows/tests.yml)
@@ -106,7 +106,14 @@ personal path only. See the [supporting guide](SUPPORT.md) for the per-host path
 pip install biopipe-agent-skills
 bioagent --list                      # list every skill
 bioagent bulk-rnaseq --help         # usage for one skill
+bioagent scientific-figures roc --input metrics.csv --output figures/roc
 ```
+
+The wheel ships the skill packages themselves, so the installed command runs the
+real workflows — no checkout required.
+
+> The console script is `bioagent`. The old `biopipe` name still works as an
+> alias, because `biopipe` is already taken on PyPI by an unrelated package.
 
 ### Option 4 — call the scripts directly
 
