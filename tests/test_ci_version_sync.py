@@ -20,6 +20,13 @@ SCRIPT = REPO_ROOT / "scripts" / "ci_version_sync.py"
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
+# tomllib 是 Python 3.11+ 才有的标准库；3.9 / 3.10 用 tomli。
+# 本仓库声明支持 3.9，因此测试也必须能在 3.9 上跑。
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover
+    import tomli as tomllib
+
 
 def _run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
@@ -54,8 +61,6 @@ class TestConsistencyAcrossFiles:
 
     def test_pyproject_and_plugin_match(self) -> None:
         """pyproject.toml 与 plugin.json 版本一致。"""
-        import tomllib
-
         pyproject = tomllib.loads(
             (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
         )
@@ -65,8 +70,6 @@ class TestConsistencyAcrossFiles:
     def test_citation_matches(self) -> None:
         """CITATION.cff 版本与包版本一致。"""
         import re
-
-        import tomllib
 
         pyproject = tomllib.loads(
             (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
@@ -177,8 +180,6 @@ class TestCheckerCatchesDrift:
         assert plugin["version"] == "2.0.0"
 
         import re
-
-        import tomllib
 
         pyproject = tomllib.loads(
             (tmp_path / "pyproject.toml").read_text(encoding="utf-8")

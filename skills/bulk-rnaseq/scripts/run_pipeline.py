@@ -381,8 +381,12 @@ def _deseq2_r_backend(
         )
 
     r_counts = out_dir / "_r_counts.tsv"
-    counts_out = counts_t.copy()
-    counts_out.index.name = "sample"
+    # DESeq2 的 countData 约定是**基因 × 样本**（行=基因，列=样本），
+    # 而内部使用的 counts_t 是**样本 × 基因**。必须在这里转置，
+    # 否则 DESeqDataSetFromMatrix 会报
+    # "ncol(countData) == nrow(colData) is not TRUE"。
+    counts_out = counts_t.T.copy()
+    counts_out.index.name = "gene_id"
     counts_out.to_csv(r_counts, sep="\t")
 
     r_meta = out_dir / "_r_meta.tsv"
@@ -395,10 +399,18 @@ def _deseq2_r_backend(
     r_script.write_text(
         f"""
 suppressPackageStartupMessages({{library(DESeq2)}})
+# counts: 基因 × 样本（DESeq2 的约定）；meta: 样本 × 变量
 counts <- as.matrix(read.delim("{r_counts.as_posix()}", row.names = 1, check.names = FALSE))
 meta <- read.delim("{r_meta.as_posix()}", row.names = 1, check.names = FALSE)
 meta$condition <- factor(meta$condition)
-rownames(meta) <- rownames(counts)
+# 样本名对齐：以 counts 的列名为准，并检查两边完全一致——
+# 不一致时 R 会静默复用行，报出难以定位的错。
+if (!setequal(colnames(counts), rownames(meta))) {{
+  stop(sprintf("样本名不匹配: counts=[%s] meta=[%s]",
+               paste(colnames(counts), collapse=","),
+               paste(rownames(meta), collapse=",")))
+}}
+meta <- meta[colnames(counts), , drop = FALSE]
 dds <- DESeqDataSetFromMatrix(countData = round(counts), colData = meta, design = {design})
 dds <- DESeq(dds)
 res <- results(dds, contrast = c("condition", "{group_a}", "{group_b}"), alpha = {alpha})

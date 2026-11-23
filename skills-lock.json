@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "skills": {
+    "bulk-rnaseq": {
+      "source": "ssinder/bioinformatics-agent-skills",
+      "commit": "574191ca08909e61c0863fba69e7c941b03d374f",
+      "sourceType": "github",
+      "skillPath": "skills/bulk-rnaseq/SKILL.md",
+      "computedHash": "883da039166f90f5a444fca47f9c0119466981fac84d65076e904c7e53a2e411"
+    }
+  }
+}

@@ -138,23 +138,13 @@ jobs:
 
       - name: Verify both backends agree
         # 关键：这里必须真的跑对照，而不是跳过。
-        # 若环境里明明装了 DESeq2 却跳过，视为失败——否则这个 job
-        # 会变成一个永不验证的摆设徽章。
+        # ci_verify_backend.py 会先探测参考实现是否可用，
+        # 不可用就直接失败；可用则跑 pytest，并把跳过数也视为失败——
+        # 否则这个 job 会变成一个永不验证的摆设徽章。
         run: |
-          python - <<'PY'
-          import subprocess, sys
-          probe = subprocess.run(
-              ["Rscript", "-e", "cat(requireNamespace('DESeq2', quietly=TRUE))"],
-              capture_output=True, text=True,
-          )
-          if "TRUE" not in probe.stdout:
-              print("::error::DESeq2 未安装成功，无法进行后端一致性验证")
-              raise SystemExit(1)
-          raise SystemExit(subprocess.call([
-              sys.executable, "-m", "pytest",
-              "tests/test_backend_agreement.py", "-v", "--no-header",
-          ]))
-          PY
+          python scripts/ci_verify_backend.py \
+            --reference deseq2 \
+            --test tests/test_backend_agreement.py
 
   scrna-backend-agreement:
     name: Backend agreement (scanpy reference)
@@ -185,18 +175,7 @@ jobs:
 
       - name: Verify both backends agree
         run: |
-          python - <<'PY'
-          import subprocess, sys
-          probe = subprocess.run(
-              [sys.executable, "-c", "import scanpy, anndata; print('OK')"],
-              capture_output=True, text=True,
-          )
-          if probe.returncode != 0:
-              print("::error::scanpy 未安装成功，无法进行后端一致性验证")
-              raise SystemExit(1)
-          raise SystemExit(subprocess.call([
-              sys.executable, "-m", "pytest",
-              "tests/test_scrna_backend_agreement.py", "-v", "--no-header",
-          ]))
-          PY
+          python scripts/ci_verify_backend.py \
+            --reference scanpy \
+            --test tests/test_scrna_backend_agreement.py
 
