@@ -55,7 +55,7 @@ single-cell = [
     # 已移除的 Weighted_AdjacencyMatrix —— 上游声明与实现不符，
     # 因此这里把 igraph 锁在 1.0 之前。
     "leidenalg>=0.10",
-    "igraph<1.0",
+    "igraph<2.0",
 ]
 structure = ["biopython>=1.80"]
 visualization = ["matplotlib>=3.6", "seaborn>=0.12"]
@@ -70,7 +70,7 @@ all = [
     "scanpy>=1.9",
     "anndata>=0.9",
     "leidenalg>=0.10",
-    "igraph<1.0",
+    "igraph<2.0",
     "feedparser>=6.0",
 ]
 dev = [
