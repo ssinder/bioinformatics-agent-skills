@@ -6,7 +6,7 @@
 # 以下均为可选增强项：
 
 # UniProt 元数据查询（scripts/uniprot_client.py）
-requests>=2.28
+requests>=2.34.2
 
 # 若希望用 Biopython 交叉校验解析结果（可选）
 # biopython>=1.80
