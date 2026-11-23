@@ -8,10 +8,29 @@
 
 ## 一次性准备（首次发布前）
 
-### 1. PyPI 项目与 Trusted Publisher
+### ✅ 1. GitHub Environment `pypi`（已创建）
 
-1. 在 <https://pypi.org/manage/account/publishing/> 创建项目，
-   名称必须为 **`biopipe-agent-skills`**（`biopipe` 这个名字已被他人占用）。
+已在仓库 Settings → Environments 下创建名为 **`pypi`** 的 environment。
+
+> **名字必须与 workflow 完全一致。** `.github/workflows/release.yml` 里
+> `publish-pypi` job 声明了 `environment: pypi`；Trusted Publishing 的
+> 三元组里填的 Environment 必须一字不差，否则 OIDC 令牌签发会失败。
+
+### 🔲 2. PyPI 账号与项目（需要你操作）
+
+本仓库**还没有 PyPI 账号**，也没有 `biopipe-agent-skills` 这个项目。
+
+> `biopipe` 这个包名已被第三方占用（dohlee/python-biopipe），所以
+> 用了 `biopipe-agent-skills`。这个名字在 PyPI 上目前空闲。
+
+请到 <https://pypi.org/register/> 注册账号（若已有则直接登录），然后：
+
+1. 创建项目 `biopipe-agent-skills`：
+
+   <https://pypi.org/manage/project/biopipe-agent-skills/>
+
+   项目名 **必须**是 `biopipe-agent-skills`——一旦创建就不能改名。
+
 2. 在项目设置 → Publishing → Add a GitHub publisher，填入：
 
    | 字段 | 值 |
@@ -20,21 +39,23 @@
    | Workflow | `release.yml` |
    | Environment | `pypi` |
 
-   > `Environment` 必须与 `.github/workflows/release.yml` 里
-   > `publish-pypi` job 的 `environment.name` **完全一致**。
+   > Environment 这一项填 `pypi`——就是上面已创建好的那个。
 
-3. 在 GitHub 仓库创建名为 `pypi` 的 Environment（Settings → Environments），
-   并建议启用 required reviewers。
+### 🔲 3. TestPyPI 演练（强烈建议）
 
-发布时会自动生成 **PEP 740 attestations**——把每个文件绑定到
-仓库、工作流与 commit，无需额外配置。
+Trusted Publishing 的首次配置**几乎总是**在某处有个笔误（workflow 名、
+environment 名、或仓库名），而 **PyPI 不允许重传同名文件**——一旦发错版本，
+只能 yank（撤回警告）而不能彻底删除。
 
-> **建议先在 TestPyPI 演练一次。** Trusted Publishing 的首次配置几乎总是
-> 在 workflow 名或 environment 名上有个笔误，而 PyPI **不允许重传同名文件**。
-> 把 workflow 里的 `environment.name` 临时改成 `pypi-test`、在 TestPyPI
-> 侧登记同样的三元组，跑一次即可验证。
+演练步骤：
 
-### 2. Zenodo（概念 DOI）
+1. 在 <https://test.pypi.org/manage/project/biopipe-agent-skills/> 重复第 2 步
+   （TestPyPI 的包名通常需要带版本后缀，如 `biopipe-agent-skills` 即可）
+2. 临时把 `release.yml` 里 `publish-pypi` job 的 `environment.name`
+   改成 `pypi-test`，在 TestPyPI 侧登记同样的三元组
+3. 打一个测试 tag 触发，确认成功后再改回来
+
+### 🔲 4. Zenodo（概念 DOI）
 
 1. 在 <https://zenodo.org/account/settings/applications/> 创建 GitHub 应用，
    授权仓库 `ssinder/bioinformatics-agent-skills`。
@@ -48,10 +69,9 @@
 
 元数据来自 `CITATION.cff` 与 `.zenodo.yaml`。
 
-### 3. skills.sh 徽章
+### ✅ 5. skills.sh 徽章（已就绪）
 
-已收录，徽章已接好。首次安装后平台会自动生成安全审计
-（Gen Agent Trust Hub / Socket / Snyk），徽章上的安装量随之更新。
+已被自动收录（收录靠安装遥测，无需投稿）。徽章已接好，安装量随安装次数更新。
 
 ---
 
@@ -152,3 +172,22 @@ gh release delete v1.0.1
 
 **新增技能是 minor，不是 patch**——用户会按版本号判断兼容性，
 而新增技能会改变 `bioagent --list` 的输出。
+
+---
+
+## 当前状态
+
+| 项目 | 状态 |
+|---|---|
+| GitHub Environment `pypi` | ✅ 已创建 |
+| `release.yml` 的 Trusted Publishing 配置 | ✅ 已就绪（`id-token: write` + `environment: pypi`） |
+| `pypa/gh-action-pypi-publish@release/v1` | ✅ 已接入（自动生成 PEP 740 attestations） |
+| `.zenodo.yaml` | ✅ 已就绪 |
+| skills.sh 收录 | ✅ 已收录 |
+| PyPI 账号 | 🔲 需要你注册 |
+| PyPI 项目 `biopipe-agent-skills` | 🔲 需要你创建 |
+| PyPI GitHub publisher 三元组 | 🔲 需要你填写 |
+| Zenodo GitHub 集成 | 🔲 需要你授权 |
+
+**剩下的三步都必须在 PyPI / Zenodo 的网页后台完成**——PyPI 不支持
+第三方登录，且 `biopipe-agent-skills` 这个项目名一旦占用就不能更改。
