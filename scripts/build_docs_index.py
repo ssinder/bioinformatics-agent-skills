@@ -52,12 +52,24 @@ title: 技能总览
 _FOOTER = """
 ## 安装方式
 
-将 `skills/` 目录复制到宿主的技能目录即可被发现：
+推荐用 skills CLI 安装（支持 Claude Code、Codex、Cursor、OpenCode 等 80+ 宿主，
+自动处理各宿主的技能目录）：
+
+```bash
+npx skills add ssinder/bioinformatics-agent-skills
+```
+
+也可以手动把 `skills/` 目录复制到宿主的技能目录：
 
 ```bash
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
 ```
+
+> **建议按需安装。** 宿主启动时会读取每个技能的描述来决定是否加载它；
+> 装得太多时宿主会为了控制上下文预算丢弃部分描述，而没有描述的技能
+> 就永远匹配不上，也就永远不会被触发。每个工作流装 2–3 个即可。
+> 推荐组合见[工作流指南](/skill-guides/)。
 
 详见 [快速上手](/getting-started.html)。
 """

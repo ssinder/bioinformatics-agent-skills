@@ -24,12 +24,26 @@ skills that any AI agent can pick up and run.
 ## Quick start
 
 ```bash
-git clone https://github.com/ssinder/bioinformatics-agent-skills.git
-cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
+npx skills add ssinder/bioinformatics-agent-skills
 ```
 
-Restart your host and the skills are discovered automatically. See
-[Getting Started]({{ '/getting-started.html' | relative_url }}) for the full walkthrough.
+Works with 80+ agent hosts (Claude Code, Codex, Cursor, OpenCode, …) and handles
+per-host paths automatically. To install only what a given workflow needs, name the
+skills explicitly:
+
+```bash
+npx skills add ssinder/bioinformatics-agent-skills \
+  --skill ena-download --skill bulk-rnaseq --skill scientific-figures
+```
+
+> **Install selectively.** The agent reads each skill's description at startup to
+> decide whether to load one. Installing too many at once makes the host drop
+> some descriptions to fit its context budget — and a skill without a description
+> can never be matched, so it never fires. Two to three per workflow is the
+> effective range; the [skill guides]({{ '/skill-guides/' | relative_url }}) list
+> recommended combinations.
+
+See [Getting Started]({{ '/getting-started.html' | relative_url }}) for the full walkthrough.
 
 ## Why Agent Skills
 
@@ -121,9 +135,13 @@ That description is the routing signal the agent dispatches on.
 ## Documentation
 
 - [Getting Started]({{ '/getting-started.html' | relative_url }}) — install, configure, and run your first skill
+- [Skill Guides]({{ '/skill-guides/' | relative_url }}) — recommended skill combinations per research workflow
 - [Skills Overview]({{ '/skills/' | relative_url }}) — every skill and the scenarios it fits
+- [Benchmark]({{ '/BENCHMARK.html' | relative_url }}) — measured correctness: backends agree, routing is tested
 - [Skill Spec]({{ '/SKILL_SPEC.html' | relative_url }}) — how to write a new skill
+- [Roadmap](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/ROADMAP.md) — what is planned and what is deliberately not
 - [Contributing](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/CONTRIBUTING.md)
+- [Support](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/SUPPORT.md)
 
 ## Citation
 

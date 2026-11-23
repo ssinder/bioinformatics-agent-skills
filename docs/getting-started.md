@@ -4,21 +4,42 @@ This guide walks you through installing, configuring, and using BioinfoAgent Ski
 
 ## Installation
 
-### As Claude Code skills
+### With the skills CLI (recommended)
 
 ```bash
-git clone https://github.com/ssinder/bioinformatics-agent-skills.git
-cp -r bioinformatics-agent-skills/skills/* ~/.claude/skills/
+npx skills add ssinder/bioinformatics-agent-skills
 ```
 
-Restart Claude Code and the skills are discovered automatically.
+This works with 80+ agent hosts (Claude Code, Codex, Cursor, OpenCode, …) and
+handles the per-host skill directories automatically.
 
-> Other hosts that follow the [Agent Skills standard](https://agentskills.io/) are supported as well:
-> Cursor, Codex, Google Antigravity, and others. Simply place the `skills/` directory wherever your host reads skills from.
+To install only what a given workflow needs, name the skills explicitly:
+
+```bash
+npx skills add ssinder/bioinformatics-agent-skills \
+  --skill ena-download --skill bulk-rnaseq --skill scientific-figures
+```
+
+> **Install selectively.** The agent reads every installed skill's description at
+> startup to decide whether to load one. When too many are installed, the host
+> drops some descriptions to fit its context budget — and a skill without a
+> description can never be matched, so it never fires. Two to three per workflow
+> is the effective range. The [skill guides]({{ '/skill-guides/' | relative_url }})
+> list recommended combinations per research task.
+
+Restart your host and the skills are discovered automatically.
+
+> Other hosts that follow the [Agent Skills standard](https://agentskills.io/)
+> are supported as well — Cursor, Codex, Google Antigravity, and others. The CLI
+> handles their directory conventions; if you prefer to install manually, see
+> [Support](https://github.com/ssinder/bioinformatics-agent-skills/blob/main/SUPPORT.md)
+> for the per-host paths.
 
 ### As a Python package
 
 ```bash
+pip install biopipe-agent-skills          # from PyPI
+# or from a checkout
 git clone https://github.com/ssinder/bioinformatics-agent-skills.git
 cd bioinformatics-agent-skills
 pip install -e ".[all]"     # install all scientific computing dependencies
@@ -29,11 +50,17 @@ pip install -e ".[structure]"
 pip install -e ".[visualization]"
 ```
 
+The wheel ships the skill packages themselves, so the installed command runs the
+real workflows — no checkout required.
+
 Verify the installation:
 
 ```bash
 bioagent --list
 ```
+
+> The console script is `bioagent`. The old `biopipe` name still works as an
+> alias, because `biopipe` is already taken on PyPI by an unrelated package.
 
 ## Configuration
 
